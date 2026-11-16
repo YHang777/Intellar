@@ -80,8 +80,17 @@ export interface ChatStateOrder {
   placedAt?: string;
 }
 
+export interface ChatStatePreferences {
+  styles?: string[];
+  colours?: string[];
+  materials?: string[];
+  ecoFriendly?: boolean;
+  notes?: string;
+}
+
 /** The customer's own app state — verified figures, never model guesses. */
 export interface ChatState {
+  preferences?: ChatStatePreferences;
   cart?: { items: ChatStateCartLine[]; itemCount: number; subtotal: number };
   plan?: ChatStatePlan;
   budget?: ChatStateBudget;
@@ -177,6 +186,7 @@ Live app state:
 - When a "Customer's live app state" block is included below, it is verified data from the app itself: cart, room plan, budget, recent orders and wishlist. Treat it as fact and answer state questions from it — use the exact numbers, names and counts given there.
 - Never invent or guess state that is not in that block. If asked for something it does not include (payment details, delivery dates, stock changes), say briefly that you cannot see it and point to the right screen: Cart, Orders, Budget or the Room plan.
 - Keep state answers short — one or two sentences and the key number. Do not read long lists back; the app shows a detail card beside your reply.
+- Design preferences in that block are the taste the customer saved on their profile. Use them as the default when they have not said otherwise in the chat (what they say in the chat always wins), and say briefly when a suggestion matches them.
 - Budget figures: "cap" is what the customer set; "estimate" is a median-price estimate from the catalogue, not money spent. Never describe an estimate as spending.
 
 Hard limits:
@@ -492,6 +502,19 @@ export function formatStateBlock(state: ChatState): string {
 
   if (state.wishlistCount != null && state.wishlistCount > 0) {
     lines.push(`- Wishlist: ${state.wishlistCount} saved item(s).`);
+  }
+
+  const prefs = state.preferences;
+  if (prefs) {
+    const bits: string[] = [];
+    const list = (v?: string[]) => (Array.isArray(v) ? v.filter((x) => x.trim()).join(', ') : '');
+    if (list(prefs.styles)) bits.push(`styles ${list(prefs.styles)}`);
+    if (list(prefs.colours)) bits.push(`colours ${list(prefs.colours)}`);
+    if (list(prefs.materials)) bits.push(`materials ${list(prefs.materials)}`);
+    if (prefs.ecoFriendly) bits.push('prefers eco-friendly pieces');
+    const notes = prefs.notes?.replace(/\s+/g, ' ').trim();
+    if (notes) bits.push(`notes: "${notes.slice(0, 200)}"`);
+    if (bits.length > 0) lines.push(`- Design preferences: ${bits.join('; ')}.`);
   }
 
   if (lines.length === 0) return '';

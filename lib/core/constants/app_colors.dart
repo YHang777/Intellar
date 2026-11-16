@@ -18,8 +18,11 @@ class AppColors {
   static const Color surfaceContainer = Color(0xFFF3F4F6);
 
   static const Color textPrimary = Color(0xFF1A1A2E);
-  static const Color textSecondary = Color(0xFF6B7280);
-  static const Color textHint = Color(0xFF9CA3AF);
+  static bool highContrast = false;
+  static Color get textSecondary =>
+      highContrast ? const Color(0xFF374151) : const Color(0xFF6B7280);
+  static Color get textHint =>
+      highContrast ? const Color(0xFF4B5563) : const Color(0xFF9CA3AF);
   static const Color textOnDark = Colors.white;
 
   static const Color success = Color(0xFF2E7D32);
@@ -35,7 +38,8 @@ class AppColors {
   static const Color gradientOrange = Color(0xFFFFB74D);
   static const Color gradientRed = Color(0xFFEF5350);
 
-  static const Color border = Color(0xFFE5E7EB);
+  static Color get border =>
+      highContrast ? const Color(0xFF6B7280) : const Color(0xFFE5E7EB);
   static const Color divider = Color(0xFFF3F4F6);
 
   static const Color shimmer = Color(0xFFE5E7EB);

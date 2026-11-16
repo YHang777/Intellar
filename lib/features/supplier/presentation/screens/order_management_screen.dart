@@ -116,7 +116,7 @@ class _OrderManagementScreenState
         ),
         const SizedBox(height: 16),
         FilterChipBar<_OrderBucket>(
-          prefixIcon: const Padding(
+          prefixIcon: Padding(
             padding: EdgeInsets.only(left: 4),
             child: Icon(Icons.filter_alt_outlined,
                 size: 16, color: AppColors.textSecondary),
@@ -250,7 +250,7 @@ class _OrderTile extends StatelessWidget {
                         const SizedBox(height: 6),
                         Row(
                           children: [
-                            const Icon(Icons.person_outline,
+                            Icon(Icons.person_outline,
                                 size: 13, color: AppColors.textHint),
                             const SizedBox(width: 5),
                             Expanded(

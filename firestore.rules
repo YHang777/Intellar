@@ -20,13 +20,18 @@ service cloud.firestore {
     // when the app submits a verification application.
     match /users/{uid} {
       allow read: if isOwner(uid);
+      // twoFactorEnabled is server-owned: only /api/account/2fa/settings
+      // (Admin SDK, after a valid emailed code) may turn it on or off.
       allow create: if isOwner(uid) &&
           (!('verificationStatus' in request.resource.data) ||
-           request.resource.data.verificationStatus != 'verified');
+           request.resource.data.verificationStatus != 'verified') &&
+          !('twoFactorEnabled' in request.resource.data);
       allow update: if isOwner(uid) &&
           (!request.resource.data.diff(resource.data).affectedKeys()
              .hasAny(['verificationStatus']) ||
-           request.resource.data.verificationStatus != 'verified');
+           request.resource.data.verificationStatus != 'verified') &&
+          !request.resource.data.diff(resource.data).affectedKeys()
+             .hasAny(['twoFactorEnabled']);
       allow delete: if isOwner(uid);
     }
 

@@ -8,7 +8,13 @@ import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
+import '../../features/auth/presentation/screens/two_factor_screen.dart';
 import '../../features/auth/presentation/screens/verify_email_screen.dart';
+import '../../features/onboarding/presentation/onboarding_screen.dart';
+import '../../features/settings/presentation/screens/accessibility_settings_screen.dart';
+import '../../features/settings/presentation/screens/design_preferences_screen.dart';
+import '../../features/settings/presentation/screens/notification_privacy_screen.dart';
+import '../../features/settings/presentation/screens/security_settings_screen.dart';
 import '../../features/customer/budget/presentation/screens/budget_planner_screen.dart';
 import '../../features/customer/homeowner/presentation/screens/ai_recommendation_screen.dart';
 import '../../features/customer/homeowner/presentation/screens/dashboard_screen.dart';
@@ -83,8 +89,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (!isLoggedIn && !isOnAuthRoute) {
         return '/login';
       }
+      final home =
+          (user?.isHomeowner ?? true) ? '/home' : '/supplier/dashboard';
+      final loc = state.matchedLocation;
+      if (isLoggedIn && user.twoFactorPending) {
+        return loc == '/two-factor' ? null : '/two-factor';
+      }
+      if (loc == '/two-factor') {
+        return isLoggedIn ? home : '/login';
+      }
+      if (isLoggedIn && !user.onboardingCompleted) {
+        return loc == '/onboarding' ? null : '/onboarding';
+      }
       if (isLoggedIn && isOnAuthRoute) {
-        return user.isHomeowner ? '/home' : '/supplier/dashboard';
+        return home;
+      }
+      if (loc == '/onboarding' || loc.startsWith('/settings/')) {
+        if (isLoggedIn && user.isSupplier && loc == '/settings/preferences') {
+          return '/supplier/dashboard';
+        }
+        return null;
       }
       if (isLoggedIn && user.isHomeowner &&
           state.matchedLocation.startsWith('/supplier')) {
@@ -126,6 +150,40 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/verify-email',
         name: RouteNames.verifyEmail,
         pageBuilder: (_, __) => _buildPage(const VerifyEmailScreen()),
+      ),
+
+      GoRoute(
+        path: '/two-factor',
+        name: RouteNames.twoFactor,
+        pageBuilder: (_, __) => _buildPage(const TwoFactorScreen()),
+      ),
+      GoRoute(
+        path: '/onboarding',
+        name: RouteNames.onboarding,
+        pageBuilder: (_, __) => _buildPage(const OnboardingScreen()),
+      ),
+
+      // ── Settings (both roles) ──
+      GoRoute(
+        path: '/settings/security',
+        name: RouteNames.settingsSecurity,
+        pageBuilder: (_, __) => _buildPage(const SecuritySettingsScreen()),
+      ),
+      GoRoute(
+        path: '/settings/notifications',
+        name: RouteNames.settingsNotifications,
+        pageBuilder: (_, __) => _buildPage(const NotificationPrivacyScreen()),
+      ),
+      GoRoute(
+        path: '/settings/accessibility',
+        name: RouteNames.settingsAccessibility,
+        pageBuilder: (_, __) =>
+            _buildPage(const AccessibilitySettingsScreen()),
+      ),
+      GoRoute(
+        path: '/settings/preferences',
+        name: RouteNames.settingsPreferences,
+        pageBuilder: (_, __) => _buildPage(const DesignPreferencesScreen()),
       ),
 
       // ── Standalone routes ──

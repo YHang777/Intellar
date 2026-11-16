@@ -89,6 +89,11 @@ class ChatHistoryNotifier extends Notifier<ChatHistoryState> {
     unawaited(_persist());
   }
 
+  void clearAll() {
+    state = const ChatHistoryState(sessions: []);
+    unawaited(_persist());
+  }
+
   String ensureActiveSession({String? style, String? room}) {
     final existing = state.activeSession;
     if (existing != null) return existing.id;

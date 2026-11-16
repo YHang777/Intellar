@@ -141,7 +141,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 style: SegmentedButton.styleFrom(
                   selectedBackgroundColor: AppColors.accent,
                   selectedForegroundColor: Colors.white,
-                  side: const BorderSide(color: AppColors.border),
+                  side: BorderSide(color: AppColors.border),
                   textStyle: GoogleFonts.poppins(fontSize: 14),
                 ),
               ),

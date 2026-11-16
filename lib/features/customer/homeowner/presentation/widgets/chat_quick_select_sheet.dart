@@ -108,7 +108,7 @@ class _ChatQuickSelectSheetState extends ConsumerState<ChatQuickSelectSheet> {
                 IconButton(
                   tooltip: 'Close',
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close,
+                  icon: Icon(Icons.close,
                       size: 20, color: AppColors.textSecondary),
                 ),
               ],
@@ -274,7 +274,7 @@ class _ChatQuickSelectSheetState extends ConsumerState<ChatQuickSelectSheet> {
       ),
       onPressed: onTap,
       backgroundColor: AppColors.surfaceElevated,
-      side: const BorderSide(color: AppColors.border, width: 1),
+      side: BorderSide(color: AppColors.border, width: 1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
@@ -325,7 +325,7 @@ class _ChatQuickSelectSheetState extends ConsumerState<ChatQuickSelectSheet> {
                     ),
                   ),
                 ),
-                const Icon(Icons.chevron_right,
+                Icon(Icons.chevron_right,
                     size: 18, color: AppColors.textHint),
               ],
             ),

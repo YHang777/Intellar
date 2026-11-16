@@ -365,6 +365,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                     );
                   }),
+                  _LinkRow(Icons.palette_outlined, 'Design Preferences',
+                      () => pushOnce(context, '/settings/preferences')),
+                  _LinkRow(Icons.shield_outlined, 'Login & Security',
+                      () => pushOnce(context, '/settings/security')),
+                  _LinkRow(Icons.notifications_outlined,
+                      'Notifications & Privacy',
+                      () => pushOnce(context, '/settings/notifications')),
+                  _LinkRow(Icons.accessibility_new, 'Accessibility',
+                      () => pushOnce(context, '/settings/accessibility')),
+                  _LinkRow(Icons.tour_outlined, 'App Tour',
+                      () => pushOnce(context, '/onboarding')),
                 ],
               ),
               const SizedBox(height: 20),
@@ -561,7 +572,7 @@ class _EditField extends StatelessWidget {
                 ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -651,7 +662,7 @@ class _LinkRow extends StatelessWidget {
                 ),
               ),
             ),
-            const Icon(
+            Icon(
               Icons.chevron_right,
               color: AppColors.textHint,
               size: 20,

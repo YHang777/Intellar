@@ -484,7 +484,7 @@ class _ProductManagementScreenState
         ),
         const SizedBox(height: 12),
         FilterChipBar<_ProductFilter>(
-          prefixIcon: const Padding(
+          prefixIcon: Padding(
             padding: EdgeInsets.only(left: 4),
             child: Icon(Icons.tune,
                 size: 16, color: AppColors.textSecondary),

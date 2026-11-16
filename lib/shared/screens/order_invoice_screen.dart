@@ -433,7 +433,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: AppColors.border)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -518,7 +518,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
               onPressed: onTap,
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.border),
+                side: BorderSide(color: AppColors.border),
                 padding:
                     const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 shape: RoundedRectangleBorder(
@@ -526,7 +526,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
                 ),
               ),
               child: onTap == null
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(

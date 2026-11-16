@@ -154,7 +154,7 @@ class _SuccessView extends ConsumerWidget {
           ),
         ),
         const SizedBox(height: 10),
-        const Text(
+        Text(
           'Your payment is confirmed and your items are reserved. '
           'You can track the order anytime in your orders.',
           textAlign: TextAlign.center,
@@ -191,7 +191,7 @@ class _SuccessView extends ConsumerWidget {
                 const SizedBox(height: 6),
                 Text(
                   'Ref ${order.paymentIntentId}',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 11.5, color: AppColors.textHint),
                 ),
               ],
@@ -203,7 +203,7 @@ class _SuccessView extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('PICKUP FROM',
+              Text('PICKUP FROM',
                   style: TextStyle(
                       fontSize: 10.5,
                       letterSpacing: 0.8,
@@ -219,7 +219,7 @@ class _SuccessView extends ConsumerWidget {
                 '${order.customerName}'
                 '${order.customerPhone.trim().isEmpty ? '' : ' · ${order.customerPhone.trim()}'}'
                 ' — the supplier will contact you to arrange collection.',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 11.5,
                     height: 1.4,
                     color: AppColors.textSecondary),
@@ -359,7 +359,7 @@ Widget _pickupRow(
             if (address.isNotEmpty) ...[
               const SizedBox(height: 2),
               Text(address,
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12,
                       height: 1.4,
                       color: AppColors.textSecondary)),

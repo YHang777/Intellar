@@ -231,7 +231,7 @@ class _CartEstimateCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('Member discount',
+                Text('Member discount',
                     style: TextStyle(
                         fontSize: 12.5, color: AppColors.textSecondary)),
                 Text('-${Formatters.myr(bd.discount)}',
@@ -247,7 +247,7 @@ class _CartEstimateCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Est. tax (${taxPercentLabel(taxRate)})',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 12.5, color: AppColors.textSecondary)),
               Text(Formatters.myr(bd.tax),
                   style: const TextStyle(
@@ -290,7 +290,7 @@ class _EstimateSkeleton extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -400,7 +400,7 @@ class _CartItemCard extends ConsumerWidget {
                         IconButton(
                           visualDensity: VisualDensity.compact,
                           tooltip: 'Remove from cart',
-                          icon: const Icon(Icons.close,
+                          icon: Icon(Icons.close,
                               size: 18, color: AppColors.textHint),
                           onPressed: onRemove,
                         ),
@@ -410,7 +410,7 @@ class _CartItemCard extends ConsumerWidget {
                     VerifiedSellerLine(supplier: product.supplier),
                     Text(
                       '${Formatters.myr(product.price)} each',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
@@ -426,7 +426,7 @@ class _CartItemCard extends ConsumerWidget {
                               color: AppColors.border,
                               borderRadius: BorderRadius.circular(8),
                             ),
-                            child: const Text(
+                            child: Text(
                               'Qty',
                               style: TextStyle(
                                   fontSize: 12,
@@ -539,7 +539,7 @@ class _CheckoutBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final canCheckout = itemCount > 0 && !hasInvalidRows;
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.surface,
         border: Border(top: BorderSide(color: AppColors.border)),
       ),
@@ -561,7 +561,7 @@ class _CheckoutBar extends StatelessWidget {
                       child: Text(
                         '${tier!.name} member: ${tier!.discountPercent}% off '
                         'applies at checkout',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,

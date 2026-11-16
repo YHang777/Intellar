@@ -263,3 +263,17 @@ test('formatStateBlock → hard-clips to 1500 chars', () => {
   });
   assert.ok(block.length <= 1500);
 });
+
+test('state block carries the saved design preferences', () => {
+  const block = formatStateBlock({
+    preferences: {
+      styles: ['Scandinavian', 'Japandi'],
+      colours: ['Warm neutrals'],
+      materials: ['Wood'],
+      ecoFriendly: true,
+      notes: '  small flat,\n two cats ',
+    },
+  });
+  assert.match(block, /Design preferences: styles Scandinavian, Japandi; colours Warm neutrals; materials Wood; prefers eco-friendly pieces; notes: "small flat, two cats"\./);
+  assert.equal(formatStateBlock({ preferences: {} }), '');
+});

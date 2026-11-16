@@ -219,7 +219,7 @@ class _RobotChatPanelState extends ConsumerState<RobotChatPanel> {
                 IconButton(
                   tooltip: 'Close',
                   onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close,
+                  icon: Icon(Icons.close,
                       size: 20, color: AppColors.textSecondary),
                 ),
               ],

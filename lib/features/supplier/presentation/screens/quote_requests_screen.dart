@@ -204,7 +204,7 @@ class _QuoteTile extends StatelessWidget {
                     compact: true,
                   ),
                   const SizedBox(height: 6),
-                  const Icon(Icons.chevron_right,
+                  Icon(Icons.chevron_right,
                       size: 20, color: AppColors.textHint),
                 ],
               ),

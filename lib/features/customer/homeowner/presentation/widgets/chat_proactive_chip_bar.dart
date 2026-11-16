@@ -56,7 +56,7 @@ class ChatProactiveChipBar extends ConsumerWidget {
       selected: false,
       onSelected: (_) => onTap(),
       backgroundColor: AppColors.surfaceElevated,
-      side: const BorderSide(color: AppColors.border, width: 1),
+      side: BorderSide(color: AppColors.border, width: 1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),

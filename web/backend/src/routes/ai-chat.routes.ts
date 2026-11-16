@@ -79,6 +79,15 @@ const stateOrder = z.object({
   placedAt: z.string().trim().max(40).optional(),
 });
 
+const prefTag = z.string().trim().min(1).max(40);
+const statePreferences = z.object({
+  styles: z.array(prefTag).max(6).optional(),
+  colours: z.array(prefTag).max(6).optional(),
+  materials: z.array(prefTag).max(6).optional(),
+  ecoFriendly: z.boolean().optional(),
+  notes: z.string().trim().max(200).optional(),
+});
+
 const chatStateSchema = z.object({
   cart: z
     .object({
@@ -91,6 +100,7 @@ const chatStateSchema = z.object({
   budget: stateBudget.optional(),
   orders: z.array(stateOrder).max(3).optional(),
   wishlistCount: z.number().int().nonnegative().max(99999).optional(),
+  preferences: statePreferences.optional(),
 });
 
 const chatBodySchema = z.object({

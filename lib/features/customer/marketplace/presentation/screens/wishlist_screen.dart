@@ -135,7 +135,7 @@ class WishlistScreen extends ConsumerWidget {
               Container(
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  border: const Border(top: BorderSide(color: AppColors.border)),
+                  border: Border(top: BorderSide(color: AppColors.border)),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -156,7 +156,7 @@ class WishlistScreen extends ConsumerWidget {
                           child: Text(
                             '$skippedCount out of stock — they\'ll stay in '
                             'your wishlist',
-                            style: const TextStyle(
+                            style: TextStyle(
                                 fontSize: 12,
                                 color: AppColors.textSecondary),
                           ),
@@ -330,7 +330,7 @@ class _WishlistRow extends StatelessWidget {
                           onPressed: onRemove,
                           tooltip: 'Remove from wishlist',
                           visualDensity: VisualDensity.compact,
-                          icon: const Icon(Icons.close,
+                          icon: Icon(Icons.close,
                               size: 18, color: AppColors.textHint),
                         ),
                       ],
@@ -372,7 +372,7 @@ class _WishlistRow extends StatelessWidget {
                               child: Text(
                                 Formatters.myr(product.originalPrice!),
                                 maxLines: 1,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 11,
                                   decoration: TextDecoration.lineThrough,
                                   color: AppColors.textHint,

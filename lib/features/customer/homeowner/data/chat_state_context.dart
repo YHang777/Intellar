@@ -7,6 +7,7 @@ import '../../budget/data/budget_estimates.dart';
 import '../../budget/data/budget_plan.dart';
 import '../../budget/data/budget_providers.dart';
 import '../../marketplace/presentation/providers/marketplace_providers.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 import '../presentation/providers/design_providers.dart';
 
 const kChatStateCartLines = 8;
@@ -42,6 +43,7 @@ Map<String, Object?>? buildChatStateJson({
   required RoomDesign? plan,
   required int pendingPlacements,
   int? wishlistCount,
+  Map<String, Object?>? preferences,
 }) {
   final sections = <String, Object?>{};
 
@@ -112,6 +114,10 @@ Map<String, Object?>? buildChatStateJson({
     sections['wishlistCount'] = wishlistCount;
   }
 
+  if (preferences != null && preferences.isNotEmpty) {
+    sections['preferences'] = preferences;
+  }
+
   return sections.isEmpty ? null : sections;
 }
 
@@ -131,6 +137,10 @@ final chatStatePayloadProvider = Provider<Map<String, Object?>?>((ref) {
   }
 
   final plans = ref.watch(savedDesignsProvider).valueOrNull ?? const [];
+  final user = ref.watch(currentUserProvider);
+  final privacy = user?.privacySettings;
+  final sharePlan = privacy?.shareDesignsWithAssistant ?? true;
+  final personalised = privacy?.personalisedRecommendations ?? true;
 
   return buildChatStateJson(
     cartRows: ref.watch(cartRowsProvider),
@@ -140,8 +150,10 @@ final chatStatePayloadProvider = Provider<Map<String, Object?>?>((ref) {
     estimateRm: estimateRm,
     remainingRm: remainingRm,
     orders: ref.watch(customerOrdersProvider).valueOrNull ?? const [],
-    plan: plans.isNotEmpty ? plans.first : null,
+    plan: sharePlan && plans.isNotEmpty ? plans.first : null,
     pendingPlacements: ref.watch(pendingChatPlacementsProvider).length,
     wishlistCount: ref.watch(wishlistCountProvider),
+    preferences:
+        personalised ? user?.designPreferences.toChatJson() : null,
   );
 });

@@ -221,7 +221,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
           'Collect from each supplier\'s store — suppliers will contact you '
           'to arrange pickup.',
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 11,
             height: 1.4,
             color: AppColors.textHint,
@@ -259,7 +259,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
         children: [
           Text(
             label,
-            style: const TextStyle(
+            style: TextStyle(
                 fontSize: 12, color: AppColors.textSecondary),
           ),
           const SizedBox(width: 12),
@@ -301,7 +301,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
                 const SizedBox(height: 2),
                 Text(
                   '${item.quantity} × ${Formatters.myr(item.unitPrice)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                       fontSize: 11.5, color: AppColors.textHint),
                 ),
               ],
@@ -325,7 +325,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: AppColors.border)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -392,7 +392,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
                     onPressed: _working ? null : () => _print(order),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppColors.textPrimary,
-                      side: const BorderSide(color: AppColors.border),
+                      side: BorderSide(color: AppColors.border),
                       padding: const EdgeInsets.symmetric(
                           vertical: 10, horizontal: 16),
                       shape: RoundedRectangleBorder(
@@ -400,7 +400,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
                       ),
                     ),
                     child: _working
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 20,
                             height: 20,
                             child: CircularProgressIndicator(

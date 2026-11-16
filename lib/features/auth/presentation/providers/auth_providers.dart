@@ -6,6 +6,9 @@ import '../../data/datasources/firebase_auth_datasource.dart';
 import '../../data/datasources/firestore_user_datasource.dart';
 import '../../data/datasources/verification_email_datasource.dart';
 import '../../data/models/app_user.dart';
+import '../../data/models/user_preferences.dart';
+import '../../data/datasources/security_code_datasource.dart';
+import '../../data/repositories/account_settings_repository.dart';
 import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/repositories/auth_repository.dart';
 
@@ -18,13 +21,23 @@ final authRepositoryProvider = Provider<IAuthRepository>((ref) {
   );
 });
 
+final accountSettingsRepositoryProvider =
+    Provider<AccountSettingsRepository>((ref) => AccountSettingsRepository());
+
 class AuthStateNotifier extends StateNotifier<AsyncValue<AppUser?>> {
   final IAuthRepository _repository;
+  final AccountSettingsRepository? _settingsOverride;
+  AccountSettingsRepository? _settingsLazy;
   StreamSubscription<AppUser?>? _authSub;
 
   bool _authStreamSuspended = false;
 
-  AuthStateNotifier(this._repository) : super(const AsyncValue.loading()) {
+  AccountSettingsRepository get _settings =>
+      _settingsOverride ?? (_settingsLazy ??= AccountSettingsRepository());
+
+  AuthStateNotifier(this._repository, {AccountSettingsRepository? settings})
+      : _settingsOverride = settings,
+        super(const AsyncValue.loading()) {
     _authSub = _repository.authStateChanges().listen(
       (user) {
         if (_authStreamSuspended) return;
@@ -101,6 +114,62 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<AppUser?>> {
     state = AsyncValue.data(updated);
   }
 
+  AppUser? get _user => state.valueOrNull;
+
+  void _patch(AppUser Function(AppUser u) change) {
+    final user = _user;
+    if (user != null) state = AsyncValue.data(change(user));
+  }
+
+  Future<CodeSent> sendTwoFactorCode() => _settings.sendLoginCode();
+
+  Future<void> verifyTwoFactorCode(String code) async {
+    await _settings.verifyLoginCode(code);
+    _patch((u) => u.copyWith(twoFactorPending: false));
+  }
+
+  Future<void> setTwoFactorEnabled({
+    required bool enabled,
+    required String code,
+  }) async {
+    final result = await _settings.setTwoFactor(enabled: enabled, code: code);
+    _patch((u) => u.copyWith(twoFactorEnabled: result, twoFactorPending: false));
+  }
+
+  Future<CodeSent> requestEmailChange({
+    required String newEmail,
+    required String currentPassword,
+  }) =>
+      _settings.requestEmailChange(
+          newEmail: newEmail, currentPassword: currentPassword);
+
+  Future<void> confirmEmailChange(String code) async {
+    final email = await _settings.confirmEmailChange(code);
+    _patch((u) => u.copyWith(email: email));
+  }
+
+  Future<void> saveDesignPreferences(DesignPreferences prefs) async {
+    await _settings.saveDesignPreferences(prefs);
+    _patch((u) => u.copyWith(designPreferences: prefs));
+  }
+
+  Future<void> saveNotificationSettings(NotificationSettings settings) async {
+    await _settings.saveNotificationSettings(settings);
+    _patch((u) => u.copyWith(notificationSettings: settings));
+  }
+
+  Future<void> savePrivacySettings(PrivacySettings settings) async {
+    await _settings.savePrivacySettings(settings);
+    _patch((u) => u.copyWith(privacySettings: settings));
+  }
+
+  Future<void> completeOnboarding() async {
+    _patch((u) => u.copyWith(onboardingCompleted: true));
+    try {
+      await _settings.completeOnboarding();
+    } catch (_) {}
+  }
+
   Future<void> sendPasswordResetEmail(String email) async {
     await _repository.sendPasswordResetEmail(email);
   }
@@ -134,7 +203,8 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<AppUser?>> {
 final authStateProvider =
     StateNotifierProvider<AuthStateNotifier, AsyncValue<AppUser?>>((ref) {
   final repository = ref.watch(authRepositoryProvider);
-  return AuthStateNotifier(repository);
+  return AuthStateNotifier(repository,
+      settings: ref.watch(accountSettingsRepositoryProvider));
 });
 
 class AuthRefreshNotifier extends ChangeNotifier {

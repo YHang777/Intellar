@@ -6,6 +6,7 @@ import '../../domain/repositories/auth_repository.dart';
 import '../datasources/account_deletion_datasource.dart';
 import '../datasources/firebase_auth_datasource.dart';
 import '../datasources/firestore_user_datasource.dart';
+import '../datasources/two_factor_device_store.dart';
 import '../datasources/verification_email_datasource.dart';
 import '../models/app_user.dart';
 
@@ -14,13 +15,16 @@ class AuthRepositoryImpl implements IAuthRepository {
   final FirestoreUserDatasource _firestoreDatasource;
   final VerificationEmailDatasource _verificationDatasource;
   final AccountDeletionDatasource _deletionDatasource;
+  final TwoFactorDeviceStore _deviceStore;
 
   AuthRepositoryImpl({
     required FirebaseAuthDatasource authDatasource,
     required FirestoreUserDatasource firestoreDatasource,
     required VerificationEmailDatasource verificationDatasource,
     AccountDeletionDatasource? deletionDatasource,
-  })  : _authDatasource = authDatasource,
+    TwoFactorDeviceStore? deviceStore,
+  })  : _deviceStore = deviceStore ?? const TwoFactorDeviceStore(),
+        _authDatasource = authDatasource,
         _firestoreDatasource = firestoreDatasource,
         _verificationDatasource = verificationDatasource,
         _deletionDatasource = deletionDatasource ?? AccountDeletionDatasource();
@@ -44,6 +48,10 @@ class AuthRepositoryImpl implements IAuthRepository {
         final user = await _buildAppUser(fbUser)
             .timeout(const Duration(seconds: 25));
         await BootTrace.log('authState: profile OK');
+        if (user.twoFactorEnabled &&
+            !await _deviceStore.isVerified(user.uid)) {
+          return user.copyWith(twoFactorPending: true);
+        }
         return user;
       } catch (e) {
         await BootTrace.log('authState: profile FAILED: $e');
@@ -82,6 +90,10 @@ class AuthRepositoryImpl implements IAuthRepository {
       final user = await _buildAppUser(fbUser)
           .timeout(const Duration(seconds: 25));
       await BootTrace.log('login: profile OK role=${user.role.name}');
+      if (user.twoFactorEnabled) {
+        await _deviceStore.clear(user.uid);
+        return user.copyWith(twoFactorPending: true);
+      }
       return user;
     } on TimeoutException {
       await BootTrace.log('login: TIMED OUT');
@@ -188,7 +200,11 @@ class AuthRepositoryImpl implements IAuthRepository {
   }
 
   @override
-  Future<void> logout() => _authDatasource.signOut();
+  Future<void> logout() async {
+    final uid = _authDatasource.currentUser?.uid;
+    if (uid != null) await _deviceStore.clear(uid);
+    await _authDatasource.signOut();
+  }
 
   @override
   Future<void> sendPasswordResetEmail(String email) async {

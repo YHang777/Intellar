@@ -401,13 +401,13 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                             fontSize: 12, color: AppColors.textPrimary)),
                     backgroundColor: AppColors.background,
                     selectedColor: AppColors.background,
-                    side: const BorderSide(color: AppColors.border),
+                    side: BorderSide(color: AppColors.border),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
                     visualDensity: VisualDensity.compact,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    deleteIcon: const Icon(Icons.close,
+                    deleteIcon: Icon(Icons.close,
                         size: 14, color: AppColors.textHint),
                     onPressed: () {
                       _searchCtrl.text = term;
@@ -459,14 +459,14 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
               child: Row(
                 children: [
-                  const Icon(Icons.search_off,
+                  Icon(Icons.search_off,
                       size: 16, color: AppColors.textHint),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text('No products match "$query"',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 12, color: AppColors.textHint)),
                   ),
                 ],
@@ -485,7 +485,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                       horizontal: 14, vertical: 10),
                   child: Row(
                     children: [
-                      const Icon(Icons.search,
+                      Icon(Icons.search,
                           size: 16, color: AppColors.textSecondary),
                       const SizedBox(width: 10),
                       Expanded(
@@ -497,10 +497,10 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                                 color: AppColors.textPrimary)),
                       ),
                       Text(product.category,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 11, color: AppColors.textHint)),
                       const SizedBox(width: 4),
-                      const Icon(Icons.chevron_right,
+                      Icon(Icons.chevron_right,
                           size: 16, color: AppColors.textHint),
                     ],
                   ),
@@ -525,7 +525,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
       children: [
         Text(
           '${filtered.length} item${filtered.length == 1 ? '' : 's'}',
-          style: const TextStyle(fontSize: 13, color: AppColors.textSecondary),
+          style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -699,13 +699,13 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         itemBuilder: (_, index) {
           if (_sortChipVisible() && index == _chipRowEntries().length) {
             return ActionChip(
-              avatar: const Icon(Icons.swap_vert,
+              avatar: Icon(Icons.swap_vert,
                   size: 13, color: AppColors.textSecondary),
               label: Text('Sort: ${sortOption.chipLabel}',
                   style: const TextStyle(
                       fontSize: 11, color: AppColors.textPrimary)),
               backgroundColor: AppColors.surface,
-              side: const BorderSide(color: AppColors.border),
+              side: BorderSide(color: AppColors.border),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -922,7 +922,7 @@ class _FiltersSheet extends ConsumerWidget {
                     Expanded(
                       child: Text(
                         '$liveCount item${liveCount == 1 ? '' : 's'}',
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 13, color: AppColors.textSecondary),
                       ),
                     ),
@@ -1067,7 +1067,7 @@ class _FiltersSheet extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: Text('All items are ${Formatters.myr(bounds.min)}',
-                style: const TextStyle(
+                style: TextStyle(
                     fontSize: 12, color: AppColors.textHint)),
           )
         else ...[
@@ -1130,7 +1130,7 @@ class _FiltersSheet extends ConsumerWidget {
                         color: AppColors.textPrimary)),
                 if (subtitle != null)
                   Text(subtitle,
-                      style: const TextStyle(
+                      style: TextStyle(
                           fontSize: 11, color: AppColors.textHint)),
               ],
             ),
@@ -1164,7 +1164,7 @@ class _SheetLabel extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 14, bottom: 10),
       child: Text(label,
-          style: const TextStyle(
+          style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.textSecondary)),

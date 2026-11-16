@@ -470,6 +470,15 @@ class _SupplierProfileScreenState
                       children: [
                         _LinkRow(Icons.password_outlined, 'Change Password',
                             _changePassword),
+                        _LinkRow(Icons.shield_outlined, 'Login & Security',
+                            () => pushOnce(context, '/settings/security')),
+                        _LinkRow(Icons.notifications_outlined,
+                            'Notifications & Privacy',
+                            () => pushOnce(context, '/settings/notifications')),
+                        _LinkRow(Icons.accessibility_new, 'Accessibility',
+                            () => pushOnce(context, '/settings/accessibility')),
+                        _LinkRow(Icons.tour_outlined, 'App Tour',
+                            () => pushOnce(context, '/onboarding')),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -652,7 +661,7 @@ class _EditField extends StatelessWidget {
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: AppColors.border),
+                  borderSide: BorderSide(color: AppColors.border),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -692,7 +701,7 @@ class _LinkRow extends StatelessWidget {
                   style: GoogleFonts.poppins(
                       fontSize: 14, color: AppColors.textPrimary)),
             ),
-            const Icon(Icons.chevron_right,
+            Icon(Icons.chevron_right,
                 color: AppColors.textHint, size: 20),
           ],
         ),

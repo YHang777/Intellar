@@ -5,6 +5,13 @@ class RouteNames {
   static const register = 'register';
   static const forgotPassword = 'forgot-password';
   static const verifyEmail = 'verify-email';
+  static const twoFactor = 'two-factor';
+  static const onboarding = 'onboarding';
+
+  static const settingsSecurity = 'settings-security';
+  static const settingsNotifications = 'settings-notifications';
+  static const settingsAccessibility = 'settings-accessibility';
+  static const settingsPreferences = 'settings-preferences';
 
   static const homeownerBudget = 'homeowner-budget';
 

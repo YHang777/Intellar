@@ -258,7 +258,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         content: Text(
           '$message\n\nGo back to your cart, adjust the quantities and try '
           'again.',
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13.5,
             color: AppColors.textSecondary,
             height: 1.4,
@@ -424,7 +424,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               ],
                             ),
                             const SizedBox(height: 6),
-                            const Text(
+                            Text(
                               'Pay by credit / debit card or FPX online '
                               'banking. Your items are reserved while you '
                               'pay.',
@@ -437,7 +437,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             const SizedBox(height: 10),
                             const Divider(height: 1),
                             const SizedBox(height: 10),
-                            const Row(
+                            Row(
                               children: [
                                 Icon(Icons.storefront_outlined,
                                     size: 15, color: AppColors.accent),
@@ -566,7 +566,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         'By paying you agree to collect the items from the '
                         'suppliers\' stores.',
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 10.5,
                           height: 1.4,
                           color: AppColors.textHint,
@@ -753,7 +753,7 @@ class _ItemSummaryRow extends StatelessWidget {
                 ),
                 VerifiedSellerLine(
                   supplier: product.supplier,
-                  nameStyle: const TextStyle(
+                  nameStyle: TextStyle(
                     fontSize: 10.5,
                     color: AppColors.textHint,
                     height: 1.2,
@@ -761,7 +761,7 @@ class _ItemSummaryRow extends StatelessWidget {
                 ),
                 Text(
                   '× $quantity',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11.5,
                     color: AppColors.textSecondary,
                   ),

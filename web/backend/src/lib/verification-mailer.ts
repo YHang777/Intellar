@@ -73,6 +73,25 @@ export class VerificationMailer {
     });
   }
 
+  async sendSecurityCode({
+    email,
+    code,
+    purpose,
+  }: {
+    email: string;
+    code: string;
+    purpose: 'login' | 'email_change';
+  }): Promise<void> {
+    await this.send({
+      email,
+      subject:
+        purpose === 'login'
+          ? `${code} is your Intellar sign-in code`
+          : `${code} is your Intellar email change code`,
+      html: codeHtml(code, purpose),
+    });
+  }
+
   private resolveBase(baseUrlOverride?: string): string {
     return baseUrlOverride && baseUrlOverride.trim().length > 0
       ? baseUrlOverride.trim()
@@ -141,6 +160,21 @@ function emailHtml(link: string): string {
     <a href="${link}">${link}</a><br><br>
     This link expires in 24 hours. If you didn't create an account, you can
     ignore this email.</p>
+</div>`;
+}
+
+function codeHtml(code: string, purpose: 'login' | 'email_change'): string {
+  const intro =
+    purpose === 'login'
+      ? 'Use this code to finish signing in to Intellar.'
+      : 'Use this code to confirm this new email address for your Intellar account.';
+  return `
+<div style="font-family:Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+  <h2 style="margin:0 0 12px">Your security code</h2>
+  <p style="color:#444;line-height:1.6">${intro}</p>
+  <p style="margin:28px 0;font-size:32px;font-weight:700;letter-spacing:8px;color:#1A1A2E">${code}</p>
+  <p style="color:#777;font-size:13px">The code expires in 10 minutes. If you didn't ask
+    for it, someone may know your password — change it from the app.</p>
 </div>`;
 }
 

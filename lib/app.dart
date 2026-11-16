@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'core/accessibility/accessibility_settings.dart';
 import 'core/constants/app_colors.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
@@ -16,9 +17,24 @@ class _InteriorDesignAppState extends ConsumerState<InteriorDesignApp> {
   bool _bootstrapComplete = false;
 
   @override
+  void initState() {
+    super.initState();
+    ref.listenManual<AccessibilitySettings>(accessibilitySettingsProvider,
+        (prev, next) {
+      if (prev == null || prev.highContrast == next.highContrast) return;
+      AppColors.highContrast = next.highContrast;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) WidgetsBinding.instance.reassembleApplication();
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     final router = ref.watch(appRouterProvider);
     final authState = ref.watch(authStateProvider);
+    final a11y = ref.watch(accessibilitySettingsProvider);
+    AppColors.highContrast = a11y.highContrast;
 
     if (!authState.isLoading) _bootstrapComplete = true;
 
@@ -28,6 +44,17 @@ class _InteriorDesignAppState extends ConsumerState<InteriorDesignApp> {
       routerConfig: router,
       debugShowCheckedModeBanner: false,
       builder: (context, child) {
+        final media = MediaQuery.of(context);
+        final systemScale = media.textScaler.scale(1);
+        child = MediaQuery(
+          data: media.copyWith(
+            textScaler: TextScaler.linear(
+                (systemScale * a11y.textSize.scale).clamp(0.8, 2.0)),
+            boldText: media.boldText || a11y.boldText,
+            highContrast: media.highContrast || a11y.highContrast,
+          ),
+          child: child ?? const SizedBox.shrink(),
+        );
         if (!_bootstrapComplete && authState.isLoading) {
           return const Scaffold(
             backgroundColor: AppColors.background,
@@ -44,7 +71,7 @@ class _InteriorDesignAppState extends ConsumerState<InteriorDesignApp> {
             ),
           );
         }
-        return child ?? const SizedBox.shrink();
+        return child;
       },
     );
   }

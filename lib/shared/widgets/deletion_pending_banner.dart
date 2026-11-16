@@ -120,7 +120,7 @@ class _PendingEmailRow extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(
+          Icon(
             Icons.info_outline_rounded,
             size: 18,
             color: AppColors.textSecondary,

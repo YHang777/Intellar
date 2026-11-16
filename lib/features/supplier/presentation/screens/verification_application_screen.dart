@@ -463,7 +463,7 @@ class _VerificationApplicationScreenState
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.add_a_photo_outlined,
+                        Icon(Icons.add_a_photo_outlined,
                             color: AppColors.textHint, size: 26),
                         const SizedBox(height: 6),
                         Text('Tap to add',
@@ -533,7 +533,7 @@ class _VerificationApplicationScreenState
       ),
       child: Row(
         children: [
-          const Icon(Icons.attachment_outlined,
+          Icon(Icons.attachment_outlined,
               size: 18, color: AppColors.textHint),
           const SizedBox(width: 10),
           Expanded(
@@ -548,7 +548,7 @@ class _VerificationApplicationScreenState
           IconButton(
             onPressed: onRemove,
             tooltip: 'Remove',
-            icon: const Icon(Icons.close, size: 18, color: AppColors.textHint),
+            icon: Icon(Icons.close, size: 18, color: AppColors.textHint),
           ),
         ],
       ),

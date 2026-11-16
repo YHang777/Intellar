@@ -623,7 +623,7 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
       margin: const EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: AppColors.border)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -706,7 +706,7 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
               onPressed: onTap,
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.border),
+                side: BorderSide(color: AppColors.border),
                 padding: const EdgeInsets.symmetric(
                     vertical: 10, horizontal: 16),
                 shape: RoundedRectangleBorder(
@@ -714,7 +714,7 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
                 ),
               ),
               child: onTap == null
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(

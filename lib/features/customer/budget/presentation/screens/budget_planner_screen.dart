@@ -592,7 +592,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                               color: AppColors.textPrimary)),
                     ),
                     const SizedBox(height: 2),
-                    const Icon(Icons.chevron_right,
+                    Icon(Icons.chevron_right,
                         size: 18, color: AppColors.textHint),
                   ],
                 ),
@@ -651,7 +651,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
       margin: const EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: AppColors.border)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -734,7 +734,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
               onPressed: onTap,
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.textPrimary,
-                side: const BorderSide(color: AppColors.border),
+                side: BorderSide(color: AppColors.border),
                 padding: const EdgeInsets.symmetric(
                     vertical: 10, horizontal: 16),
                 shape: RoundedRectangleBorder(
@@ -742,7 +742,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                 ),
               ),
               child: onTap == null
-                  ? const SizedBox(
+                  ? SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
@@ -996,10 +996,10 @@ class _CompareSheet extends StatelessWidget {
                   const Icon(Icons.check_circle,
                       size: 20, color: AppColors.accent)
                 else
-                  const Icon(Icons.radio_button_unchecked,
+                  Icon(Icons.radio_button_unchecked,
                       size: 20, color: AppColors.textHint),
                 IconButton(
-                  icon: const Icon(Icons.open_in_new,
+                  icon: Icon(Icons.open_in_new,
                       size: 18, color: AppColors.textSecondary),
                   tooltip: 'View in marketplace',
                   onPressed: () => onOpenProduct(option.productId),

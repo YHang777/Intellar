@@ -94,7 +94,7 @@ class OrderHistoryScreen extends ConsumerWidget {
                     child: PageHeading(title: 'My Orders'),
                   ),
                   const SizedBox(height: 8),
-                  const Padding(
+                  Padding(
                     padding: EdgeInsets.symmetric(horizontal: 8),
                     child: TabBar(
                       isScrollable: true,
@@ -284,7 +284,7 @@ class _QuoteRequestCard extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               'Qty ${request.quantity}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
                 color: AppColors.textSecondary,
               ),
@@ -295,7 +295,7 @@ class _QuoteRequestCard extends StatelessWidget {
                 note,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 12,
                   color: AppColors.textHint,
                   height: 1.4,
@@ -307,7 +307,7 @@ class _QuoteRequestCard extends StatelessWidget {
               contacted
                   ? 'The supplier has reached out to you'
                   : 'Supplier will contact you',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textSecondary,
@@ -383,7 +383,7 @@ class _OrderCard extends StatelessWidget {
                     child: Text(
                       '${Formatters.shortDate(order.createdAt)} · '
                       '$itemCount item${itemCount == 1 ? '' : 's'}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11.5,
                         color: AppColors.textSecondary,
                       ),
@@ -424,7 +424,7 @@ class _OrderCard extends StatelessWidget {
                           '+${itemCount - thumbCount} more',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,
                           ),

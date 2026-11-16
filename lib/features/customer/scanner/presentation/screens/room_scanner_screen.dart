@@ -2246,7 +2246,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                   onTap: _openDimensionEdit,
                   child: Row(
                     children: [
-                      const Icon(Icons.crop_free,
+                      Icon(Icons.crop_free,
                           size: 18,
                           color: AppColors.textSecondary),
                       const SizedBox(width: 6),
@@ -2263,7 +2263,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                         ),
                       ),
                       const SizedBox(width: 4),
-                      const Icon(Icons.edit,
+                      Icon(Icons.edit,
                           size: 14, color: AppColors.textHint),
                     ],
                   ),
@@ -2477,7 +2477,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
           shape: BoxShape.circle,
           border: Border.all(color: AppColors.border),
         ),
-        child: const Icon(Icons.filter_center_focus,
+        child: Icon(Icons.filter_center_focus,
             size: 16, color: AppColors.textSecondary),
       ),
     );

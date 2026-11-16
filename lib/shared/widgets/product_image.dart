@@ -72,7 +72,7 @@ class ProductImage extends StatelessWidget {
       height: height,
       color: AppColors.surfaceContainer,
       alignment: Alignment.center,
-      child: const SizedBox(
+      child: SizedBox(
         width: 20,
         height: 20,
         child: CircularProgressIndicator(

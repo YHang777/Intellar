@@ -219,7 +219,7 @@ class _BuyerOrderDetailScreenState
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: AppColors.border)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -408,7 +408,7 @@ class _OrderBody extends ConsumerWidget {
         Text(
           'Order ${order.id}',
           textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 10.5, color: AppColors.textHint),
+          style: TextStyle(fontSize: 10.5, color: AppColors.textHint),
         ),
       ],
     );
@@ -666,7 +666,7 @@ class _CancelledBanner extends StatelessWidget {
                     PaymentStatus.paid => 'Refund on its way',
                     _ => 'Nothing was charged',
                   }}${cancelDate == null ? '' : ' on ${Formatters.shortDateTime(cancelDate)}'}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11.5,
                     color: AppColors.textSecondary,
                   ),
@@ -819,7 +819,7 @@ class _StatusTimeline extends StatelessWidget {
                     const SizedBox(height: 2),
                     Text(
                       Formatters.shortDateTime(date),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         color: AppColors.textHint,
                       ),
@@ -882,7 +882,7 @@ class _ItemRow extends StatelessWidget {
                 if (seller != null)
                   VerifiedSellerLine(
                     supplier: seller,
-                    nameStyle: const TextStyle(
+                    nameStyle: TextStyle(
                       fontSize: 11,
                       color: AppColors.textHint,
                       height: 1.3,
@@ -891,7 +891,7 @@ class _ItemRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   '${item.quantity} × ${Formatters.myr(item.unitPrice)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11.5,
                     color: AppColors.textHint,
                   ),
@@ -1236,13 +1236,13 @@ class _InvoiceRow extends StatelessWidget {
                   const SizedBox(height: 1),
                   Text(
                     invoice.invoiceNumber,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 11.5, color: AppColors.textHint),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, size: 18, color: AppColors.textHint),
+            Icon(Icons.chevron_right, size: 18, color: AppColors.textHint),
           ],
         ),
       ),
@@ -1280,7 +1280,7 @@ class _MetaRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   sub!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     height: 1.4,
                     color: AppColors.textSecondary,

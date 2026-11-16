@@ -99,11 +99,11 @@ class _SearchBarState extends State<SearchBar> {
             fontSize: 14,
             color: AppColors.textHint,
           ),
-          prefixIcon: const Icon(Icons.search,
+          prefixIcon: Icon(Icons.search,
               color: AppColors.textSecondary, size: 20),
           suffixIcon: _controller.text.isNotEmpty
               ? IconButton(
-                  icon: const Icon(Icons.close,
+                  icon: Icon(Icons.close,
                       size: 18, color: AppColors.textSecondary),
                   onPressed: _clear,
                 )

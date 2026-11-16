@@ -279,7 +279,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           maxLines: _descExpanded ? null : 5,
                           overflow:
                               _descExpanded ? null : TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 14,
                               color: AppColors.textSecondary,
                               height: 1.5),
@@ -407,7 +407,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       ),
       // ── Bottom action bar ──
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.surface,
           border: Border(top: BorderSide(color: AppColors.border)),
           boxShadow: [
@@ -537,7 +537,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 color: AppColors.accent)),
         if (product.originalPrice != null) ...[
           Text(Formatters.myr(product.originalPrice!),
-              style: const TextStyle(
+              style: TextStyle(
                   fontSize: 16,
                   decoration: TextDecoration.lineThrough,
                   color: AppColors.textHint)),
@@ -701,7 +701,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       Text('Pickup at ${supplier.address}',
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontSize: 11, color: AppColors.textHint)),
                   ],
                 ),
@@ -1041,14 +1041,14 @@ class _BulkQuoteDialogState extends State<_BulkQuoteDialog> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.info_outline,
+                  Icon(Icons.info_outline,
                       size: 16, color: AppColors.textSecondary),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'The supplier will contact you personally by phone or '
                       'email.',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         height: 1.4,
                         color: AppColors.textSecondary,
@@ -1198,7 +1198,7 @@ class _ReviewsSection extends ConsumerWidget {
           const SectionHeader(title: 'Reviews'),
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Text("Couldn't load reviews",
                     style: TextStyle(
                         fontSize: 12, color: AppColors.textSecondary)),
@@ -1243,7 +1243,7 @@ class _ReviewsSection extends ConsumerWidget {
                         size: 28,
                         color: AppColors.textHint.withValues(alpha: 0.7)),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'No reviews yet — be the first after your order arrives.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
@@ -1319,7 +1319,7 @@ class _ReviewTile extends StatelessWidget {
                           color: AppColors.textPrimary),
                     ),
                     Text(Formatters.shortDate(review.createdAt),
-                        style: const TextStyle(
+                        style: TextStyle(
                             fontSize: 10.5, color: AppColors.textHint)),
                   ],
                 ),
@@ -1352,7 +1352,7 @@ class _ExpandableCommentState extends State<_ExpandableComment> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        final style = const TextStyle(
+        final style = TextStyle(
           fontSize: 12.5,
           color: AppColors.textSecondary,
           height: 1.45,

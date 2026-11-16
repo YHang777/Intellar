@@ -237,13 +237,13 @@ class _AiRecommendationScreenState
                 IconButton(
                   tooltip: 'New chat',
                   onPressed: _startNewChat,
-                  icon: const Icon(Icons.edit_note,
+                  icon: Icon(Icons.edit_note,
                       color: AppColors.textSecondary),
                 ),
                 IconButton(
                   tooltip: 'History',
                   onPressed: _openHistorySheet,
-                  icon: const Icon(Icons.history,
+                  icon: Icon(Icons.history,
                       color: AppColors.textSecondary),
                 ),
               ],
@@ -346,7 +346,7 @@ class _AiRecommendationScreenState
                               fontSize: 13.5,
                               color: AppColors.textPrimary)),
                     ),
-                    const Icon(Icons.north_east,
+                    Icon(Icons.north_east,
                         size: 16, color: AppColors.textHint),
                   ],
                 ),
@@ -566,7 +566,7 @@ class _ChatHistorySheet extends ConsumerWidget {
                   IconButton(
                     tooltip: 'Close',
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close,
+                    icon: Icon(Icons.close,
                         size: 20, color: AppColors.textSecondary),
                   ),
                 ],
@@ -686,7 +686,7 @@ class _ChatHistoryRow extends ConsumerWidget {
                           .deleteSession(session.id);
                     }
                   },
-                  icon: const Icon(Icons.delete_outline,
+                  icon: Icon(Icons.delete_outline,
                       size: 20, color: AppColors.textSecondary),
                 ),
               ],

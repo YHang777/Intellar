@@ -503,7 +503,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                             fit: BoxFit.cover,
                             errorBuilder: (_, __, ___) => Container(
                               color: AppColors.divider,
-                              child: const Icon(Icons.image,
+                              child: Icon(Icons.image,
                                   color: AppColors.textHint),
                             ),
                           ),
@@ -1603,7 +1603,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surface,
-        border: const Border(top: BorderSide(color: AppColors.border)),
+        border: Border(top: BorderSide(color: AppColors.border)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -1726,7 +1726,7 @@ class _ThumbPlaceholder extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: AppColors.divider,
-      child: const Center(
+      child: Center(
         child: Icon(Icons.image_outlined, color: AppColors.textHint, size: 22),
       ),
     );

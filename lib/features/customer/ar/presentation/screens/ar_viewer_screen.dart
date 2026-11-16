@@ -2417,7 +2417,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.view_in_ar,
+            Icon(Icons.view_in_ar,
                 size: 72, color: AppColors.textHint),
             const SizedBox(height: 16),
             Text('AR is not available yet',

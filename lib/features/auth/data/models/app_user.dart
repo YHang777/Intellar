@@ -1,3 +1,5 @@
+import 'user_preferences.dart';
+
 enum UserRole {
   homeowner,
   supplier;
@@ -30,6 +32,13 @@ class AppUser {
   final String? businessPhone;
   final String? businessAddress;
 
+  final bool twoFactorEnabled;
+  final bool twoFactorPending;
+  final bool onboardingCompleted;
+  final DesignPreferences designPreferences;
+  final NotificationSettings notificationSettings;
+  final PrivacySettings privacySettings;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -45,6 +54,12 @@ class AppUser {
     this.businessName,
     this.businessPhone,
     this.businessAddress,
+    this.twoFactorEnabled = false,
+    this.twoFactorPending = false,
+    this.onboardingCompleted = true,
+    this.designPreferences = const DesignPreferences(),
+    this.notificationSettings = const NotificationSettings(),
+    this.privacySettings = const PrivacySettings(),
     required this.createdAt,
     required this.updatedAt,
   });
@@ -76,6 +91,12 @@ class AppUser {
           (role == UserRole.supplier ? name : null),
       businessPhone: data['businessPhone']?.toString(),
       businessAddress: data['businessAddress']?.toString(),
+      twoFactorEnabled: data['twoFactorEnabled'] == true,
+      onboardingCompleted: data['onboardingCompleted'] == true,
+      designPreferences: DesignPreferences.fromMap(data['designPreferences']),
+      notificationSettings:
+          NotificationSettings.fromMap(data['notificationSettings']),
+      privacySettings: PrivacySettings.fromMap(data['privacySettings']),
       createdAt: _toDate(data['createdAt']),
       updatedAt: _toDate(data['updatedAt']),
     );
@@ -106,10 +127,17 @@ class AppUser {
     String? businessName,
     String? businessPhone,
     String? businessAddress,
+    String? email,
+    bool? twoFactorEnabled,
+    bool? twoFactorPending,
+    bool? onboardingCompleted,
+    DesignPreferences? designPreferences,
+    NotificationSettings? notificationSettings,
+    PrivacySettings? privacySettings,
   }) {
     return AppUser(
       uid: uid,
-      email: email,
+      email: email ?? this.email,
       name: name ?? this.name,
       role: role,
       phone: phone ?? this.phone,
@@ -119,6 +147,12 @@ class AppUser {
       businessName: businessName ?? this.businessName,
       businessPhone: businessPhone ?? this.businessPhone,
       businessAddress: businessAddress ?? this.businessAddress,
+      twoFactorEnabled: twoFactorEnabled ?? this.twoFactorEnabled,
+      twoFactorPending: twoFactorPending ?? this.twoFactorPending,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      designPreferences: designPreferences ?? this.designPreferences,
+      notificationSettings: notificationSettings ?? this.notificationSettings,
+      privacySettings: privacySettings ?? this.privacySettings,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
     );
