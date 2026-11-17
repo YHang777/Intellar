@@ -58,6 +58,9 @@ dependencies {
 // (flutter_stripe). The parcelize artifact is the drop-in replacement.
 configurations.all {
     exclude(group = "org.jetbrains.kotlin", module = "kotlin-android-extensions-runtime")
+    // An old transitive firebase-iid duplicates FirebaseInstanceIdReceiver,
+    // which firebase-messaging (push notifications) now ships itself.
+    exclude(group = "com.google.firebase", module = "firebase-iid")
     // filament must stay paired with sceneview 2.2.1's pin (1.52.0):
     // its bundled .filamat blobs carry MAT_VERS 52 and the 1.53.0 runtime
     // aborts on the version gate (PreconditionPanic SIGABRT) inside the

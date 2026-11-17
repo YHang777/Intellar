@@ -7,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'features/auth/data/models/app_user.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 import 'features/notifications/data/app_notification.dart';
+import 'features/notifications/data/notifications_repository.dart';
 import 'services/push/push_service.dart';
 
 class InteriorDesignApp extends ConsumerStatefulWidget {
@@ -51,6 +52,13 @@ class _InteriorDesignAppState extends ConsumerState<InteriorDesignApp> {
       quoteId: pick('quoteId'),
       productId: pick('productId'),
     );
+    final id = pick('notificationId');
+    if (id != null) {
+      ref
+          .read(notificationsRepositoryProvider)
+          .markRead(user.uid, id)
+          .catchError((_) {});
+    }
     ref.read(appRouterProvider).push(route ?? '/notifications');
   }
 

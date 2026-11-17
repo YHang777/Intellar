@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart' show Color;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 typedef PushTapHandler = void Function(Map<String, String> data);
@@ -38,7 +39,7 @@ class PushService {
     _initialised = true;
     await _local.initialize(
       settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+        android: AndroidInitializationSettings('ic_notification'),
         iOS: DarwinInitializationSettings(),
       ),
       onDidReceiveNotificationResponse: (r) {
@@ -84,6 +85,8 @@ class PushService {
         android: AndroidNotificationDetails(
           channelId,
           'Orders and updates',
+          icon: 'ic_notification',
+          color: Color(0xFF2E7D32),
           importance: Importance.high,
           priority: Priority.high,
         ),
