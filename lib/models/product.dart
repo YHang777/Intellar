@@ -208,6 +208,8 @@ class ProductVision {
       'mismatch: $mismatchFlagged)';
 }
 
+import 'store_profile.dart';
+
 class Supplier {
   final String id;
   final String name;
@@ -216,6 +218,9 @@ class Supplier {
   final String email;
   final String verificationStatus;
 
+  /// Storefront details: hours, branding, policies, accepted payment options.
+  final StoreProfile storeProfile;
+
   const Supplier({
     required this.id,
     required this.name,
@@ -223,11 +228,14 @@ class Supplier {
     required this.address,
     required this.email,
     this.verificationStatus = 'none',
+    this.storeProfile = const StoreProfile(),
   });
 
   bool get isVerified => verificationStatus == 'verified';
 
   factory Supplier.fromJson(Map<String, dynamic> json) => Supplier(
+        storeProfile: StoreProfile.fromMap(
+            json['storeProfile'] ?? json['storeDetails']),
         id: json['id']?.toString() ??
             json['supplierId']?.toString() ??
             'unknown',
