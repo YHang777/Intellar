@@ -28,6 +28,7 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
   late final TextEditingController _returns;
   late StoreProfile _draft;
   bool _saving = false;
+  bool _loaded = false;
 
   static const _swatches = <Color>[
     Color(0xFF2E7D32),
@@ -41,13 +42,23 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
   @override
   void initState() {
     super.initState();
-    final profile = ref.read(currentUserProvider)?.storeProfile ??
-        const StoreProfile();
+    _draft = const StoreProfile();
+    _description = TextEditingController();
+    _hours = TextEditingController();
+    _pickup = TextEditingController();
+    _returns = TextEditingController();
+  }
+
+  // The signed-in user arrives on a stream; seeding from initState would
+  // read null and a later save would wipe the stored profile.
+  void _seedFrom(StoreProfile profile) {
+    if (_loaded) return;
+    _loaded = true;
     _draft = profile;
-    _description = TextEditingController(text: profile.description);
-    _hours = TextEditingController(text: profile.hours);
-    _pickup = TextEditingController(text: profile.pickupPolicy);
-    _returns = TextEditingController(text: profile.returnPolicy);
+    _description.text = profile.description;
+    _hours.text = profile.hours;
+    _pickup.text = profile.pickupPolicy;
+    _returns.text = profile.returnPolicy;
   }
 
   @override
@@ -92,6 +103,8 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final user = ref.watch(currentUserProvider);
+    if (user != null) _seedFrom(user.storeProfile);
     return Scaffold(
       backgroundColor: AppColors.background,
       bottomNavigationBar: SafeArea(
@@ -229,23 +242,29 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
     );
   }
 
-  Widget _card(String title, List<Widget> children) => Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
+  Widget _card(String title, List<Widget> children) => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        // Material, not a decorated Container: ListTile paints its splash on
+        // the nearest Material, and a bare DecoratedBox hides it.
+        child: Material(
           color: AppColors.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                style: GoogleFonts.poppins(
-                    fontSize: 15, fontWeight: FontWeight.w600)),
-            const SizedBox(height: 12),
-            ...children,
-          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+            side: BorderSide(color: AppColors.border),
+          ),
+            child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: GoogleFonts.poppins(
+                        fontSize: 15, fontWeight: FontWeight.w600)),
+                const SizedBox(height: 12),
+                ...children,
+              ],
+            ),
+          ),
         ),
       );
 
