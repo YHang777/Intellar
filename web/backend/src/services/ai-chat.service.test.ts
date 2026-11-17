@@ -283,3 +283,24 @@ test('prompt forbids inventing saved preferences and leaking ids', () => {
   assert.match(prompt, /Never guess a saved style/);
   assert.match(prompt, /Never write catalogue ids in "reply"/);
 });
+
+test('state block carries like/dislike feedback for the assistant', () => {
+  const block = formatStateBlock({
+    feedback: {
+      likedProducts: ['Nordic Sofa', 'Arc Lamp'],
+      dislikedProducts: ['Glass Table'],
+    },
+  });
+  assert.match(block, /- Liked products: Nordic Sofa, Arc Lamp\./);
+  assert.match(block, /- Disliked products \(do not re-suggest\): Glass Table\./);
+
+  const likedOnly = formatStateBlock({
+    feedback: { likedProducts: ['Nordic Sofa'] },
+  });
+  assert.doesNotMatch(likedOnly, /Disliked/);
+  assert.equal(formatStateBlock({ feedback: {} }), '');
+  assert.match(buildSystemPrompt({
+    messages: [{ role: 'user', text: 'hi' }],
+    state: { feedback: { dislikedProducts: ['Glass Table'] } },
+  }), /never re-suggest what they disliked/);
+});

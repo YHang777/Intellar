@@ -54,11 +54,19 @@ final marketplaceProductsProvider = StreamProvider<List<Product>>((ref) {
 
 // ─── Search & Filters ─────────────────────────────────────────────────────────
 
-enum SortOption { recommended, priceLowToHigh, priceHighToLow, newest, topRated }
+enum SortOption {
+  recommended,
+  popularity,
+  priceLowToHigh,
+  priceHighToLow,
+  newest,
+  topRated,
+}
 
 extension SortOptionLabels on SortOption {
   String get label => switch (this) {
         SortOption.recommended => 'Recommended',
+        SortOption.popularity => 'Most Popular',
         SortOption.newest => 'Newest',
         SortOption.priceLowToHigh => 'Price: Low to High',
         SortOption.priceHighToLow => 'Price: High to Low',
@@ -67,6 +75,7 @@ extension SortOptionLabels on SortOption {
 
   String get chipLabel => switch (this) {
         SortOption.recommended => 'Recommended',
+        SortOption.popularity => 'Most Popular',
         SortOption.newest => 'Newest',
         SortOption.priceLowToHigh => 'Price: Low ↑',
         SortOption.priceHighToLow => 'Price: High ↓',
@@ -88,6 +97,8 @@ final ecoOnlyProvider = StateProvider<bool>((ref) => false);
 final inStockOnlyProvider = StateProvider<bool>((ref) => false);
 
 final verifiedOnlyProvider = StateProvider<bool>((ref) => false);
+
+final popularOnlyProvider = StateProvider<bool>((ref) => false);
 
 class PriceFilter {
   const PriceFilter({required this.min, required this.max});
@@ -141,7 +152,10 @@ class MarketplaceFilterState {
     required this.stockActive,
     required this.ecoActive,
     required this.verifiedActive,
+    this.popularActive = false,
   });
+
+  final bool popularActive;
 
   final bool searchActive;
   final bool sortActive;
@@ -164,6 +178,7 @@ class MarketplaceFilterState {
         stockActive,
         ecoActive,
         verifiedActive,
+        popularActive,
       ].where((b) => b).length;
 
   int get sheetCount => [
@@ -173,6 +188,7 @@ class MarketplaceFilterState {
         stockActive,
         ecoActive,
         verifiedActive,
+        popularActive,
       ].where((b) => b).length;
 
   bool get sheetDirty => sheetCount > 0;
@@ -190,6 +206,7 @@ final marketplaceFilterStateProvider =
     stockActive: ref.watch(inStockOnlyProvider),
     ecoActive: ref.watch(ecoOnlyProvider),
     verifiedActive: ref.watch(verifiedOnlyProvider),
+    popularActive: ref.watch(popularOnlyProvider),
   );
 });
 
@@ -213,6 +230,7 @@ void resetMarketplaceFilters(
   ref.read(ecoOnlyProvider.notifier).state = false;
   ref.read(inStockOnlyProvider.notifier).state = false;
   ref.read(verifiedOnlyProvider.notifier).state = false;
+  ref.read(popularOnlyProvider.notifier).state = false;
   ref.read(priceRangeFilterProvider.notifier).state = null;
 }
 
@@ -227,6 +245,7 @@ final filteredProductsProvider = Provider<List<Product>>((ref) {
   final ecoOnly = ref.watch(ecoOnlyProvider);
   final verifiedOnly = ref.watch(verifiedOnlyProvider);
   final inStockOnly = ref.watch(inStockOnlyProvider);
+  final popularOnly = ref.watch(popularOnlyProvider);
   final priceFilter = ref.watch(priceRangeFilterProvider);
 
   var result = products;
@@ -235,6 +254,10 @@ final filteredProductsProvider = Provider<List<Product>>((ref) {
 
   if (verifiedOnly) {
     result = result.where((p) => p.supplier.isVerified).toList();
+  }
+
+  if (popularOnly) {
+    result = result.where((p) => p.soldCount > 0).toList();
   }
 
   if (styleFilter != 'All') {
@@ -274,6 +297,14 @@ final filteredProductsProvider = Provider<List<Product>>((ref) {
 
   switch (sort) {
     case SortOption.recommended:
+      break;
+    case SortOption.popularity:
+      result.sort((a, b) {
+        final bySold = b.soldCount.compareTo(a.soldCount);
+        if (bySold != 0) return bySold;
+        // Never sold something? Fall back to what buyers did rate.
+        return b.ratingCount.compareTo(a.ratingCount);
+      });
       break;
     case SortOption.priceLowToHigh:
       result.sort((a, b) => a.price.compareTo(b.price));

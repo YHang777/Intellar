@@ -8,6 +8,7 @@ class RouteNames {
   static const twoFactor = 'two-factor';
   static const onboarding = 'onboarding';
   static const notifications = 'notifications';
+  static const arPreviews = 'ar-previews';
 
   static const settingsSecurity = 'settings-security';
   static const settingsNotifications = 'settings-notifications';

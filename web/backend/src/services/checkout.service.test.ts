@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { FieldValue } from 'firebase-admin/firestore';
 import { computeTotals, tierForOrderCount } from './checkout.service';
 
 // ── computeTotals (mirrors the app's pricing.dart breakdown) ────────────────
@@ -89,4 +90,37 @@ test('order numbers carry the Malaysian calendar day', async () => {
   const { orderNumberFor } = await import('./checkout.service');
   assert.match(orderNumberFor(new Date('2026-11-16T17:29:00Z')), /^ORD-20261117-\d{4}$/);
   assert.match(orderNumberFor(new Date('2026-11-16T15:59:00Z')), /^ORD-20261116-\d{4}$/);
+});
+
+test('sold count follows the money: up on payment, down on refund', async () => {
+  const { applySoldCountDelta } = await import('./checkout.service');
+  const updates: [string, unknown][] = [];
+  const fake = {
+    batch: () => ({
+      update: (ref: { path: string }, data: Record<string, unknown>) => {
+        updates.push([ref.path, data.soldCount]);
+      },
+      commit: async () => {},
+    }),
+    collection: (c: string) => ({ doc: (id: string) => ({ path: `${c}/${id}` }) }),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } as any;
+
+  await applySoldCountDelta(
+    fake,
+    [{ productId: 'p1', quantity: 2 }, { productId: 'p2', quantity: 1 }],
+    1
+  );
+  assert.deepEqual(updates.map(([p]) => p), ['products/p1', 'products/p2']);
+  assert.deepEqual(updates[0][1], FieldValue.increment(2));
+  assert.deepEqual(updates[1][1], FieldValue.increment(1));
+
+  updates.length = 0;
+  await applySoldCountDelta(fake, [{ productId: 'p1', quantity: 2 }], -1);
+  assert.deepEqual(updates.map(([p]) => p), ['products/p1']);
+  assert.deepEqual(updates[0][1], FieldValue.increment(-2));
+
+  updates.length = 0;
+  await applySoldCountDelta(fake, [], 1);
+  assert.deepEqual(updates, [], 'an order with no items bumps nothing');
 });

@@ -361,4 +361,14 @@ class ARSessionManager {
     final result = await _channel.invokeMethod<Uint8List>('snapshot');
     return MemoryImage(result!);
   }
+
+  /// The same capture as [snapshot], kept as the raw PNG bytes so a caller can
+  /// write it straight to disk (saving / sharing an AR preview).
+  Future<Uint8List> snapshotBytes() async {
+    final result = await _channel.invokeMethod<Uint8List>('snapshot');
+    if (result == null || result.isEmpty) {
+      throw StateError('The AR view could not be captured.');
+    }
+    return result;
+  }
 }

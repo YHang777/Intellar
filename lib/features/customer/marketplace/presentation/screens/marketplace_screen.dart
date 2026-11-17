@@ -235,9 +235,14 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 ),
                 data: (_) {
                   if (filtered.isEmpty) {
-                    return SliverFillRemaining(
-                      hasScrollBody: false,
-                      child: _buildEmptyState(),
+                    // Not SliverFillRemaining: it asks the child for intrinsic
+                    // dimensions, which EmptyState's LayoutBuilder refuses to
+                    // report — that blanked the whole page on an empty filter.
+                    return SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 24),
+                        child: _buildEmptyState(),
+                      ),
                     );
                   }
                   return SliverPadding(
@@ -721,8 +726,11 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           }
           final entry = _chipRowEntries()[index];
           return InputChip(
+            // Explicit colour: the chip theme's resolved labelStyle leaves an
+            // InputChip label white on white here, so the active-filter pills
+            // rendered as a bare "×".
             label: Text(entry.label,
-                style: const TextStyle(fontSize: 11)),
+                style: TextStyle(fontSize: 11, color: AppColors.textPrimary)),
             backgroundColor: AppColors.surface,
             side: BorderSide(
                 color: entry.isAccent ? AppColors.accent : AppColors.border),
@@ -813,6 +821,12 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           label: 'Verified sellers',
           isAccent: true,
           onClear: () => ref.read(verifiedOnlyProvider.notifier).state = false));
+    }
+    if (state.popularActive) {
+      entries.add(_RemovableChip(
+          label: 'Popular',
+          isAccent: true,
+          onClear: () => ref.read(popularOnlyProvider.notifier).state = false));
     }
     return entries;
   }
@@ -1000,6 +1014,15 @@ class _FiltersSheet extends ConsumerWidget {
                   value: ref.watch(verifiedOnlyProvider),
                   onChanged: (v) =>
                       ref.read(verifiedOnlyProvider.notifier).state = v,
+                ),
+                _buildToggleRow(
+                  ref,
+                  icon: Icons.trending_up,
+                  title: 'Popular only',
+                  subtitle: 'Pieces other buyers already chose',
+                  value: ref.watch(popularOnlyProvider),
+                  onChanged: (v) =>
+                      ref.read(popularOnlyProvider.notifier).state = v,
                 ),
               ],
             ),

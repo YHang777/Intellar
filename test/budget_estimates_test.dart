@@ -34,6 +34,8 @@ Product _product({
 }
 
 void main() {
+  _cheaperSwapCoverage();
+
   group('medianPrice', () {
     test('empty input → null (no price data), never 0-as-a-quote', () {
       expect(medianPrice(const []), isNull);
@@ -266,3 +268,89 @@ void main() {
     });
   });
 }
+
+void _cheaperSwapCoverage() {
+  Product p(String id, String name, int price,
+          {String category = 'Furniture', bool eco = false}) =>
+      Product(
+        id: id,
+        name: name,
+        price: price,
+        stock: 3,
+        image: 'assets/images/none.png',
+        description: 'A test piece',
+        designStyle: 'Modern',
+        category: category,
+        supplier: const Supplier(
+            id: 's', name: 'Store', phone: '', address: '', email: ''),
+        isEcoFriendly: eco,
+      );
+
+  group('buildCheaperSwaps', () {
+    final products = [
+      p('sofa-cheap', 'Nordic Sofa', 400),
+      p('sofa-fancy', 'Velvet Sofa', 1200),
+      p('lamp-cheap', 'Clip Lamp', 40, category: 'Lighting'),
+      p('lamp-mid', 'Arc Lamp', 90, category: 'Lighting'),
+    ];
+
+    test('offers the cheapest for each category where a pricier one is picked',
+        () {
+      final swaps = buildCheaperSwaps(
+        products: products,
+        choices: const {'Furniture': 'sofa-fancy', 'Lighting': 'lamp-mid'},
+        ecoFriendly: false,
+      );
+      expect(swaps.map((s) => s.label).toList(), ['Furniture', 'Lighting'],
+          reason: 'the biggest saving leads');
+      expect(swaps.first.saving, 800);
+      expect(swaps.first.swapProductId, 'sofa-cheap');
+      expect(swaps.first.currentName, 'Velvet Sofa');
+      expect(swaps.last.saving, 50);
+    });
+
+    test('says nothing when the pick is already the cheapest', () {
+      expect(
+        buildCheaperSwaps(
+          products: products,
+          choices: const {'Furniture': 'sofa-cheap'},
+          ecoFriendly: false,
+        ),
+        isEmpty,
+      );
+      expect(
+        buildCheaperSwaps(
+            products: products, choices: const {}, ecoFriendly: false),
+        isEmpty,
+        reason: 'no choice made means the line is already on the cheapest',
+      );
+    });
+
+    test('respects the eco-only estimate when suggesting', () {
+      final ecoProducts = [
+        ...products,
+        p('sofa-eco-a', 'Bamboo Sofa', 500, eco: true),
+        p('sofa-eco-b', 'Recycled Sofa', 300, eco: true),
+      ];
+      final swaps = buildCheaperSwaps(
+        products: ecoProducts,
+        choices: const {'Furniture': 'sofa-eco-a'},
+        ecoFriendly: true,
+      );
+      expect(swaps.single.swapProductId, 'sofa-eco-b',
+          reason: 'an eco estimate must never suggest a non-eco swap');
+      expect(swaps.single.saving, 200);
+      expect(
+        buildCheaperSwaps(
+          products: ecoProducts,
+          choices: const {'Furniture': 'sofa-fancy'},
+          ecoFriendly: true,
+        ),
+        isEmpty,
+        reason: 'a non-eco choice is not even in the eco estimate',
+      );
+    });
+  });
+}
+
+void _runCheaperSwapCoverage() => _cheaperSwapCoverage();

@@ -2,6 +2,7 @@ import { auditQuietly } from './audit.service';
 import { defaultNotificationDeps, notifyQuietly } from './notifications.service';
 import { randomInt } from 'node:crypto';
 import type { RequestHandler } from 'express';
+import { FieldValue } from 'firebase-admin/firestore';
 import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
 import Stripe from 'stripe';
 import { fbDb } from '../config/firebase';
@@ -276,6 +277,9 @@ async function announcePaidOrder(db: Firestore, orderId: string): Promise<void> 
         data: { orderId },
       });
     }
+    void applySoldCountDelta(db, order.items, 1).catch((err) =>
+      console.log(`[checkout] soldCount bump skipped: ${err.message}`)
+    );
     auditQuietly(
       {
         actorId: asString(order.customerId),
@@ -670,6 +674,24 @@ export async function refundOrderIfPaid(
   return true;
 }
 
+// Popularity counter on each product, kept by the payment path only. The
+// read layer clamps at zero — a refund can race a legacy doc without one.
+export async function applySoldCountDelta(
+  db: Firestore,
+  items: unknown,
+  delta: number
+): Promise<void> {
+  const quantities = stockQuantities(items);
+  if (quantities.size === 0) return;
+  const batch = db.batch();
+  for (const [productId, qty] of quantities) {
+    batch.update(db.collection('products').doc(productId), {
+      soldCount: FieldValue.increment(delta * qty),
+    });
+  }
+  await batch.commit();
+}
+
 async function markRefunded(db: Firestore, orderId: string, amount: number): Promise<void> {
   const ref = db.collection('orders').doc(orderId);
   await db.runTransaction(async (txn) => {
@@ -682,7 +704,13 @@ async function markRefunded(db: Firestore, orderId: string, amount: number): Pro
       refundStatus: 'processed',
       refundAmount: amount,
     });
+    return asRecord(current);
   });
+  // The sale is undone — the popularity counter follows the money.
+  const after = await ref.get();
+  void applySoldCountDelta(db, asRecord(after.data()).items, -1).catch((err) =>
+    console.log(`[checkout] soldCount rollback skipped: ${err.message}`)
+  );
 }
 
 // ── stale sweep (app killed mid-payment) ────────────────────────────────────

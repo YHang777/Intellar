@@ -89,8 +89,14 @@ export interface ChatStatePreferences {
 }
 
 /** The customer's own app state — verified figures, never model guesses. */
+export interface ChatStateFeedback {
+  likedProducts?: string[];
+  dislikedProducts?: string[];
+}
+
 export interface ChatState {
   preferences?: ChatStatePreferences;
+  feedback?: ChatStateFeedback;
   cart?: { items: ChatStateCartLine[]; itemCount: number; subtotal: number };
   plan?: ChatStatePlan;
   budget?: ChatStateBudget;
@@ -187,6 +193,7 @@ Live app state:
 - Never invent or guess state that is not in that block. If asked for something it does not include (payment details, delivery dates, stock changes), say briefly that you cannot see it and point to the right screen: Cart, Orders, Budget or the Room plan.
 - Keep state answers short — one or two sentences and the key number. Do not read long lists back; the app shows a detail card beside your reply.
 - Design preferences in that block are the taste the customer saved on their profile. Use them as the default when they have not said otherwise in the chat (what they say in the chat always wins), and say briefly when a suggestion matches them.
+- "Liked / disliked products" in that block is feedback the customer gave on past recommendations: suggest more of what they liked, and never re-suggest what they disliked unless they ask. Never ignore it, and never invent feedback that is not there.
 - Saved design preferences exist ONLY as a "Design preferences" line in that block. When there is no such line, the customer has not shared any (they may have none, or turned personalisation off): if asked, say plainly that you cannot see saved preferences and offer to work from what they tell you in the chat. Never guess a saved style, colour or material, and never claim to have checked their profile.
 - Budget figures: "cap" is what the customer set; "estimate" is a median-price estimate from the catalogue, not money spent. Never describe an estimate as spending.
 
@@ -504,6 +511,18 @@ export function formatStateBlock(state: ChatState): string {
 
   if (state.wishlistCount != null && state.wishlistCount > 0) {
     lines.push(`- Wishlist: ${state.wishlistCount} saved item(s).`);
+  }
+
+  const fb = state.feedback;
+  if (fb) {
+    const names = (v?: string[]) =>
+      (Array.isArray(v) ? v.filter((x) => x.trim()) : []).join(', ');
+    const liked = names(fb.likedProducts);
+    const disliked = names(fb.dislikedProducts);
+    if (liked) lines.push(`- Liked products: ${liked}.`);
+    if (disliked) {
+      lines.push(`- Disliked products (do not re-suggest): ${disliked}.`);
+    }
   }
 
   const prefs = state.preferences;

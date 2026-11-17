@@ -304,6 +304,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ),
                   _LinkRow(Icons.assessment, 'Reports',
                       () => pushOnce(context, '/design/report')),
+                  _LinkRow(Icons.collections_outlined, 'AR Previews',
+                      () => pushOnce(context, '/ar-previews')),
                 ],
               ),
               const SizedBox(height: 16),

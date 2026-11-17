@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../models/order.dart';
@@ -7,6 +8,7 @@ import '../../budget/data/budget_estimates.dart';
 import '../../budget/data/budget_plan.dart';
 import '../../budget/data/budget_providers.dart';
 import '../../marketplace/presentation/providers/marketplace_providers.dart';
+import '../../../notifications/data/product_feedback.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../presentation/providers/design_providers.dart';
 
@@ -44,6 +46,8 @@ Map<String, Object?>? buildChatStateJson({
   required int pendingPlacements,
   int? wishlistCount,
   Map<String, Object?>? preferences,
+  List<String> likedProducts = const [],
+  List<String> dislikedProducts = const [],
 }) {
   final sections = <String, Object?>{};
 
@@ -118,6 +122,17 @@ Map<String, Object?>? buildChatStateJson({
     sections['preferences'] = preferences;
   }
 
+  // What the buyer marked as "more like this" / "not for me" on past
+  // recommendations (FR17) — the assistant adjusts what it suggests.
+  if (likedProducts.isNotEmpty || dislikedProducts.isNotEmpty) {
+    sections['feedback'] = {
+      if (likedProducts.isNotEmpty)
+        'likedProducts': [for (final n in likedProducts) _clip(n, 60)],
+      if (dislikedProducts.isNotEmpty)
+        'dislikedProducts': [for (final n in dislikedProducts) _clip(n, 60)],
+    };
+  }
+
   return sections.isEmpty ? null : sections;
 }
 
@@ -142,6 +157,11 @@ final chatStatePayloadProvider = Provider<Map<String, Object?>?>((ref) {
   final sharePlan = privacy?.shareDesignsWithAssistant ?? true;
   final personalised = privacy?.personalisedRecommendations ?? true;
 
+  // Learning from likes/dislikes is personalisation too — same switch.
+  final verdicts =
+      personalised ? ref.watch(productFeedbackProvider).valueOrNull : null;
+  final feedback = feedbackForChat(verdicts ?? const {});
+
   return buildChatStateJson(
     cartRows: ref.watch(cartRowsProvider),
     cartCount: ref.watch(cartCountProvider),
@@ -155,5 +175,7 @@ final chatStatePayloadProvider = Provider<Map<String, Object?>?>((ref) {
     wishlistCount: ref.watch(wishlistCountProvider),
     preferences:
         personalised ? user?.designPreferences.toChatJson() : null,
+    likedProducts: feedback.liked,
+    dislikedProducts: feedback.disliked,
   );
 });

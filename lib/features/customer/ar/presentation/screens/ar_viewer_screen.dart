@@ -21,7 +21,10 @@ import 'package:vector_math/vector_math_64.dart' hide Colors;
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/boot_trace.dart';
 import '../../../../../core/utils/native_scene_guard.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../../../../core/utils/user_errors.dart';
+import '../../data/ar_previews.dart';
 import '../../../../../models/product.dart';
 import '../../../../../models/room_design.dart';
 import '../../../../../shared/widgets/app_feedback.dart';
@@ -174,6 +177,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
       'https://play.google.com/store/apps/details?id=com.google.ar.core';
 
   ARSessionManager? _session;
+  bool _savingPreview = false;
   ARObjectManager? _objects;
   ARAnchorManager? _anchors;
 
@@ -2645,6 +2649,20 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                       tooltip: 'Use room shape',
                       onPressed: _useRoomShape,
                     ),
+                  IconButton(
+                    key: const Key('ar-save-preview'),
+                    icon: const Icon(Icons.add_a_photo_outlined,
+                        color: Colors.white),
+                    tooltip: 'Save preview',
+                    onPressed: _savePreview,
+                  ),
+                  IconButton(
+                    key: const Key('ar-open-previews'),
+                    icon: const Icon(Icons.collections_outlined,
+                        color: Colors.white),
+                    tooltip: 'Saved previews',
+                    onPressed: () => context.push('/ar-previews'),
+                  ),
                   Semantics(
                     button: true,
                     label: _placed.isEmpty
@@ -3394,6 +3412,33 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     );
     if (result != null && mounted) {
       _selectFloorSize(result);
+    }
+  }
+
+  // ── Saved previews (FR14): keep this exact AR view to share or compare. ──
+  Future<void> _savePreview() async {
+    final session = _session;
+    if (session == null || _savingPreview) return;
+    setState(() => _savingPreview = true);
+    try {
+      final bytes = await session.snapshotBytes();
+      final label = _placed.isEmpty
+          ? (widget.title.trim().isEmpty ? 'AR preview' : widget.title.trim())
+          : '${widget.title.trim()} · ${_placed.length} '
+              '${_placed.length == 1 ? 'item' : 'items'}';
+      await ArPreviewStore().save(bytes, label: label);
+      if (!mounted) return;
+      showAppSnackbar(context, 'Preview saved',
+          actionLabel: 'View',
+          onAction: () => context.push('/ar-previews'));
+    } catch (e) {
+      if (mounted) {
+        showAppSnackbar(context,
+            userMessage(e, fallback: 'Could not save this preview.'),
+            isError: true);
+      }
+    } finally {
+      if (mounted) setState(() => _savingPreview = false);
     }
   }
 

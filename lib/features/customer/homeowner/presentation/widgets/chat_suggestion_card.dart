@@ -6,6 +6,8 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/formatters.dart';
 import '../../../../../models/chat_session.dart';
 import '../../../../../shared/widgets/product_image.dart';
+import '../../../../notifications/data/product_feedback.dart';
+import '../../../../auth/presentation/providers/auth_providers.dart';
 import '../../../marketplace/presentation/providers/marketplace_providers.dart';
 import 'chat_card_actions.dart';
 
@@ -36,6 +38,19 @@ class ChatSuggestionCard extends ConsumerWidget {
     final inCart =
         ref.watch(cartProvider).any((item) => item.product.id == s.productId);
     final saved = ref.watch(wishlistProvider).contains(s.productId);
+    final verdict = (ref.watch(productFeedbackProvider).valueOrNull ??
+        const <String, ProductFeedback>{})[s.productId];
+    void toggle(FeedbackValue value) {
+      final uid = ref.read(currentUserProvider)?.uid;
+      if (uid == null) return;
+      final repo = ref.read(productFeedbackRepositoryProvider);
+      if (verdict?.value == value) {
+        repo.clear(uid, s.productId);
+      } else {
+        repo.save(uid,
+            ProductFeedback(productId: s.productId, value: value, name: s.name));
+      }
+    }
 
     return Container(
       margin: const EdgeInsets.only(top: 8),
@@ -108,6 +123,20 @@ class ChatSuggestionCard extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
+              _VerdictButton(
+                tooltip: 'More like this',
+                icon: Icons.thumb_up_alt_outlined,
+                selectedIcon: Icons.thumb_up_alt,
+                selected: verdict?.value == FeedbackValue.like,
+                onTap: () => toggle(FeedbackValue.like),
+              ),
+              _VerdictButton(
+                tooltip: 'Not for me',
+                icon: Icons.thumb_down_alt_outlined,
+                selectedIcon: Icons.thumb_down_alt,
+                selected: verdict?.value == FeedbackValue.dislike,
+                onTap: () => toggle(FeedbackValue.dislike),
+              ),
               TextButton.icon(
                 onPressed: () => actions.addToCart(s),
                 icon: const Icon(Icons.add_shopping_cart, size: 16),
@@ -211,5 +240,37 @@ class ChatSuggestionCard extends ConsumerWidget {
       if (p.id == s.productId) return p.category;
     }
     return '';
+  }
+}
+
+// ── Like / dislike on a recommendation (FR17) ──
+
+class _VerdictButton extends StatelessWidget {
+  const _VerdictButton({
+    required this.tooltip,
+    required this.icon,
+    required this.selectedIcon,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final IconData selectedIcon;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.accent : AppColors.textSecondary;
+    return IconButton(
+      key: Key('verdict-$tooltip'),
+      tooltip: tooltip,
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+      icon: Icon(selected ? selectedIcon : icon, size: 17, color: color),
+      onPressed: onTap,
+    );
   }
 }

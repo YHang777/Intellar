@@ -10,6 +10,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/two_factor_screen.dart';
 import '../../features/auth/presentation/screens/verify_email_screen.dart';
+import '../../features/customer/ar/presentation/screens/ar_previews_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/settings/presentation/screens/accessibility_settings_screen.dart';
@@ -107,6 +108,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       }
       if (loc == '/onboarding' ||
           loc == '/notifications' ||
+          loc == '/ar-previews' ||
           loc.startsWith('/settings/')) {
         if (isLoggedIn && user.isSupplier && loc == '/settings/preferences') {
           return '/supplier/dashboard';
@@ -164,6 +166,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/onboarding',
         name: RouteNames.onboarding,
         pageBuilder: (_, __) => _buildPage(const OnboardingScreen()),
+      ),
+
+      GoRoute(
+        path: '/ar-previews',
+        name: RouteNames.arPreviews,
+        pageBuilder: (_, __) => _buildPage(const ArPreviewsScreen()),
       ),
 
       GoRoute(

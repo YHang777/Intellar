@@ -145,6 +145,69 @@ List<EstimateOption> buildLineOptions(
   return options..sort((a, b) => a.price.compareTo(b.price));
 }
 
+class CheaperSwap {
+  const CheaperSwap({
+    required this.label,
+    required this.currentName,
+    required this.currentPrice,
+    required this.swapProductId,
+    required this.swapName,
+    required this.swapPrice,
+    this.swapSupplier,
+  });
+
+  final String label;
+  final String currentName;
+  final int currentPrice;
+  final String swapProductId;
+  final String swapName;
+  final int swapPrice;
+  final String? swapSupplier;
+
+  int get saving => currentPrice - swapPrice;
+}
+
+/// Cheaper picks for the categories where the buyer chose something above the
+/// cheapest listing (FR26). Only worth suggesting when the estimate is over
+/// budget — a swap then is what brings it back under.
+List<CheaperSwap> buildCheaperSwaps({
+  required List<Product> products,
+  required Map<String, String> choices,
+  required bool ecoFriendly,
+}) {
+  final swaps = <CheaperSwap>[];
+  for (final label in budgetLineLabels) {
+    final options =
+        buildLineOptions(products, label: label, ecoFriendly: ecoFriendly);
+    if (options.length < 2) continue;
+    final chosenId = choices[label];
+    if (chosenId == null) continue;
+    EstimateOption? chosen;
+    for (final o in options) {
+      if (o.productId == chosenId) {
+        chosen = o;
+        break;
+      }
+    }
+    if (chosen == null) continue;
+    final cheapest = options.first;
+    if (cheapest.productId == chosen.productId) continue;
+    if (cheapest.price >= chosen.price) continue;
+    swaps.add(CheaperSwap(
+      label: label,
+      currentName: chosen.name,
+      currentPrice: chosen.price,
+      swapProductId: cheapest.productId,
+      swapName: cheapest.name,
+      swapPrice: cheapest.price,
+      swapSupplier: cheapest.supplier,
+    ));
+  }
+  // Biggest saving first — swapping the priciest choice helps soonest.
+  swaps.sort((a, b) => b.saving.compareTo(a.saving));
+  return swaps;
+}
+
 int estimateTotal(List<EstimateLine> lines) =>
     lines.fold<int>(0, (sum, l) => sum + (l.price ?? 0));
 

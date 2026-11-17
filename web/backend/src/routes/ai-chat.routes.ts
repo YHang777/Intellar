@@ -101,6 +101,12 @@ const chatStateSchema = z.object({
   orders: z.array(stateOrder).max(3).optional(),
   wishlistCount: z.number().int().nonnegative().max(99999).optional(),
   preferences: statePreferences.optional(),
+  feedback: z
+    .object({
+      likedProducts: z.array(prefTag).max(8).optional(),
+      dislikedProducts: z.array(prefTag).max(8).optional(),
+    })
+    .optional(),
 });
 
 const chatBodySchema = z.object({

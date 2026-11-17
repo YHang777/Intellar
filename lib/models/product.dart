@@ -270,6 +270,9 @@ class Product {
   // ── Optional fields (defaults for backward compatibility) ──
   final double rating;
   final int ratingCount;
+  // Units sold across paid orders — kept by the backend payment path. Drives
+  // popularity sort/filter; clamped at zero for legacy docs without a counter.
+  final int soldCount;
   final bool isEcoFriendly;
   final int? originalPrice;
 
@@ -296,6 +299,7 @@ class Product {
     this.isActive = true,
     this.rating = 0.0,
     this.ratingCount = 0,
+    this.soldCount = 0,
     this.isEcoFriendly = false,
     this.originalPrice,
     this.createdAt,
@@ -339,6 +343,7 @@ class Product {
     bool? isActive,
     double? rating,
     int? ratingCount,
+    int? soldCount,
     bool? isEcoFriendly,
     int? originalPrice,
     DateTime? createdAt,
@@ -365,6 +370,7 @@ class Product {
       isActive: isActive ?? this.isActive,
       rating: rating ?? this.rating,
       ratingCount: ratingCount ?? this.ratingCount,
+      soldCount: soldCount ?? this.soldCount,
       isEcoFriendly: isEcoFriendly ?? this.isEcoFriendly,
       originalPrice:
           clearOriginalPrice ? null : (originalPrice ?? this.originalPrice),
@@ -417,6 +423,9 @@ class Product {
           : 0.0,
       ratingCount: (json['ratingCount'] is num)
           ? (json['ratingCount'] as num).round()
+          : 0,
+      soldCount: (json['soldCount'] is num)
+          ? (json['soldCount'] as num).round().clamp(0, 1 << 30)
           : 0,
       isEcoFriendly: json['isEcoFriendly'] == true,
       originalPrice: (json['originalPrice'] is num)

@@ -75,11 +75,14 @@ service cloud.firestore {
     // identical re-send is not an "affected" key — only an actual edit is.
     match /products/{productId} {
       allow read: if true;
+      // vision and soldCount are server-owned: photo analysis and the
+      // payment path (popularity counter) write them, never a client.
       allow create: if signedIn() &&
-          !('vision' in request.resource.data);
+          !('vision' in request.resource.data) &&
+          !('soldCount' in request.resource.data);
       allow update: if signedIn() &&
           !request.resource.data.diff(resource.data).affectedKeys()
-             .hasAny(['vision']);
+             .hasAny(['vision', 'soldCount']);
       allow delete: if signedIn();
 
       // ── Reviews: public read, authenticated buyers write ──
@@ -192,6 +195,12 @@ service cloud.firestore {
       allow update: if isOwner(uid) &&
           request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['read']);
+    }
+
+    // ── Personal taste learned from recommendations (FR17): the owner's
+    // own like/dislike verdicts, read by the app to steer suggestions. ──
+    match /users/{uid}/product_feedback/{productId} {
+      allow read, write: if isOwner(uid);
     }
 
     // ── FCM device tokens (doc id = token), managed by the owner's app ──

@@ -137,6 +137,7 @@ class Scene3DPlatformView(
                     nodesMap.clear()
                     result.success(null)
                 }
+                "setLighting" -> handleSetLighting(call, result)
                 "hitTest" -> handleHitTest(call, result)
                 "worldToScreen" -> handleWorldToScreen(call, result)
                 else -> result.notImplemented()
@@ -144,6 +145,50 @@ class Scene3DPlatformView(
         } catch (e: Throwable) {
             result.error("SCENE3D_ERROR", e.message ?: e.javaClass.simpleName, null)
         }
+    }
+
+    // Lighting presets (daylight / warm / evening / night) arrive as a key
+    // colour, multipliers on the default key + IBL intensities, and an
+    // optional key direction. Defaults are captured on first use so presets
+    // always scale from the studio look rather than compounding.
+    private var baseKeyIntensity: Float? = null
+    private var baseFillIntensity: Float? = null
+
+    private fun handleSetLighting(call: MethodCall, result: MethodChannel.Result) {
+        val color = call.argument<List<Any?>>("color")
+        val keyScale = numOf(call.argument<Any?>("keyScale")) ?: 1.0f
+        val fillScale = numOf(call.argument<Any?>("fillScale")) ?: 1.0f
+        val direction = float3Of(call.argument<List<Any?>>("direction"))
+        try {
+            sceneView.mainLightNode?.let { light ->
+                val lm = sceneView.engine.lightManager
+                val inst = lm.getInstance(light.entity)
+                if (inst != 0) {
+                    val base = baseKeyIntensity ?: lm.getIntensity(inst).also { baseKeyIntensity = it }
+                    lm.setIntensity(inst, base * keyScale)
+                }
+                if (color != null && color.size >= 3) {
+                    light.color = Float4(
+                        numOf(color[0]) ?: 1.0f,
+                        numOf(color[1]) ?: 1.0f,
+                        numOf(color[2]) ?: 1.0f,
+                        1.0f,
+                    )
+                }
+                if (direction != null) light.lightDirection = direction
+            }
+        } catch (e: Throwable) {
+            NativeTrace.log(viewContextOf(), "scene3d: key lighting failed: $e")
+        }
+        try {
+            sceneView.scene.indirectLight?.let { ibl ->
+                val base = baseFillIntensity ?: ibl.intensity.also { baseFillIntensity = it }
+                ibl.intensity = base * fillScale
+            }
+        } catch (e: Throwable) {
+            NativeTrace.log(viewContextOf(), "scene3d: fill lighting failed: $e")
+        }
+        result.success(null)
     }
 
     private fun handleSetCamera(call: MethodCall, result: MethodChannel.Result) {

@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'lighting_preset.dart';
 import 'package:flutter/services.dart';
 
 import 'camera_rig.dart' show ScenePose;
@@ -107,7 +109,13 @@ class Scene3DController {
     _viewId = viewId;
     _channel = null;
     onBind?.call(viewId);
+    final preset = _lighting;
+    if (preset != null) unawaited(_invoke('setLighting', preset.toArgs()));
   }
+
+  LightingPreset? _lighting;
+
+  LightingPreset get lighting => _lighting ?? LightingPreset.daylight;
 
   /// Whether a platform view is bound — pushes before [bindTo] are dropped
   /// silently, so callers must not record them as delivered.
@@ -136,6 +144,12 @@ class Scene3DController {
   Future<void> removeModel(String id) => _invoke('removeModel', {'id': id});
 
   Future<void> clearModels() => _invoke('clearModels', null);
+
+  // Remembered so a view that binds later (or rebinds) gets the same light.
+  Future<void> setLighting(LightingPreset preset) {
+    _lighting = preset;
+    return _invoke('setLighting', preset.toArgs());
+  }
 
   Future<List<SceneHit>> hitTest(Offset local) async {
     final ch = _ch;

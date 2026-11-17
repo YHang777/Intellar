@@ -1,3 +1,4 @@
+import '../lighting_picker.dart';
 import 'dart:async';
 import 'dart:math';
 import 'dart:typed_data';
@@ -2435,9 +2436,20 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
   }
 
   Widget _zoomControls() {
+    final preset = ref.watch(lightingPresetProvider);
+    if (_bridge.controller.lighting != preset) {
+      _bridge.controller.setLighting(preset);
+    }
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
+        _roundSceneButton(
+          key: const ValueKey('planner-lighting'),
+          icon: preset.icon,
+          tooltip: 'Lighting: ${preset.label}',
+          onTap: () => showLightingSheet(context, ref),
+        ),
+        const SizedBox(height: 10),
         _roundSceneButton(
           key: const ValueKey('planner-expand'),
           icon: _sceneExpanded ? Icons.fullscreen_exit : Icons.fullscreen,

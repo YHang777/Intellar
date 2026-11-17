@@ -22,6 +22,7 @@ import '../data/showroom_furnishing.dart';
 import 'room_dollhouse_view.dart';
 import 'walkthrough_controller.dart';
 import 'walkthrough_painter.dart';
+import '../../scanner/presentation/lighting_picker.dart';
 import 'walkthrough_scene.dart';
 
 // Street View style walkthrough of a plan: you stand in the room in first
@@ -171,6 +172,7 @@ class _WalkthroughScreenState extends ConsumerState<WalkthroughScreen> {
         ),
         actions: [
           if (!_inGallery) ...[
+            const LightingButton(),
             IconButton(
               icon: const Icon(Icons.view_carousel),
               tooltip: 'Rooms',
@@ -427,6 +429,7 @@ class _WalkthroughScreenState extends ConsumerState<WalkthroughScreen> {
           child: WalkthroughScene(
             controller: _ctl,
             rig: _rig,
+            lighting: ref.watch(lightingPresetProvider),
             design: _shellDesign,
             ghost: _placing == null ? null : _pending(),
             fallback: GestureDetector(

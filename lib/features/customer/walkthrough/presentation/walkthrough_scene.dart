@@ -8,6 +8,7 @@ import '../../scanner/data/camera_rig.dart';
 import '../../scanner/data/plan_scene_math.dart';
 import '../../scanner/data/planner_scene_bridge.dart';
 import '../../scanner/data/room_fit.dart';
+import '../../scanner/data/lighting_preset.dart';
 import '../../scanner/presentation/scene3d_view.dart';
 import 'walkthrough_controller.dart';
 
@@ -24,7 +25,10 @@ class WalkthroughScene extends StatefulWidget {
     required this.design,
     this.ghost,
     required this.fallback,
+    this.lighting = LightingPreset.daylight,
   });
+
+  final LightingPreset lighting;
 
   final WalkthroughController controller;
   final FirstPersonRig rig;
@@ -62,11 +66,15 @@ class _WalkthroughSceneState extends State<WalkthroughScene> {
     super.initState();
     widget.controller.addListener(_onModel);
     _bridge.onBound = (_) => _pushAll();
+    _bridge.controller.setLighting(widget.lighting);
   }
 
   @override
   void didUpdateWidget(WalkthroughScene old) {
     super.didUpdateWidget(old);
+    if (old.lighting != widget.lighting) {
+      _bridge.controller.setLighting(widget.lighting);
+    }
     if (old.controller != widget.controller) {
       old.controller.removeListener(_onModel);
       widget.controller.addListener(_onModel);
@@ -148,7 +156,12 @@ class _WalkthroughSceneState extends State<WalkthroughScene> {
 
   @override
   Widget build(BuildContext context) {
-    if (!Scene3DView.supported) return widget.fallback;
+    if (!Scene3DView.supported) {
+      return Stack(fit: StackFit.expand, children: [
+        widget.fallback,
+        IgnorePointer(child: ColoredBox(color: widget.lighting.overlay)),
+      ]);
+    }
     return LayoutBuilder(builder: (context, constraints) {
       final size = constraints.biggest;
       if (size.width > 0 && size.height > 0 && size.isFinite) {

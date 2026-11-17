@@ -198,6 +198,15 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
         label: buildLineOptions(catalogue ?? const <Product>[],
             label: label, ecoFriendly: _ecoFriendly),
     };
+    // FR26: once the estimate is over budget, point at cheaper picks for the
+    // categories where something above the cheapest was chosen.
+    final swaps = overBudget
+        ? buildCheaperSwaps(
+            products: catalogue ?? const <Product>[],
+            choices: _choices,
+            ecoFriendly: _ecoFriendly,
+          )
+        : const <CheaperSwap>[];
 
     String priceLabel(int i) {
       if (catalogue == null) {
@@ -490,6 +499,15 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                   ),
                 ),
               ],
+              if (swaps.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _CheaperSwapsCard(
+                  swaps: swaps,
+                  shortfall: overBudget ? remaining.abs() : 0,
+                  onApply: _applySwap,
+                  onApplyAll: () => _applyAllSwaps(swaps),
+                ),
+              ],
             ]),
             const SizedBox(height: 20),
 
@@ -615,6 +633,24 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
     if (n == 1) return '${Formatters.myr(options.first.price)} · 1 listing';
     return '${Formatters.myr(options.first.price)} – '
         '${Formatters.myr(options.last.price)} · $n listings';
+  }
+
+  void _applySwap(CheaperSwap swap) {
+    setState(() {
+      _touched = true;
+      _choices[swap.label] = swap.swapProductId;
+    });
+    _persist();
+  }
+
+  void _applyAllSwaps(List<CheaperSwap> swaps) {
+    setState(() {
+      _touched = true;
+      for (final s in swaps) {
+        _choices[s.label] = s.swapProductId;
+      }
+    });
+    _persist();
   }
 
   Future<void> _openCompareSheet(String label) async {
@@ -1030,4 +1066,124 @@ class _CompareSheet extends StatelessWidget {
                 fontWeight: FontWeight.w600,
                 color: color)),
       );
+}
+
+// ── Cheaper alternatives (FR26) ──
+
+class _CheaperSwapsCard extends StatelessWidget {
+  const _CheaperSwapsCard({
+    required this.swaps,
+    required this.shortfall,
+    required this.onApply,
+    required this.onApplyAll,
+  });
+
+  final List<CheaperSwap> swaps;
+  final int shortfall;
+  final void Function(CheaperSwap swap) onApply;
+  final VoidCallback onApplyAll;
+
+  @override
+  Widget build(BuildContext context) {
+    final totalSaving = swaps.fold<int>(0, (sum, s) => sum + s.saving);
+    final closesGap = totalSaving >= shortfall;
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.savings_outlined, color: AppColors.success),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Cheaper picks in ${swaps.length} categor'
+                  '${swaps.length == 1 ? 'y' : 'ies'} could save '
+                  '${Formatters.myr(totalSaving)}',
+                  style: GoogleFonts.poppins(
+                      color: AppColors.success, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            closesGap
+                ? 'That is enough to bring the estimate back under budget.'
+                : 'That still leaves ${Formatters.myr(shortfall - totalSaving)} '
+                    'over — you may need to drop an item too.',
+            style: GoogleFonts.poppins(
+                fontSize: 12, color: AppColors.textSecondary),
+          ),
+          const SizedBox(height: 10),
+          for (final s in swaps) ...[
+            InkWell(
+              key: Key('cheaper-swap-${s.label}'),
+              borderRadius: BorderRadius.circular(8),
+              onTap: () => onApply(s),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(s.label,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 11.5,
+                                  color: AppColors.textSecondary)),
+                          Text(
+                            '${s.swapName} · ${Formatters.myr(s.swapPrice)}',
+                            style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary),
+                          ),
+                          Text(
+                            'replaces ${s.currentName} · '
+                            '${Formatters.myr(s.currentPrice)}',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11.5,
+                                color: AppColors.textHint),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Text(
+                      '-${Formatters.myr(s.saving)}',
+                      style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.success),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(Icons.swap_horiz,
+                        size: 18, color: AppColors.textHint),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 8),
+          OutlinedButton(
+            key: const Key('apply-all-swaps'),
+            onPressed: onApplyAll,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.success,
+              side: const BorderSide(color: AppColors.success),
+            ),
+            child: Text('Apply all ${swaps.length} swap'
+                '${swaps.length == 1 ? '' : 's'}'),
+          ),
+        ],
+      ),
+    );
+  }
 }
