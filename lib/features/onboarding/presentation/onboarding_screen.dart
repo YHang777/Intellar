@@ -67,7 +67,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     } else {
       router.go(home);
     }
-    if (openPreferences) router.push('/settings/preferences');
+    if (openPreferences) {
+      WidgetsBinding.instance.addPostFrameCallback(
+          (_) => router.push('/settings/preferences'));
+    }
   }
 
   @override
@@ -165,9 +168,14 @@ class _SlideView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-      child: Column(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+            minHeight: (constraints.maxHeight - 48).clamp(0, double.infinity)),
+        child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
             width: 140,
@@ -200,6 +208,8 @@ class _SlideView extends StatelessWidget {
           ),
         ],
       ),
+      ),
+    ),
     );
   }
 }

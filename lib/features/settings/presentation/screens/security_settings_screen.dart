@@ -8,6 +8,7 @@ import '../../../../core/utils/validators.dart';
 import '../../../../shared/widgets/app_feedback.dart';
 import '../../../../shared/widgets/code_entry_dialog.dart';
 import '../../../../shared/widgets/confirm_dialog.dart';
+import '../../../auth/data/datasources/security_code_datasource.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
 import '../widgets/settings_widgets.dart';
 
@@ -60,16 +61,19 @@ class _SecuritySettingsScreenState
   }
 
   Future<void> _changeEmail(String currentEmail) async {
-    final request = await showDialog<({String email, String password})>(
+    final request =
+        await showDialog<({String email, String password, CodeSent sent})>(
       context: context,
-      builder: (_) => _ChangeEmailDialog(currentEmail: currentEmail),
+      builder: (_) => _ChangeEmailDialog(
+        currentEmail: currentEmail,
+        onSubmit: (email, password) => _auth.requestEmailChange(
+            newEmail: email, currentPassword: password),
+      ),
     );
     if (request == null || !mounted) return;
     setState(() => _busy = true);
     try {
-      final sent = await _auth.requestEmailChange(
-          newEmail: request.email, currentPassword: request.password);
-      if (!mounted) return;
+      final sent = request.sent;
       final ok = await showCodeEntryDialog(
         context,
         title: 'Confirm your new email',
@@ -170,9 +174,10 @@ class _SecuritySettingsScreenState
 }
 
 class _ChangeEmailDialog extends StatefulWidget {
-  const _ChangeEmailDialog({required this.currentEmail});
+  const _ChangeEmailDialog({required this.currentEmail, required this.onSubmit});
 
   final String currentEmail;
+  final Future<CodeSent> Function(String email, String password) onSubmit;
 
   @override
   State<_ChangeEmailDialog> createState() => _ChangeEmailDialogState();
@@ -183,6 +188,8 @@ class _ChangeEmailDialogState extends State<_ChangeEmailDialog> {
   final _email = TextEditingController();
   final _password = TextEditingController();
   bool _obscure = true;
+  bool _sending = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -191,10 +198,29 @@ class _ChangeEmailDialogState extends State<_ChangeEmailDialog> {
     super.dispose();
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_sending) return;
     if (!(_form.currentState?.validate() ?? false)) return;
-    Navigator.of(context)
-        .pop((email: _email.text.trim().toLowerCase(), password: _password.text));
+    final email = _email.text.trim().toLowerCase();
+    final password = _password.text;
+    setState(() {
+      _sending = true;
+      _error = null;
+    });
+    try {
+      final sent = await widget.onSubmit(email, password);
+      if (mounted) {
+        Navigator.of(context)
+            .pop((email: email, password: password, sent: sent));
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = userMessage(e,
+            fallback: 'Could not send the code. Please try again.'));
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
   }
 
   @override
@@ -218,6 +244,7 @@ class _ChangeEmailDialogState extends State<_ChangeEmailDialog> {
                 key: const Key('new-email-field'),
                 controller: _email,
                 keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
                 decoration: const InputDecoration(labelText: 'New email'),
                 validator: (v) {
                   final base = Validators.email(v);
@@ -247,19 +274,35 @@ class _ChangeEmailDialogState extends State<_ChangeEmailDialog> {
                     : null,
                 onFieldSubmitted: (_) => _submit(),
               ),
+              if (_error != null) ...[
+                const SizedBox(height: 10),
+                Text(
+                  _error!,
+                  key: const Key('change-email-error'),
+                  style: GoogleFonts.poppins(
+                      fontSize: 13, color: AppColors.error),
+                ),
+              ],
             ],
           ),
         ),
       ),
       actions: [
         TextButton(
-          onPressed: () => Navigator.of(context).pop(),
+          onPressed: _sending ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         FilledButton(
-          onPressed: _submit,
+          onPressed: _sending ? null : _submit,
           style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
-          child: const Text('Send code'),
+          child: _sending
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white),
+                )
+              : const Text('Send code'),
         ),
       ],
     );

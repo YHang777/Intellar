@@ -51,6 +51,7 @@ class QuantityStepper extends StatelessWidget {
       children: [
         _StepperButton(
           icon: Icons.remove,
+          tooltip: 'Decrease quantity',
           size: buttonSize,
           enabled: _canDecrement,
           onTap: _decrement,
@@ -63,7 +64,7 @@ class QuantityStepper extends StatelessWidget {
             textBaseline: TextBaseline.alphabetic,
             children: [
               Text(
-                value.toString().padLeft(2, '0'),
+                value.toString(),
                 style: GoogleFonts.poppins(
                   fontSize: compact ? 15 : 17,
                   fontWeight: FontWeight.w700,
@@ -88,6 +89,7 @@ class QuantityStepper extends StatelessWidget {
         ),
         _StepperButton(
           icon: Icons.add,
+          tooltip: 'Increase quantity',
           size: buttonSize,
           enabled: _canIncrement,
           onTap: _increment,
@@ -100,12 +102,14 @@ class QuantityStepper extends StatelessWidget {
 class _StepperButton extends StatelessWidget {
   const _StepperButton({
     required this.icon,
+    required this.tooltip,
     required this.size,
     required this.enabled,
     required this.onTap,
   });
 
   final IconData icon;
+  final String tooltip;
   final double size;
 
   final bool enabled;
@@ -114,7 +118,14 @@ class _StepperButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
+    return Semantics(
+      button: true,
+      enabled: enabled,
+      label: tooltip,
+      excludeSemantics: true,
+      child: Tooltip(
+      message: tooltip,
+      child: Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
@@ -141,6 +152,8 @@ class _StepperButton extends StatelessWidget {
             color: enabled ? AppColors.textOnDark : AppColors.textHint,
           ),
         ),
+      ),
+      ),
       ),
     );
   }

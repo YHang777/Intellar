@@ -1,3 +1,4 @@
+import '../../../../services/notify/notify_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -46,7 +47,12 @@ class _SupplierOrderDetailScreenState
     };
     final confirmed = await showConfirmDialog(
       context,
-      title: '$actionLabel this order?',
+      title: switch (next) {
+        OrderStatus.confirmed => 'Confirm this order?',
+        OrderStatus.waitingCollection =>
+          'Mark this order as ready for collection?',
+        _ => 'Mark this order as collected?',
+      },
       message: switch (next) {
         OrderStatus.confirmed =>
           'Confirming locks in the order and tells the buyer you are '
@@ -65,6 +71,7 @@ class _SupplierOrderDetailScreenState
     final repo = ref.read(marketplaceRepositoryProvider);
     try {
       await repo.updateOrderStatus(order.id, next);
+      NotifyClient.instance.orderStatusChanged(order.id);
       if (mounted) {
         showAppSnackbar(
           context,
@@ -131,6 +138,7 @@ class _SupplierOrderDetailScreenState
         supplierAddress: supplier.address,
         supplierEmail: supplier.email,
       );
+      NotifyClient.instance.orderStatusChanged(order.id);
       if (mounted) {
         showAppSnackbar(
             context,
@@ -341,12 +349,17 @@ class _SupplierOrderDetailScreenState
                   '-${Formatters.myr(invoice.discountAllocated)}',
                   valueColor: AppColors.success,
                 ),
-              if (invoice != null && invoice.taxAllocated > 0)
-                SummaryLine('Tax share', Formatters.myr(invoice.taxAllocated)),
+              if (invoice != null && invoice.taxAllocated > 0) ...[
+                SummaryLine('Tax collected (6%)',
+                    Formatters.myr(invoice.taxAllocated)),
+                SummaryLine('Invoice total (incl. tax)',
+                    Formatters.myr(invoice.total)),
+              ],
               Divider(height: 1, thickness: 1, color: AppColors.divider),
               SummaryLine(
                 'Your earnings',
-                Formatters.myr(invoice?.total ?? myTotal),
+                Formatters.myr(
+                    myTotal - (invoice?.discountAllocated ?? 0)),
                 bold: true,
                 valueColor: AppColors.accent,
               ),
@@ -399,8 +412,6 @@ class _SupplierOrderDetailScreenState
                   const SizedBox(height: 1),
                   Text(
                     order.customerEmail,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                       fontSize: 11.5,
                       color: AppColors.textHint,
@@ -929,8 +940,6 @@ class _ItemRow extends StatelessWidget {
                     Expanded(
                       child: Text(
                         item.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: 12.5,
                           fontWeight: mine

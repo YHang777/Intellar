@@ -1,3 +1,5 @@
+import { auditQuietly } from './audit.service';
+import { defaultNotificationDeps, notifyQuietly } from './notifications.service';
 import { randomInt } from 'node:crypto';
 import type { RequestHandler } from 'express';
 import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
@@ -156,10 +158,14 @@ function isoNow(): string {
   return new Date().toISOString();
 }
 
-function orderNumberFor(now: Date): string {
-  const y = now.getUTCFullYear();
-  const m = String(now.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(now.getUTCDate()).padStart(2, '0');
+/** Malaysia is UTC+8 all year (no DST) — order numbers carry the local day. */
+const MYT_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+export function orderNumberFor(now: Date): string {
+  const local = new Date(now.getTime() + MYT_OFFSET_MS);
+  const y = local.getUTCFullYear();
+  const m = String(local.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(local.getUTCDate()).padStart(2, '0');
   return `ORD-${y}${m}${d}-${randomInt(1000, 10000)}`;
 }
 
@@ -246,7 +252,43 @@ async function markOrderPaid(
       ...(paymentMethod ? { paymentMethod } : {}),
     });
     return true;
+  }).then((paid) => {
+    if (paid) void announcePaidOrder(db, orderId);
+    return paid;
   });
+}
+
+// First transition to paid: tell each seller and record the purchase.
+async function announcePaidOrder(db: Firestore, orderId: string): Promise<void> {
+  try {
+    const snap = await db.collection('orders').doc(orderId).get();
+    const order = asRecord(snap.data());
+    const orderNumber = asString(order.orderNumber) || orderId;
+    const supplierIds = Array.isArray(order.supplierIds)
+      ? (order.supplierIds as unknown[]).map((s) => String(s))
+      : [];
+    const deps = defaultNotificationDeps();
+    for (const sid of supplierIds) {
+      notifyQuietly(deps, sid, {
+        kind: 'new_order',
+        title: 'New paid order',
+        body: `Order ${orderNumber} is paid — confirm it to start preparing.`,
+        data: { orderId },
+      });
+    }
+    auditQuietly(
+      {
+        actorId: asString(order.customerId),
+        action: 'order.paid',
+        targetType: 'order',
+        targetId: orderId,
+        details: { total: asNumber(order.total), method: asString(order.paymentMethod) },
+      },
+      db
+    );
+  } catch (err) {
+    console.log(`[checkout] paid-order announce skipped: ${(err as Error).message}`);
+  }
 }
 
 async function paymentIntentState(
@@ -547,7 +589,52 @@ export async function cancelOrder(
     });
   });
 
+  announceCancelled(db, uid, orderId, data, paymentStatus === 'paid');
   return { paid: true, paymentMethod: asString(data.paymentMethod) };
+}
+
+function announceCancelled(
+  db: Firestore,
+  actorId: string,
+  orderId: string,
+  data: Record<string, unknown>,
+  refunded: boolean
+): void {
+  const orderNumber = asString(data.orderNumber) || orderId;
+  const customerId = asString(data.customerId);
+  const supplierIds = Array.isArray(data.supplierIds)
+    ? (data.supplierIds as unknown[]).map((s) => String(s))
+    : [];
+  const deps = defaultNotificationDeps();
+  if (actorId === customerId) {
+    for (const sid of supplierIds) {
+      notifyQuietly(deps, sid, {
+        kind: 'order_update',
+        title: 'Order cancelled',
+        body: `The buyer cancelled order ${orderNumber}.`,
+        data: { orderId },
+      });
+    }
+  } else if (customerId) {
+    notifyQuietly(deps, customerId, {
+      kind: 'order_update',
+      title: 'Order cancelled by the seller',
+      body: refunded
+        ? `Order ${orderNumber} was cancelled and your payment refunded.`
+        : `Order ${orderNumber} was cancelled.`,
+      data: { orderId },
+    });
+  }
+  auditQuietly(
+    {
+      actorId,
+      action: 'order.cancelled',
+      targetType: 'order',
+      targetId: orderId,
+      details: { refunded },
+    },
+    db
+  );
 }
 
 /**

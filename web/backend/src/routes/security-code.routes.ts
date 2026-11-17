@@ -9,6 +9,7 @@ import { env } from '../config/env';
 import { fbAuth, fbDb } from '../config/firebase';
 import { VerificationEmailException, VerificationMailer } from '../lib/verification-mailer';
 import { getAuthUserOrNull } from '../services/identity.service';
+import { auditQuietly, type AuditEntry } from '../services/audit.service';
 
 /**
  * Email one-time codes for the mobile app (mounted at /api/account):
@@ -44,6 +45,7 @@ export interface SecurityCodeDeps {
   updateAuthEmail: (uid: string, email: string) => Promise<void>;
   now?: () => Date;
   generateCode?: () => string;
+  audit?: (entry: AuditEntry) => void;
   log?: (message: string) => void;
 }
 
@@ -71,6 +73,7 @@ export function defaultSecurityCodeDeps(): SecurityCodeDeps {
     updateAuthEmail: async (uid, email) => {
       await fbAuth().updateUser(uid, { email, emailVerified: true });
     },
+    audit: (entry) => auditQuietly(entry),
     log: (message) => console.log(message),
   };
 }
@@ -218,6 +221,7 @@ export function createSecurityCodeRouter(deps: SecurityCodeDeps): Router {
       const { enabled, code } = settingsBody.parse(req.body);
       await consume(uid, 'login', code);
       await deps.db().collection('users').doc(uid).set({ twoFactorEnabled: enabled }, { merge: true });
+      deps.audit?.({ actorId: uid, action: enabled ? '2fa.enabled' : '2fa.disabled', targetType: 'user', targetId: uid });
       res.json({ twoFactorEnabled: enabled });
     })
   );
@@ -256,6 +260,7 @@ export function createSecurityCodeRouter(deps: SecurityCodeDeps): Router {
       await deps.updateAuthEmail(uid, newEmail);
       await deps.db().collection('users').doc(uid).set({ email: newEmail }, { merge: true });
       deps.log?.(`[security-code] email changed uid=${uid}`);
+      deps.audit?.({ actorId: uid, action: 'email.changed', targetType: 'user', targetId: uid });
       res.json({ email: newEmail });
     })
   );

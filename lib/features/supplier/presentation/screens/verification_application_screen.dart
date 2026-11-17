@@ -539,8 +539,6 @@ class _VerificationApplicationScreenState
           Expanded(
             child: Text(
               name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                   fontSize: 12.5, color: AppColors.textPrimary),
             ),
@@ -658,8 +656,6 @@ class _VerificationApplicationScreenState
                         fontWeight: FontWeight.w600,
                         color: AppColors.textHint)),
                 Text(doc.fileName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w500,

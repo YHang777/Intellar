@@ -72,8 +72,6 @@ class ChatSuggestionCard extends ConsumerWidget {
                     children: [
                       Text(
                         s.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -83,8 +81,6 @@ class ChatSuggestionCard extends ConsumerWidget {
                       const SizedBox(height: 2),
                       Text(
                         Formatters.myr(s.price),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         softWrap: false,
                         style: GoogleFonts.poppins(
                           fontSize: 12.5,
@@ -96,8 +92,6 @@ class ChatSuggestionCard extends ConsumerWidget {
                         const SizedBox(height: 2),
                         Text(
                           s.reason,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.poppins(
                             fontSize: 11,
                             color: AppColors.textSecondary,

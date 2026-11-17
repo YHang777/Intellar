@@ -197,6 +197,7 @@ class _AiRecommendationScreenState
 
   void _openHistorySheet() {
     showModalBottomSheet<void>(
+      useRootNavigator: true,
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
@@ -455,6 +456,7 @@ class _AiRecommendationScreenState
                       shape: BoxShape.circle,
                     ),
                     child: IconButton(
+                      tooltip: 'Send',
                       icon: const Icon(Icons.send,
                           color: Colors.white, size: 20),
                       onPressed: _sendMessage,
@@ -651,8 +653,6 @@ class _ChatHistoryRow extends ConsumerWidget {
                     children: [
                       Text(
                         session.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,

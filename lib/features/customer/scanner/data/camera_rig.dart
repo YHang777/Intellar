@@ -127,20 +127,20 @@ class FirstPersonRig {
   }
 
   void zoomFov(double deltaDeg) {
-    fovDeg = (fovDeg + deltaDeg).clamp(35.0, 95.0);
+    fovDeg = (fovDeg + deltaDeg).clamp(35.0, 105.0);
   }
 
   // Walkthrough zoom (1 = human) narrows the lens instead of moving the eye.
   // With the viewport [aspect], zoom 1 aims for a ~75° HORIZONTAL view: a
   // portrait phone at a fixed 70° vertical saw only ~35° across, so one wall
-  // filled the screen. Capped at 95° vertical to keep edges undistorted.
+  // filled the screen. Capped at 105° vertical to keep edges from stretching.
   void setZoom(double zoom, {double? aspect}) {
     var base = 70.0;
     if (aspect != null && aspect > 0 && aspect < 1) {
       const halfH = 37.5 * pi / 180;
       base = 2 * atan(tan(halfH) / aspect) * 180 / pi;
     }
-    fovDeg = (base / zoom).clamp(35.0, 95.0);
+    fovDeg = (base / zoom).clamp(35.0, 105.0);
   }
 
   ScenePose pose({

@@ -3,7 +3,7 @@ import { verificationApi } from '../api/api';
 import { useAuth } from '../state/AuthContext';
 import { IconGrid, IconLogout, IconSearch, IconShield, IconStore, IconUsers, IconCamera, IconBox, IconBag, IconSettings } from './icons';
 
-export type PageKey = 'overview' | 'users' | 'suppliers' | 'verification' | 'product-flags' | 'products' | 'orders' | 'settings';
+export type PageKey = 'overview' | 'users' | 'suppliers' | 'verification' | 'product-flags' | 'products' | 'orders' | 'audit' | 'settings';
 
 export const PAGE_META: Record<PageKey, { title: string; breadcrumb: string }> = {
   overview: { title: 'Overview', breadcrumb: 'Health' },
@@ -13,6 +13,7 @@ export const PAGE_META: Record<PageKey, { title: string; breadcrumb: string }> =
   'product-flags': { title: 'Photo flags', breadcrumb: 'Photo flags' },
   products: { title: 'Products', breadcrumb: 'Catalog' },
   orders: { title: 'Orders', breadcrumb: 'Catalog' },
+  audit: { title: 'Audit log', breadcrumb: 'System' },
   settings: { title: 'Settings', breadcrumb: 'System' },
 };
 
@@ -85,6 +86,11 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
   {
     label: 'System',
     items: [
+      {
+        key: 'audit',
+        label: 'Audit log',
+        icon: <IconShield size={17} />,
+      },
       {
         key: 'settings',
         label: 'Settings',

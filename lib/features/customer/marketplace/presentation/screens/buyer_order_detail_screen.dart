@@ -40,7 +40,11 @@ class _BuyerOrderDetailScreenState
     final confirmed = await showConfirmDialog(
       context,
       title: 'Cancel this order?',
-      message: 'The order will be cancelled. This cannot be undone.',
+      message: order.paymentStatus == PaymentStatus.paid
+          ? 'The order will be cancelled and ${Formatters.myr(order.total)} '
+              'refunded to your card. Refunds usually take 5–10 business days. '
+              'This cannot be undone.'
+          : 'The order will be cancelled. This cannot be undone.',
       confirmLabel: 'Cancel order',
       destructive: true,
     );
@@ -804,7 +808,6 @@ class _StatusTimeline extends StatelessWidget {
                         Expanded(
                           child: Text(
                             caption,
-                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
@@ -870,8 +873,6 @@ class _ItemRow extends StatelessWidget {
               children: [
                 Text(
                   item.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,
@@ -954,8 +955,6 @@ class _ReviewEntryRow extends ConsumerWidget {
           Expanded(
             child: Text(
               item.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w500,
@@ -1115,8 +1114,6 @@ class _ReviewSheetState extends ConsumerState<_ReviewSheet> {
                 Expanded(
                   child: Text(
                     widget.item.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -1225,8 +1222,6 @@ class _InvoiceRow extends StatelessWidget {
                 children: [
                   Text(
                     seller,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,

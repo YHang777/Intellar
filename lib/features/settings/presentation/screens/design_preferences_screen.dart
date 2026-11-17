@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
@@ -52,7 +51,7 @@ class _DesignPreferencesScreenState
           .saveDesignPreferences(_prefs.copyWith(notes: _notes.text.trim()));
       if (!mounted) return;
       showAppSnackbar(context, 'Design preferences saved');
-      if (context.canPop()) context.pop();
+      leaveSettings(context, ref);
     } catch (e) {
       if (mounted) {
         showAppSnackbar(context,
@@ -79,8 +78,13 @@ class _DesignPreferencesScreenState
                 FilterChip(
                   label: Text(o),
                   selected: selected.contains(o),
-                  selectedColor: AppColors.accent.withValues(alpha: 0.15),
-                  checkmarkColor: AppColors.accent,
+                  labelStyle: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: selected.contains(o)
+                        ? AppColors.textOnDark
+                        : AppColors.textPrimary,
+                  ),
                   onSelected: (_) => onTap(o),
                 ),
             ],

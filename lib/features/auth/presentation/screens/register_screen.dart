@@ -74,8 +74,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(text,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,

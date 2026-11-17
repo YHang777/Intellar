@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 enum TextSizeOption {
   standard(1.0, 'Default'),
   large(1.15, 'Large'),
-  extraLarge(1.3, 'Extra large');
+  extraLarge(1.3, 'Larger');
 
   const TextSizeOption(this.scale, this.label);
   final double scale;

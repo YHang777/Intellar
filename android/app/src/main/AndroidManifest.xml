@@ -4,6 +4,8 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Enable camera access for scan feature -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Order / quote push notifications (runtime prompt on Android 13+) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- ARCore (Google Play Services for AR). Marked optional so the app still
          installs on devices without ARCore — the AR screen shows a fallback. -->
     <uses-feature
@@ -19,6 +21,13 @@
         <meta-data
             android:name="com.google.ar.core"
             android:value="optional" />
+        <!-- Pushes that arrive while the app is closed use this channel. -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="intellar_default" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@mipmap/ic_launcher" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

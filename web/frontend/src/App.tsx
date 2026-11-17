@@ -10,6 +10,7 @@ import { ProductFlagsPage } from './pages/ProductFlagsPage';
 import { ProductsPage } from './pages/ProductsPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { AuditLogPage } from './pages/AuditLogPage';
 
 function Shell() {
   const { user, ready } = useAuth();
@@ -37,6 +38,7 @@ function Shell() {
       {page === 'product-flags' && <ProductFlagsPage query={query} />}
       {page === 'products' && <ProductsPage query={query} />}
       {page === 'orders' && <OrdersPage query={query} />}
+      {page === 'audit' && <AuditLogPage />}
       {page === 'settings' && <SettingsPage />}
     </Layout>
   );

@@ -207,8 +207,6 @@ class _RobotChatPanelState extends ConsumerState<RobotChatPanel> {
                 Expanded(
                   child: Text(
                     widget.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
@@ -295,6 +293,7 @@ class _RobotChatPanelState extends ConsumerState<RobotChatPanel> {
                           onSubmitted: (_) => _send(),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         width: 40,
                         height: 40,
@@ -308,6 +307,7 @@ class _RobotChatPanelState extends ConsumerState<RobotChatPanel> {
                         ),
                         child: IconButton(
                           key: const ValueKey('robot-chat-send'),
+                          tooltip: 'Send',
                           icon: const Icon(Icons.send,
                               color: Colors.white, size: 20),
                           onPressed: _send,
@@ -419,8 +419,6 @@ class _FocusBanner extends StatelessWidget {
           Expanded(
             child: Text(
               product.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,

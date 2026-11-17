@@ -3,6 +3,7 @@ import { initializeApp, cert, applicationDefault, type App } from 'firebase-admi
 import { getAuth, type Auth } from 'firebase-admin/auth';
 import { getFirestore, type Firestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import { getStorage, type Storage } from 'firebase-admin/storage';
+import { getMessaging, type Messaging } from 'firebase-admin/messaging';
 
 /** The @google-cloud/storage bucket type, without adding a direct dependency. */
 type Bucket = ReturnType<Storage['bucket']>;
@@ -77,6 +78,10 @@ function ensureApp(): App {
 
 export function fbAuth(): Auth {
   return getAuth(ensureApp());
+}
+
+export function fbMessaging(): Messaging {
+  return getMessaging(ensureApp());
 }
 
 export function fbDb(): Firestore {

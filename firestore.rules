@@ -184,6 +184,26 @@ service cloud.firestore {
       allow read, write: if isOwner(uid);
     }
 
+    // ── Notification inbox: written by the server only; the owner may read
+    // it, flip `read`, and delete rows. ──
+    match /users/{uid}/notifications/{notificationId} {
+      allow read, delete: if isOwner(uid);
+      allow create: if false;
+      allow update: if isOwner(uid) &&
+          request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['read']);
+    }
+
+    // ── FCM device tokens (doc id = token), managed by the owner's app ──
+    match /users/{uid}/fcmTokens/{token} {
+      allow read, write: if isOwner(uid);
+    }
+
+    // ── Audit trail: server-only (Admin SDK); no client access at all ──
+    match /audit_logs/{entryId} {
+      allow read, write: if false;
+    }
+
     // ── Room designs: owner can CRUD their own designs ──
     match /room_designs/{designId} {
       allow read, update, delete: if signedIn() &&

@@ -1,3 +1,4 @@
+import '../../../../services/notify/notify_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -69,6 +70,7 @@ class _QuoteRequestDetailScreenState
       await ref
           .read(marketplaceRepositoryProvider)
           .markQuoteContacted(request.id);
+      NotifyClient.instance.quoteContacted(request.id);
       if (!mounted) return;
       setState(() {
         _contactedLocally = true;
@@ -184,8 +186,6 @@ class _QuoteRequestDetailScreenState
                   children: [
                     Text(
                       request.productName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w600,
@@ -264,8 +264,6 @@ class _QuoteRequestDetailScreenState
                   if (email.isNotEmpty)
                     Text(
                       email,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                         fontSize: 11.5,
                         color: AppColors.textHint,

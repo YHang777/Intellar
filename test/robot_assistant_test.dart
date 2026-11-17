@@ -64,6 +64,7 @@ Future<void> _pumpHost(
   int status = 200,
   List<CartItem> cart = const [],
   BudgetPlan? budget,
+  Widget? child,
 }) async {
   await tester.binding.setSurfaceSize(const Size(393, 852));
   addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -92,7 +93,7 @@ Future<void> _pumpHost(
               body: RobotAssistantHost(
                 products: focusProduct != null ? [focusProduct] : [product],
                 focusProduct: focusProduct,
-                child: const SizedBox.expand(),
+                child: child ?? const SizedBox.expand(),
               ),
             ),
           ),
@@ -105,8 +106,16 @@ Future<void> _pumpHost(
 
 Finder _robot() => find.byKey(const ValueKey('robot-assistant'));
 
+// The robot rests as an edge tab — press the sliver that is on screen.
+Offset _grip(WidgetTester tester) {
+  final box = tester.getRect(_robot());
+  final screen = tester.getRect(find.byType(Scaffold).first);
+  final visible = box.intersect(screen);
+  return visible.center;
+}
+
 Future<void> _openChat(WidgetTester tester) async {
-  await tester.tap(_robot());
+  await tester.tapAt(_grip(tester));
   await tester.pumpAndSettle();
 }
 
@@ -135,18 +144,22 @@ void main() {
     final capture = _ChatCapture();
     await _pumpHost(tester, capture);
 
-    final start = tester.getCenter(_robot());
+    final start = _grip(tester);
     final gesture = await tester.startGesture(start);
-    await gesture.moveBy(const Offset(-80, 50));
+    await gesture.moveBy(const Offset(-150, -50));
     await tester.pump();
-    await gesture.moveBy(const Offset(-80, 50));
+    await gesture.moveBy(const Offset(-150, -50));
+    await tester.pump();
+    await gesture.moveBy(const Offset(-100, 0));
     await tester.pump();
     await gesture.up();
     await tester.pumpAndSettle();
 
-    final end = tester.getCenter(_robot());
-    expect(end.dx, lessThan(start.dx - 40));
-    expect(end.dy, greaterThan(start.dy + 20));
+    final end = tester.getRect(_robot());
+    expect(end.left, lessThan(0),
+        reason: 'released past the middle, it docks as a left-edge tab');
+    expect(end.right, greaterThan(16), reason: 'a sliver stays tappable');
+    expect(end.center.dy, lessThan(start.dy - 20));
     expect(find.byType(RobotChatPanel), findsNothing);
     expect(capture.calls, 0);
   });
@@ -169,7 +182,7 @@ void main() {
     final capture = _ChatCapture();
     await _pumpHost(tester, capture);
 
-    var gesture = await tester.startGesture(tester.getCenter(_robot()));
+    var gesture = await tester.startGesture(_grip(tester));
     await gesture.moveBy(const Offset(-800, -800));
     await tester.pump();
     await gesture.moveBy(const Offset(-800, -800));
@@ -177,11 +190,11 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
 
-    final topLeft = tester.getCenter(_robot());
-    expect(topLeft.dx, inInclusiveRange(43, 45));
-    expect(topLeft.dy, inInclusiveRange(43, 45));
+    final topLeft = tester.getRect(_robot());
+    expect(topLeft.left, lessThan(0));
+    expect(topLeft.center.dy, 40);
 
-    gesture = await tester.startGesture(topLeft);
+    gesture = await tester.startGesture(_grip(tester));
     await gesture.moveBy(const Offset(800, 800));
     await tester.pump();
     await gesture.moveBy(const Offset(800, 800));
@@ -189,9 +202,32 @@ void main() {
     await gesture.up();
     await tester.pumpAndSettle();
 
-    final bottomRight = tester.getCenter(_robot());
-    expect(bottomRight.dx, inInclusiveRange(348, 350));
-    expect(bottomRight.dy, inInclusiveRange(807, 809));
+    final bottomRight = tester.getRect(_robot());
+    expect(bottomRight.right, greaterThan(393), reason: 'tucked into the right edge');
+    expect(bottomRight.left, lessThan(393 - 16));
+    expect(bottomRight.center.dy, inInclusiveRange(811, 813));
+  });
+
+  testWidgets('scrolling the page tucks the robot into its edge', (tester) async {
+    final capture = _ChatCapture();
+    await _pumpHost(tester, capture,
+        child: ListView(
+            children: [for (var i = 0; i < 40; i++) SizedBox(height: 80, child: Text('row $i'))]));
+    final docked = tester.getTopLeft(_robot());
+
+    final scrollable = find.byType(Scrollable).first;
+    final gesture = await tester.startGesture(tester.getCenter(scrollable));
+    await gesture.moveBy(const Offset(0, -60));
+    await tester.pump();
+    await gesture.moveBy(const Offset(0, -60));
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(tester.getTopLeft(_robot()).dx, greaterThan(docked.dx + 5),
+        reason: 'slides mostly off the right edge while scrolling');
+
+    await gesture.up();
+    await tester.pumpAndSettle(const Duration(seconds: 2));
+    expect(tester.getTopLeft(_robot()).dx, docked.dx,
+        reason: 'comes back once scrolling stops');
   });
 
   testWidgets('chips fill the input and never auto-send', (tester) async {

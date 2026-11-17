@@ -4,7 +4,10 @@ import 'core/accessibility/accessibility_settings.dart';
 import 'core/constants/app_colors.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
+import 'features/auth/data/models/app_user.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
+import 'features/notifications/data/app_notification.dart';
+import 'services/push/push_service.dart';
 
 class InteriorDesignApp extends ConsumerStatefulWidget {
   const InteriorDesignApp({super.key});
@@ -19,6 +22,12 @@ class _InteriorDesignAppState extends ConsumerState<InteriorDesignApp> {
   @override
   void initState() {
     super.initState();
+    PushService.instance.onTap = _openFromPush;
+    ref.listenManual<AppUser?>(currentUserProvider, (prev, next) {
+      if (next != null && !next.twoFactorPending) {
+        PushService.instance.register(next.uid);
+      }
+    }, fireImmediately: true);
     ref.listenManual<AccessibilitySettings>(accessibilitySettingsProvider,
         (prev, next) {
       if (prev == null || prev.highContrast == next.highContrast) return;
@@ -27,6 +36,22 @@ class _InteriorDesignAppState extends ConsumerState<InteriorDesignApp> {
         if (mounted) WidgetsBinding.instance.reassembleApplication();
       });
     });
+  }
+
+  void _openFromPush(Map<String, String> data) {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    String? pick(String k) {
+      final v = data[k];
+      return (v == null || v.isEmpty) ? null : v;
+    }
+    final route = routeForNotification(
+      isSupplier: user.isSupplier,
+      orderId: pick('orderId'),
+      quoteId: pick('quoteId'),
+      productId: pick('productId'),
+    );
+    ref.read(appRouterProvider).push(route ?? '/notifications');
   }
 
   @override

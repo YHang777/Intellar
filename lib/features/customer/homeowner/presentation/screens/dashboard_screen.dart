@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../notifications/presentation/notifications_screen.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/utils/formatters.dart';
 import '../../../../../core/router/push_once.dart';
 import '../../../../../shared/widgets/empty_state.dart';
 import '../../../../../shared/widgets/page_heading.dart';
@@ -34,12 +36,7 @@ class DashboardScreen extends ConsumerWidget {
     final name = user?.name ?? 'User';
     final stats = ref.watch(customerStatsProvider);
 
-    final hour = DateTime.now().hour;
-    final greeting = switch (hour) {
-      < 12 => 'Good Morning',
-      < 17 => 'Good Afternoon',
-      _ => 'Good Evening',
-    };
+    final greeting = Formatters.greeting();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -56,11 +53,7 @@ class DashboardScreen extends ConsumerWidget {
               title: '$greeting, $name',
               subtitle: 'Ready to design your space?',
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.notifications_outlined,
-                      color: AppColors.textPrimary),
-                  onPressed: () {},
-                ),
+                const NotificationBell(),
               ],
             ),
             const SizedBox(height: 16),
@@ -133,7 +126,8 @@ class DashboardScreen extends ConsumerWidget {
                       icon: Icons.shopping_bag,
                       label: 'Purchases',
                       value: _countValue(stats.purchases),
-                      gradientColors: [AppColors.secondaryAccent, AppColors.gradientBlue]),
+                      gradientColors: [AppColors.secondaryAccent, AppColors.gradientBlue],
+                      onTap: () => pushOnce(context, '/marketplace/orders')),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -141,7 +135,8 @@ class DashboardScreen extends ConsumerWidget {
                       icon: Icons.bookmark,
                       label: 'Saved Designs',
                       value: _countValue(stats.savedDesigns),
-                      gradientColors: [AppColors.warning, AppColors.gradientOrange]),
+                      gradientColors: [AppColors.warning, AppColors.gradientOrange],
+                      onTap: () => context.go('/saved')),
                 ),
               ],
             ),
@@ -325,16 +320,12 @@ class _ActivityRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(entry.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textPrimary)),
                 const SizedBox(height: 2),
                 Text(entry.subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                         fontSize: 12, color: AppColors.textSecondary)),
               ],

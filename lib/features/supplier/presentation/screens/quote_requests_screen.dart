@@ -172,8 +172,6 @@ class _QuoteTile extends StatelessWidget {
                   children: [
                     Text(
                       request.productName,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                         fontSize: 13.5,
                         fontWeight: FontWeight.w700,
@@ -183,8 +181,6 @@ class _QuoteTile extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       'Qty ${request.quantity} · ${request.customerName}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                         fontSize: 12.5,
                         color: AppColors.textSecondary,

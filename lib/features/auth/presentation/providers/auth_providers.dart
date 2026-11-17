@@ -10,6 +10,8 @@ import '../../data/models/user_preferences.dart';
 import '../../data/datasources/security_code_datasource.dart';
 import '../../data/repositories/account_settings_repository.dart';
 import '../../data/repositories/auth_repository_impl.dart';
+import '../../../../services/notify/notify_client.dart';
+import '../../../../services/push/push_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 
 final authRepositoryProvider = Provider<IAuthRepository>((ref) {
@@ -92,6 +94,7 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<AppUser?>> {
 
   Future<void> logout() async {
     _authStreamSuspended = false;
+    await PushService.instance.unregister();
     await _repository.logout();
   }
 
@@ -112,6 +115,7 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<AppUser?>> {
       businessAddress: businessAddress,
     );
     state = AsyncValue.data(updated);
+    NotifyClient.instance.audit('profile.update', targetType: 'user');
   }
 
   AppUser? get _user => state.valueOrNull;
@@ -151,16 +155,21 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<AppUser?>> {
   Future<void> saveDesignPreferences(DesignPreferences prefs) async {
     await _settings.saveDesignPreferences(prefs);
     _patch((u) => u.copyWith(designPreferences: prefs));
+    NotifyClient.instance.audit('preferences.update', targetType: 'user');
   }
 
   Future<void> saveNotificationSettings(NotificationSettings settings) async {
     await _settings.saveNotificationSettings(settings);
     _patch((u) => u.copyWith(notificationSettings: settings));
+    NotifyClient.instance.audit('settings.update',
+        targetType: 'user', details: {'area': 'notifications'});
   }
 
   Future<void> savePrivacySettings(PrivacySettings settings) async {
     await _settings.savePrivacySettings(settings);
     _patch((u) => u.copyWith(privacySettings: settings));
+    NotifyClient.instance.audit('settings.update',
+        targetType: 'user', details: {'area': 'privacy'});
   }
 
   Future<void> completeOnboarding() async {

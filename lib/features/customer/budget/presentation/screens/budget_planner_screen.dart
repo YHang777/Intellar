@@ -188,7 +188,9 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
     final catalogue = productsAsync.valueOrNull;
     final lines = _effectiveLines(catalogue ?? const []);
     final totalCost = estimateTotal(lines);
+    final hasBudget = _budget > 0;
     final remaining = _budget - totalCost;
+    final overBudget = hasBudget && remaining < 0;
     final partial = lines.any((l) => !l.hasData);
     final totalMatches = lines.fold<int>(0, (sum, l) => sum + l.matches);
     final optionsByLabel = {
@@ -255,7 +257,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                 Expanded(
                   child: StatCard(
                     icon: Icons.receipt,
-                    label: 'Total Cost',
+                    label: 'Estimated Cost',
                     value: Formatters.myr(totalCost),
                     gradient: const [
                       AppColors.secondaryAccent,
@@ -266,11 +268,18 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: StatCard(
-                    icon:
-                        remaining >= 0 ? Icons.savings : Icons.warning,
-                    label: remaining >= 0 ? 'Remaining' : 'Over Budget',
-                    value: Formatters.myr(remaining.abs()),
-                    gradient: remaining >= 0
+                    icon: !hasBudget
+                        ? Icons.edit_note
+                        : remaining >= 0
+                            ? Icons.savings
+                            : Icons.warning,
+                    label: !hasBudget
+                        ? 'Set a budget'
+                        : remaining >= 0
+                            ? 'Remaining'
+                            : 'Over Budget',
+                    value: hasBudget ? Formatters.myr(remaining.abs()) : '—',
+                    gradient: !overBudget
                         ? const [
                             AppColors.warning,
                             AppColors.gradientOrange
@@ -312,21 +321,18 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                 items: [
                   const DropdownMenuItem(
                     value: '',
-                    child: Text('Whole home (total budget)',
-                        maxLines: 1, overflow: TextOverflow.ellipsis),
+                    child: Text('Whole home (total budget)', ),
                   ),
                   for (final d in designs)
                     DropdownMenuItem(
                       value: d.id,
-                      child: Text(d.name.isEmpty ? 'Untitled design' : d.name,
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      child: Text(d.name.isEmpty ? 'Untitled design' : d.name, ),
                     ),
                   if (_designId.isNotEmpty &&
                       !designs.any((d) => d.id == _designId))
                     DropdownMenuItem(
                       value: _designId,
-                      child: Text(_selectedRoom,
-                          maxLines: 1, overflow: TextOverflow.ellipsis),
+                      child: Text(_selectedRoom, ),
                     ),
                 ],
                 onChanged: (v) {
@@ -445,7 +451,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                           style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: remaining < 0
+                              color: overBudget
                                   ? AppColors.error
                                   : AppColors.accent)),
                     ),
@@ -454,11 +460,11 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
               ),
               if (partial && catalogue != null) ...[
                 const SizedBox(height: 6),
-                Text('Total covers categories with price data only.',
+                Text('Estimate from the cheapest listing per category, not money spent. Covers categories with price data only.',
                     style: GoogleFonts.poppins(
                         fontSize: 11, color: AppColors.textHint)),
               ],
-              if (remaining < 0) ...[
+              if (overBudget) ...[
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(12),
@@ -474,7 +480,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          'Over budget by ${Formatters.myr(remaining.abs())}!',
+                          'This estimate is ${Formatters.myr(remaining.abs())} over your budget',
                           style: GoogleFonts.poppins(
                               color: AppColors.error,
                               fontWeight: FontWeight.w600),

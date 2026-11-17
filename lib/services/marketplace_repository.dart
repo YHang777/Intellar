@@ -12,6 +12,7 @@ import '../models/product.dart';
 import '../models/product_category.dart';
 import '../models/quote_request.dart';
 import '../models/review.dart';
+import 'auth_race_retry.dart';
 import 'media/media_store.dart';
 import 'model_generation/model_glb_resolver.dart';
 
@@ -204,19 +205,19 @@ class MarketplaceRepository {
   // ── Orders ──────────────────────────────────────────────────────────────
 
   Stream<List<Order>> watchCustomerOrders(String uid) {
-    return _orders
+    return retryOnPermissionDenied(() => _orders
         .where('customerId', isEqualTo: uid)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => Order.fromJson(d.data())).toList());
+        .map((snap) => snap.docs.map((d) => Order.fromJson(d.data())).toList()));
   }
 
   Stream<List<Order>> watchSupplierOrders(String supplierId) {
-    return _orders
+    return retryOnPermissionDenied(() => _orders
         .where('supplierIds', arrayContains: supplierId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => Order.fromJson(d.data())).toList());
+        .map((snap) => snap.docs.map((d) => Order.fromJson(d.data())).toList()));
   }
 
   static String newOrderId() => _newId();
@@ -312,21 +313,21 @@ class MarketplaceRepository {
       _db.collection(_quoteRequestsCol);
 
   Stream<List<QuoteRequest>> watchCustomerQuoteRequests(String customerId) {
-    return _quoteRequests
+    return retryOnPermissionDenied(() => _quoteRequests
         .where('customerId', isEqualTo: customerId)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snap) =>
-            snap.docs.map((d) => QuoteRequest.fromJson(d.data())).toList());
+            snap.docs.map((d) => QuoteRequest.fromJson(d.data())).toList()));
   }
 
   Stream<List<QuoteRequest>> watchSupplierQuoteRequests(String supplierId) {
-    return _quoteRequests
+    return retryOnPermissionDenied(() => _quoteRequests
         .where('supplierId', isEqualTo: supplierId)
         .orderBy('createdAt', descending: true)
         .snapshots()
         .map((snap) =>
-            snap.docs.map((d) => QuoteRequest.fromJson(d.data())).toList());
+            snap.docs.map((d) => QuoteRequest.fromJson(d.data())).toList()));
   }
 
   Future<void> createQuoteRequest(QuoteRequest request) async {
@@ -345,9 +346,9 @@ class MarketplaceRepository {
   // ── Cart ────────────────────────────────────────────────────────────────
 
   Stream<List<CartItem>> watchCart(String uid) {
-    return _userDocs(uid).snapshots().map((snap) => snap.docs
+    return retryOnPermissionDenied(() => _userDocs(uid).snapshots().map((snap) => snap.docs
         .map((d) => CartItem.fromJson(d.data()))
-        .toList());
+        .toList()));
   }
 
   Future<void> saveCartItem(String uid, CartItem item) async {
@@ -371,9 +372,9 @@ class MarketplaceRepository {
   // ── Wishlist ────────────────────────────────────────────────────────────
 
   Stream<List<String>> watchWishlistIds(String uid) {
-    return _userWishlist(uid)
+    return retryOnPermissionDenied(() => _userWishlist(uid)
         .snapshots()
-        .map((snap) => snap.docs.map((d) => d.id).toList());
+        .map((snap) => snap.docs.map((d) => d.id).toList()));
   }
 
   Future<void> addToWishlist(String uid, String productId) async {

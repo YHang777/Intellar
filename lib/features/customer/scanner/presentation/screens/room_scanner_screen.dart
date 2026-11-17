@@ -1496,14 +1496,6 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
       _designId = designId;
       _designName = name;
       _designCreatedAt = design.createdAt;
-      if (mounted) {
-        showAppSnackbar(
-          context,
-          'Design "$name" saved!',
-          duration: const Duration(seconds: 3),
-        );
-        Navigator.pop(context, true);
-      }
     } catch (e) {
       if (mounted) {
         showAppSnackbar(
@@ -1514,7 +1506,16 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
           duration: const Duration(seconds: 4),
         );
       }
+      return;
     }
+    if (!mounted) return;
+    showAppSnackbar(
+      context,
+      'Design "$name" saved!',
+      duration: const Duration(seconds: 3),
+    );
+    final nav = Navigator.of(context);
+    if (nav.canPop()) nav.pop(true);
   }
 
   String get _roomTypeLabel {
@@ -2119,8 +2120,6 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                     '${_furniture[_selectedIdx].name} · '
                     '${_furniture[_selectedIdx].width.toInt()}×'
                     '${_furniture[_selectedIdx].height.toInt()} cm',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                         fontWeight: FontWeight.w600,
                         fontSize: 13),
@@ -2282,7 +2281,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                     label: Text(
                       _furniture.isEmpty
                           ? 'Add furniture'
-                          : 'Add furniture · ${_furniture.length} placed',
+                          : 'Add · ${_furniture.length} placed',
                       maxLines: 1,
                     ),
                     style: FilledButton.styleFrom(
@@ -2591,8 +2590,6 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
             Text(
               cat.name,
               textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -2659,8 +2656,6 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
             Text(
               p.name,
               textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -2671,8 +2666,6 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                   ? Formatters.myr(p.price)
                   : '${Formatters.myr(p.price)} · ${(dims.widthM * 100).round()}×${(dims.depthM * 100).round()}',
               textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                   fontSize: 9, color: AppColors.textSecondary),
             ),

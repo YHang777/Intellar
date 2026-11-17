@@ -50,8 +50,6 @@ class QuickActionButton extends StatelessWidget {
           Text(
             label,
             textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.poppins(
               fontSize: 11,
               fontWeight: FontWeight.w500,

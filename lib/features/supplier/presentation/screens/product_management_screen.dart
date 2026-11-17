@@ -1,3 +1,4 @@
+import '../../../../services/notify/notify_client.dart';
 import 'package:flutter/material.dart' hide SearchBar;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -107,8 +108,6 @@ class _ProductManagementScreenState
               children: [
                 Text(
                   p.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
                     fontSize: 13,
                     color: AppColors.textSecondary,
@@ -195,6 +194,8 @@ class _ProductManagementScreenState
     final repo = ref.read(marketplaceRepositoryProvider);
     try {
       await repo.deleteProduct(p.id);
+      NotifyClient.instance
+          .audit('product.delete', targetType: 'product', targetId: p.id);
       if (mounted) {
         showAppSnackbar(context, '"${p.name}" was deleted',
             color: AppColors.success, duration: const Duration(seconds: 3));
@@ -617,8 +618,6 @@ class _ProductTile extends StatelessWidget {
                         children: [
                           Text(
                             product.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.poppins(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w600,
@@ -894,8 +893,6 @@ class _RowAction extends StatelessWidget {
             Flexible(
               child: Text(
                 label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w600,

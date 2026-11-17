@@ -166,6 +166,16 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: intent.clientSecret,
           merchantDisplayName: 'Intellar',
+          billingDetails: const BillingDetails(
+            address: Address(
+              city: null,
+              country: 'MY',
+              line1: null,
+              line2: null,
+              postalCode: null,
+              state: null,
+            ),
+          ),
           style: ThemeMode.light,
         ),
       );
@@ -743,8 +753,6 @@ class _ItemSummaryRow extends StatelessWidget {
               children: [
                 Text(
                   product.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w500,

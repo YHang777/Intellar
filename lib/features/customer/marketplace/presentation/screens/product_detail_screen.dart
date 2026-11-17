@@ -1,3 +1,4 @@
+import '../../../../../services/notify/notify_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -25,6 +26,8 @@ import '../../../../auth/presentation/providers/auth_providers.dart';
 
 import '../providers/marketplace_providers.dart';
 import '../widgets/robot_assistant/robot_assistant_host.dart';
+
+const kBulkQuoteMinQty = 5;
 
 class ProductDetailScreen extends ConsumerStatefulWidget {
   const ProductDetailScreen({super.key, required this.productId});
@@ -90,8 +93,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
         product: product,
         initialQty: _clampedQty(product),
         user: user,
-        onSubmit: (q) =>
-            ref.read(marketplaceRepositoryProvider).createQuoteRequest(q),
+        onSubmit: (q) async {
+          await ref.read(marketplaceRepositoryProvider).createQuoteRequest(q);
+          NotifyClient.instance.quoteCreated(q.id);
+        },
       ),
     );
     if (!mounted || request == null) return;
@@ -683,8 +688,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       children: [
                         Flexible(
                           child: Text(supplier.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
@@ -699,8 +702,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                     if (supplier.address.isNotEmpty)
                       Text('Pickup at ${supplier.address}',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                               fontSize: 11, color: AppColors.textHint)),
                   ],
@@ -781,15 +782,24 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 
     if (related.isEmpty) return const SizedBox.shrink();
 
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var index = 0; index < related.length; index++) ...[
+              if (index > 0) const SizedBox(width: 12),
+              _relatedCard(related[index]),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _relatedCard(Product item) {
     return SizedBox(
-      height: 230,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: related.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemBuilder: (_, index) {
-          final item = related[index];
-          return SizedBox(
             width: 150,
             child: ProductCard(
               product: item,
@@ -821,9 +831,6 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               },
             ),
           );
-        },
-      ),
-    );
   }
 }
 
@@ -913,8 +920,6 @@ class _ChipBadge extends StatelessWidget {
           // A category/style longer than the line has nowhere to wrap to.
           Flexible(
             child: Text(text,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -956,7 +961,9 @@ class _BulkQuoteDialogState extends State<_BulkQuoteDialog> {
   @override
   void initState() {
     super.initState();
-    _qty = widget.initialQty;
+    _qty = widget.initialQty < kBulkQuoteMinQty
+        ? kBulkQuoteMinQty
+        : widget.initialQty;
     _nameCtrl = TextEditingController(text: widget.user.name);
     _phoneCtrl = TextEditingController(text: widget.user.phone ?? '');
   }
@@ -1070,11 +1077,17 @@ class _BulkQuoteDialogState extends State<_BulkQuoteDialog> {
                   const Spacer(),
                   QuantityStepper(
                     value: _qty,
-                    min: 1,
+                    min: kBulkQuoteMinQty,
                     compact: true,
                     onChanged: (v) => setState(() => _qty = v),
                   ),
                 ],
+              ),
+              Text(
+                'Bulk quotes start at $kBulkQuoteMinQty units — for fewer, '
+                'add to cart instead.',
+                style: GoogleFonts.poppins(
+                    fontSize: 11.5, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -1244,7 +1257,7 @@ class _ReviewsSection extends ConsumerWidget {
                         color: AppColors.textHint.withValues(alpha: 0.7)),
                     const SizedBox(height: 8),
                     Text(
-                      'No reviews yet — be the first after your order arrives.',
+                      'No reviews yet — be the first after you collect your order.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           fontSize: 12.5,
@@ -1311,8 +1324,6 @@ class _ReviewTile extends StatelessWidget {
                   children: [
                     Text(
                       review.userName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,

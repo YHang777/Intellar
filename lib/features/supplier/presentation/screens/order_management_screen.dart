@@ -256,8 +256,6 @@ class _OrderTile extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 order.customerName,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
                                 style: GoogleFonts.poppins(
                                   fontSize: 12.5,
                                   fontWeight: FontWeight.w500,

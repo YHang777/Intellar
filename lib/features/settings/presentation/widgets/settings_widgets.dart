@@ -1,11 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../shared/widgets/float_button.dart';
 import '../../../../shared/widgets/page_heading.dart';
+import '../../../auth/presentation/providers/auth_providers.dart';
 
-class SettingsPage extends StatelessWidget {
+void leaveSettings(BuildContext context, WidgetRef ref) {
+  if (context.canPop()) {
+    context.pop();
+    return;
+  }
+  final supplier = ref.read(currentUserProvider)?.isSupplier ?? false;
+  context.go(supplier ? '/supplier/profile' : '/profile');
+}
+
+class SettingsPage extends ConsumerWidget {
   const SettingsPage({
     super.key,
     required this.title,
@@ -20,7 +32,7 @@ class SettingsPage extends StatelessWidget {
   final Widget? bottom;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.background,
       bottomNavigationBar: bottom,
@@ -28,9 +40,10 @@ class SettingsPage extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
-            const Align(
+            Align(
               alignment: Alignment.centerLeft,
-              child: FloatingBackButton(),
+              child: FloatingBackButton(
+                  onTap: () => leaveSettings(context, ref)),
             ),
             const SizedBox(height: 8),
             PageHeading(title: title, subtitle: subtitle),

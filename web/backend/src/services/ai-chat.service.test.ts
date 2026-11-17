@@ -277,3 +277,9 @@ test('state block carries the saved design preferences', () => {
   assert.match(block, /Design preferences: styles Scandinavian, Japandi; colours Warm neutrals; materials Wood; prefers eco-friendly pieces; notes: "small flat, two cats"\./);
   assert.equal(formatStateBlock({ preferences: {} }), '');
 });
+
+test('prompt forbids inventing saved preferences and leaking ids', () => {
+  const prompt = buildSystemPrompt({ messages: [{ role: 'user', text: 'hi' }] });
+  assert.match(prompt, /Never guess a saved style/);
+  assert.match(prompt, /Never write catalogue ids in "reply"/);
+});

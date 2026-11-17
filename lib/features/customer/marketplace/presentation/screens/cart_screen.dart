@@ -387,8 +387,6 @@ class _CartItemCard extends ConsumerWidget {
                         Expanded(
                           child: Text(
                             product.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w600,
@@ -577,8 +575,6 @@ class _CheckoutBar extends StatelessWidget {
                   Flexible(
                     child: Text(
                       'Subtotal ($itemCount item${itemCount == 1 ? '' : 's'})',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 13.5,
                         color: AppColors.textPrimary,

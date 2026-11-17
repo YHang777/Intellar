@@ -22,6 +22,7 @@ Future<void> showChatQuickSelectSheet(
   required ValueChanged<String> onPrompt,
 }) {
   return showModalBottomSheet<void>(
+    useRootNavigator: true,
     context: context,
     isScrollControlled: true,
     backgroundColor: AppColors.surface,

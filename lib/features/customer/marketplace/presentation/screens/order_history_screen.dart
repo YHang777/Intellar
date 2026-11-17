@@ -14,7 +14,9 @@ import '../../../../../shared/widgets/status_badge.dart';
 import '../providers/marketplace_providers.dart';
 
 class OrderHistoryScreen extends ConsumerWidget {
-  const OrderHistoryScreen({super.key});
+  const OrderHistoryScreen({super.key, this.openQuotes = false});
+
+  final bool openQuotes;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -82,6 +84,7 @@ class OrderHistoryScreen extends ConsumerWidget {
 
     return DefaultTabController(
       length: 5,
+      initialIndex: openQuotes ? 4 : 0,
       child: Scaffold(
         backgroundColor: AppColors.background,
         body: Stack(
@@ -90,7 +93,7 @@ class OrderHistoryScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   const Padding(
-                    padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+                    padding: EdgeInsets.fromLTRB(16, 64, 16, 0),
                     child: PageHeading(title: 'My Orders'),
                   ),
                   const SizedBox(height: 8),
@@ -231,90 +234,177 @@ class _QuotesTab extends ConsumerWidget {
   }
 }
 
-class _QuoteRequestCard extends StatelessWidget {
+class _QuoteRequestCard extends ConsumerWidget {
   const _QuoteRequestCard({required this.request});
 
   final QuoteRequest request;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final contacted = request.isContacted;
     final note = request.note.trim();
+    String seller = 'the seller';
+    String? image = request.productImage;
+    for (final p in ref.watch(marketplaceProductsProvider).valueOrNull ?? const []) {
+      if (p.id == request.productId) {
+        if (p.supplier.name.trim().isNotEmpty &&
+            p.supplier.name != 'Unknown Supplier') {
+          seller = p.supplier.name;
+        }
+        if ((image == null || image.isEmpty) && p.images.isNotEmpty) {
+          image = p.images.first;
+        }
+        break;
+      }
+    }
+    final contactVia = [
+      if (request.customerPhone.trim().isNotEmpty)
+        Formatters.phone(request.customerPhone),
+      if (request.customerEmail.trim().isNotEmpty) request.customerEmail,
+    ].join(' or ');
     return Material(
       color: AppColors.surface,
       borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.border),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    request.productName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
+      child: InkWell(
+        key: Key('quote-card-${request.id}'),
+        borderRadius: BorderRadius.circular(14),
+        onTap: request.productId.isEmpty
+            ? null
+            : () => context.push('/marketplace/product/${request.productId}'),
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: ProductImage(
+                      imageUrl: image,
+                      width: 56,
+                      height: 56,
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                StatusBadge(
-                  label: contacted ? 'Contacted' : 'Pending',
-                  color: contacted ? AppColors.success : AppColors.warning,
-                  compact: true,
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          request.productName,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Bulk quote · Qty ${request.quantity}',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  StatusBadge(
+                    label: contacted ? 'Contacted' : 'Sent',
+                    color: contacted ? AppColors.success : AppColors.secondaryAccent,
+                    compact: true,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _QuoteStep(
+                done: true,
+                title: 'Request sent to $seller',
+                subtitle: Formatters.shortDateTime(request.createdAt),
+              ),
+              _QuoteStep(
+                done: contacted,
+                last: true,
+                title: contacted
+                    ? '${seller == 'the seller' ? 'The seller' : seller} contacted you'
+                    : 'Waiting for $seller to contact you',
+                subtitle: contacted
+                    ? (request.contactedAt == null
+                        ? null
+                        : Formatters.shortDateTime(request.contactedAt!))
+                    : (contactVia.isEmpty ? null : 'They will reach you at $contactVia'),
+              ),
+              if (note.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Your note: $note',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textHint,
+                    height: 1.4,
+                  ),
                 ),
               ],
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Qty ${request.quantity}',
-              style: TextStyle(
-                fontSize: 12.5,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            if (note.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                note,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AppColors.textHint,
-                  height: 1.4,
-                ),
-              ),
             ],
-            const SizedBox(height: 8),
-            Text(
-              contacted
-                  ? 'The supplier has reached out to you'
-                  : 'Supplier will contact you',
-              style: TextStyle(
-                fontSize: 12.5,
-                fontWeight: FontWeight.w500,
-                color: AppColors.textSecondary,
-              ),
-            ),
-          ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _QuoteStep extends StatelessWidget {
+  const _QuoteStep({
+    required this.done,
+    required this.title,
+    this.subtitle,
+    this.last = false,
+  });
+
+  final bool done;
+  final String title;
+  final String? subtitle;
+  final bool last;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = done ? AppColors.success : AppColors.textHint;
+    return Padding(
+      padding: EdgeInsets.only(bottom: last ? 0 : 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(done ? Icons.check_circle : Icons.schedule,
+              size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: done ? AppColors.textPrimary : AppColors.textSecondary,
+                  ),
+                ),
+                if (subtitle != null)
+                  Text(
+                    subtitle!,
+                    style: TextStyle(fontSize: 12, color: AppColors.textHint),
+                  ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -422,8 +512,6 @@ class _OrderCard extends StatelessWidget {
                       Expanded(
                         child: Text(
                           '+${itemCount - thumbCount} more',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 12,
                             color: AppColors.textSecondary,

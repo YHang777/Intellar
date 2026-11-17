@@ -7,6 +7,7 @@ class RouteNames {
   static const verifyEmail = 'verify-email';
   static const twoFactor = 'two-factor';
   static const onboarding = 'onboarding';
+  static const notifications = 'notifications';
 
   static const settingsSecurity = 'settings-security';
   static const settingsNotifications = 'settings-notifications';

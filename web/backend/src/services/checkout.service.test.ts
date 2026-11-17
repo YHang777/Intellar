@@ -84,3 +84,9 @@ test('tier → 15 collected orders is Gold', () => {
 test('tier → 100 collected orders stays Gold', () => {
   assert.deepEqual(tierForOrderCount(100), { name: 'Gold', discountPercent: 10 });
 });
+
+test('order numbers carry the Malaysian calendar day', async () => {
+  const { orderNumberFor } = await import('./checkout.service');
+  assert.match(orderNumberFor(new Date('2026-11-16T17:29:00Z')), /^ORD-20261117-\d{4}$/);
+  assert.match(orderNumberFor(new Date('2026-11-16T15:59:00Z')), /^ORD-20261116-\d{4}$/);
+});

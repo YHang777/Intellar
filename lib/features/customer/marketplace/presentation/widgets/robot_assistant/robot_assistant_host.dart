@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class RobotAssistantHost extends StatefulWidget {
     this.bottomClearance = 0,
     this.title,
     this.quickQuestions,
-    this.robotSize = 64,
+    this.robotSize = 56,
     this.edgeMargin = 12,
   });
 
@@ -41,6 +42,33 @@ class RobotAssistantHost extends StatefulWidget {
 class _RobotAssistantHostState extends State<RobotAssistantHost> {
   Size _bounds = Size.zero;
 
+  // While the page scrolls the robot tucks into its edge (only a sliver
+  // shows, faded) so it never sits on top of card buttons mid-browse.
+  bool _tucked = false;
+  Timer? _untuck;
+
+  @override
+  void dispose() {
+    _untuck?.cancel();
+    super.dispose();
+  }
+
+  bool _onScroll(ScrollNotification n) {
+    if (n.metrics.axis != Axis.vertical) return false;
+    if (n is ScrollStartNotification || n is ScrollUpdateNotification) {
+      _untuck?.cancel();
+      if (!_tucked && _live == null) setState(() => _tucked = true);
+    } else if (n is ScrollEndNotification) {
+      _untuck?.cancel();
+      _untuck = Timer(const Duration(milliseconds: 1200), () {
+        if (mounted && _tucked) setState(() => _tucked = false);
+      });
+    }
+    return false;
+  }
+
+  bool get _onLeftEdge => _posNow.dx + widget.robotSize / 2 < _bounds.width / 2;
+
   Offset? _pos;
 
   Offset? _live;
@@ -49,7 +77,10 @@ class _RobotAssistantHostState extends State<RobotAssistantHost> {
 
   Offset get _defaultPos => Offset(
         _bounds.width - widget.robotSize - widget.edgeMargin,
-        (_bounds.height - widget.bottomClearance - widget.robotSize) * 0.55,
+        _bounds.height -
+            widget.bottomClearance -
+            widget.robotSize -
+            widget.edgeMargin * 2,
       );
 
   Offset get _posNow => _live ?? _pos ?? _defaultPos;
@@ -70,23 +101,35 @@ class _RobotAssistantHostState extends State<RobotAssistantHost> {
       );
 
   void _onPanStart(DragStartDetails _) {
-    setState(() => _live = _posNow);
+    _untuck?.cancel();
+    setState(() {
+      _tucked = false;
+      _live = _posNow;
+    });
   }
 
   void _onPanUpdate(DragUpdateDetails details) {
     setState(() => _live = _clamp(_posNow + details.delta));
   }
 
+  // Released anywhere, the robot snaps to the nearer side edge.
   void _commitDrag() {
     if (_live == null) return;
     setState(() {
-      _pos = _clamp(_posNow);
+      final p = _clamp(_posNow);
+      final left = p.dx + widget.robotSize / 2 < _bounds.width / 2;
+      _pos = Offset(
+          left
+              ? widget.edgeMargin
+              : _bounds.width - widget.robotSize - widget.edgeMargin,
+          p.dy);
       _live = null;
     });
   }
 
   Future<void> _openChat() async {
     await showModalBottomSheet<void>(
+      useRootNavigator: true,
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
@@ -119,13 +162,32 @@ class _RobotAssistantHostState extends State<RobotAssistantHost> {
     return LayoutBuilder(builder: (context, constraints) {
       _bounds = constraints.biggest;
       final p = _clamp(_posNow);
+      final dragging = _live != null;
+      // At rest only a sliver of the robot shows at the screen edge (a tab),
+      // so it never covers card buttons; scrolling hides even more of it.
+      final hidden = widget.robotSize * (_tucked ? 0.8 : 0.62);
+      final x = dragging
+          ? p.dx
+          : _onLeftEdge
+              ? -hidden
+              : _bounds.width - widget.robotSize + hidden;
       return Stack(
         children: [
-          widget.child,
-          Positioned(
-            left: p.dx,
+          NotificationListener<ScrollNotification>(
+            onNotification: _onScroll,
+            child: widget.child,
+          ),
+          AnimatedPositioned(
+            duration: dragging
+                ? Duration.zero
+                : const Duration(milliseconds: 220),
+            curve: Curves.easeOutCubic,
+            left: x,
             top: p.dy,
-            child: RepaintBoundary(
+            child: AnimatedOpacity(
+              duration: const Duration(milliseconds: 200),
+              opacity: _tucked ? 0.55 : 1,
+              child: RepaintBoundary(
               child: GestureDetector(
                 key: const ValueKey('robot-assistant'),
                 behavior: HitTestBehavior.opaque,
@@ -143,6 +205,7 @@ class _RobotAssistantHostState extends State<RobotAssistantHost> {
                   ),
                 ),
               ),
+            ),
             ),
           ),
         ],

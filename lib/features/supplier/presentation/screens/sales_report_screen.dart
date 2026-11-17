@@ -441,8 +441,6 @@ class _SalesReportScreenState extends ConsumerState<SalesReportScreen> {
           children: [
             Text(
               label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontSize: 11.5,
                 color: AppColors.textSecondary,
@@ -743,8 +741,6 @@ class _TopProductRow extends StatelessWidget {
               children: [
                 Text(
                   tally.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,

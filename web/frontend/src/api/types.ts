@@ -312,3 +312,13 @@ export interface AppSettings {
   updatedAt: string | null;
   updatedBy: string | null;
 }
+
+export interface AuditLogEntry {
+  id: string;
+  actorId: string;
+  action: string;
+  targetType: string;
+  targetId: string;
+  details: Record<string, unknown>;
+  at: string | null;
+}

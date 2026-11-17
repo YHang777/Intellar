@@ -201,6 +201,8 @@ Future<void> _pumpOrderHistory(
       overrides: [
         currentUserProvider.overrideWithValue(_buyer),
         customerOrdersProvider.overrideWith((ref) => Stream.value(const [])),
+        marketplaceProductsProvider
+            .overrideWith((ref) => Stream.value(const <Product>[])),
         customerQuoteRequestsProvider
             .overrideWith((ref) => Stream.value(quotes)),
       ],
@@ -344,7 +346,7 @@ void main() {
       expect(filed.supplierId, 'sup-1');
       expect(filed.productId, 'p-1');
       expect(filed.status, QuoteRequest.statusSubmitted);
-      expect(filed.quantity, 2);
+      expect(filed.quantity, 6, reason: "starts at the 5-unit bulk minimum, one tap up");
       expect(filed.customerPhone, '0123456789');
       expect(filed.customerName, 'Aina');
       expect(filed.note, 'Need 20 units delivered to Johor.');
@@ -392,15 +394,15 @@ void main() {
       ]);
 
       expect(find.text('Oak Dining Table'), findsNWidgets(2));
-      expect(find.text('Qty 20'), findsOneWidget);
-      expect(find.text('20 units, delivery to Johor'), findsOneWidget);
-      expect(find.text('Pending'), findsOneWidget);
+      expect(find.text('Bulk quote · Qty 20'), findsOneWidget);
+      expect(find.text('Your note: 20 units, delivery to Johor'), findsOneWidget);
+      expect(find.text('Sent'), findsOneWidget);
       expect(find.text('Contacted'), findsOneWidget);
-      expect(find.text('Supplier will contact you'), findsOneWidget);
-      expect(
-        find.text('The supplier has reached out to you'),
-        findsOneWidget,
-      );
+      expect(find.text('Request sent to the seller'), findsNWidgets(2),
+          reason: 'every request shows it really went out, with its date');
+      expect(find.text('Waiting for the seller to contact you'), findsOneWidget);
+      expect(find.textContaining('They will reach you at'), findsOneWidget);
+      expect(find.text('The seller contacted you'), findsOneWidget);
     });
 
     testWidgets('empty state tells buyers how to send one', (tester) async {

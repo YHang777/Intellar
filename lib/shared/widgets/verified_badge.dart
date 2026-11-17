@@ -61,8 +61,6 @@ class VerifiedSellerLine extends StatelessWidget {
           Flexible(
             child: Text(
               name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: nameStyle ??
                   GoogleFonts.poppins(
                     fontSize: 10,

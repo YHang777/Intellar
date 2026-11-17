@@ -339,7 +339,7 @@ void main() {
       child: const MaterialApp(home: AccessibilitySettingsScreen()),
     ));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Extra large'));
+    await tester.tap(find.text('Larger'));
     await tester.tap(find.byKey(const Key('high-contrast-switch')));
     await tester.pumpAndSettle();
     final s = container.read(accessibilitySettingsProvider);

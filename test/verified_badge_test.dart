@@ -106,7 +106,6 @@ void main() {
           body: Center(
             child: SizedBox(
               width: cell.width,
-              height: cell.height,
               child: ProductCard(
                 product: _product(_supplier('verified', name: _longSellerName)),
               ),
@@ -132,7 +131,6 @@ void main() {
           body: Center(
             child: SizedBox(
               width: cell.width,
-              height: cell.height,
               child: ProductCard(
                 product: _product(_supplier('verified', name: _longSellerName)),
               ),
@@ -178,7 +176,6 @@ void main() {
           body: Center(
             child: SizedBox(
               width: 150,
-              height: 230,
               child: ProductCard(
                 compact: true,
                 product: _product(_supplier('verified', name: _longSellerName)),

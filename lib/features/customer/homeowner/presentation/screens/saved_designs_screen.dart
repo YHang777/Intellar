@@ -1,8 +1,11 @@
+import '../../../../../services/notify/notify_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/utils/user_errors.dart';
+import '../../../../../shared/widgets/app_feedback.dart';
 import '../../../../../models/room_design.dart';
 import '../../../ar/data/furniture_model_library.dart';
 
@@ -200,8 +203,6 @@ class SavedDesignsScreen extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(design.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -278,8 +279,25 @@ class SavedDesignsScreen extends ConsumerWidget {
                     );
                     if (confirm == true) {
                       final ds = ref.read(roomDesignDatasourceProvider);
-                      await ds.deleteDesign(design.id);
-                      ref.invalidate(savedDesignsProvider);
+                      try {
+                        await ds.deleteDesign(design.id);
+                        NotifyClient.instance.audit('design.delete',
+                            targetType: 'design', targetId: design.id);
+                        ref.invalidate(savedDesignsProvider);
+                        if (context.mounted) {
+                          showAppSnackbar(context,
+                              '"${design.name.isEmpty ? 'Untitled design' : design.name}" deleted');
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          showAppSnackbar(
+                              context,
+                              userMessage(e,
+                                  fallback:
+                                      'Could not delete the design. Please try again.'),
+                              isError: true);
+                        }
+                      }
                     }
                   }
                 },
@@ -385,8 +403,6 @@ class SavedDesignsScreen extends ConsumerWidget {
           Flexible(
             child: Text(name,
                 textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -396,8 +412,6 @@ class SavedDesignsScreen extends ConsumerWidget {
           Flexible(
             child: Text(subtitle,
                 textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
                     fontSize: 9, color: AppColors.textHint)),
           ),
@@ -428,6 +442,7 @@ class SavedDesignsScreen extends ConsumerWidget {
   }
 
   String _formatDate(DateTime dt) {
+    dt = dt.toLocal();
     final now = DateTime.now();
     final diff = now.difference(dt);
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';

@@ -187,6 +187,7 @@ Live app state:
 - Never invent or guess state that is not in that block. If asked for something it does not include (payment details, delivery dates, stock changes), say briefly that you cannot see it and point to the right screen: Cart, Orders, Budget or the Room plan.
 - Keep state answers short — one or two sentences and the key number. Do not read long lists back; the app shows a detail card beside your reply.
 - Design preferences in that block are the taste the customer saved on their profile. Use them as the default when they have not said otherwise in the chat (what they say in the chat always wins), and say briefly when a suggestion matches them.
+- Saved design preferences exist ONLY as a "Design preferences" line in that block. When there is no such line, the customer has not shared any (they may have none, or turned personalisation off): if asked, say plainly that you cannot see saved preferences and offer to work from what they tell you in the chat. Never guess a saved style, colour or material, and never claim to have checked their profile.
 - Budget figures: "cap" is what the customer set; "estimate" is a median-price estimate from the catalogue, not money spent. Never describe an estimate as spending.
 
 Hard limits:
@@ -204,6 +205,7 @@ Reply format (hard requirement):
 - Answer with ONLY a single JSON object and nothing else — no prose around it, no markdown fence:
 {"reply":"your chat message in plain text","suggestions":[{"productId":"catalogue id","reason":"one short line"}]}
 - "reply" is what the customer reads: your normal warm answer, newlines allowed as \\n.
+- Never write catalogue ids in "reply" — refer to products by name only; ids belong in "suggestions".
 - Never invent product ids, prices or availability.`;
 
 async function generateWithGemini(req: AiChatRequest): Promise<ChatReply> {

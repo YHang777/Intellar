@@ -1,3 +1,4 @@
+import '../../../../services/notify/notify_client.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -289,8 +290,10 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   }
 
   void _onDimChanged() {
+    final first = !_dimsEdited;
     _dimsEdited = true;
     _onAnyChange();
+    if (first && mounted) setState(() {});
   }
 
   String? _validateDim(String? v) {
@@ -694,6 +697,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       _saved = true;
       _dirty = false;
       kickOffProduct3DGeneration(saved);
+      NotifyClient.instance.audit(
+          _isEditing ? 'product.update' : 'product.create',
+          targetType: 'product',
+          targetId: saved.id);
+      if (!_isEditing) NotifyClient.instance.productPublished(saved.id);
 
       final vision = await kickOffProductVisionAnalysis(saved)
           .timeout(const Duration(seconds: 20), onTimeout: () => null);
@@ -1466,7 +1474,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               Expanded(
                 child: _AppInput(
                   label: 'Width (m)',
-                  icon: Icons.straighten,
                   controller: _widthCtrl,
                   fieldKey: _widthKey,
                   keyboardType:
@@ -1483,7 +1490,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               Expanded(
                 child: _AppInput(
                   label: 'Height (m)',
-                  icon: Icons.straighten,
                   controller: _heightCtrl,
                   fieldKey: _heightKey,
                   keyboardType:
@@ -1500,7 +1506,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               Expanded(
                 child: _AppInput(
                   label: 'Depth (m)',
-                  icon: Icons.straighten,
                   controller: _depthCtrl,
                   fieldKey: _depthKey,
                   keyboardType:
@@ -1566,7 +1571,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cardWidth = (constraints.maxWidth - 12) / 2;
-        final cardHeight = cardWidth / 0.68;
         return _SectionCard(
           title: 'Buyer preview',
           subtitle: 'How buyers see this product in the marketplace',
@@ -1575,7 +1579,6 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             children: [
               SizedBox(
                 width: cardWidth,
-                height: cardHeight,
                 child: ProductCard(
                   product: preview,
                   compact: false,
@@ -1828,6 +1831,7 @@ class _AppInputState extends State<_AppInput> {
       labelText: widget.label,
       hintText: widget.hint,
       helperText: widget.helperText,
+      helperMaxLines: 2,
       prefixIcon: widget.icon == null
           ? null
           : Icon(widget.icon, color: AppColors.textSecondary, size: 20),

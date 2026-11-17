@@ -489,7 +489,7 @@ class _SupplierProfileScreenState
                       child: OutlinedButton.icon(
                         onPressed: _logout,
                         icon: const Icon(Icons.logout, color: AppColors.error),
-                        label: const Text('Logout',
+                        label: const Text('Log out',
                             style: TextStyle(color: AppColors.error)),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: AppColors.error),

@@ -10,6 +10,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/register_screen.dart';
 import '../../features/auth/presentation/screens/two_factor_screen.dart';
 import '../../features/auth/presentation/screens/verify_email_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/settings/presentation/screens/accessibility_settings_screen.dart';
 import '../../features/settings/presentation/screens/design_preferences_screen.dart';
@@ -104,7 +105,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (isLoggedIn && isOnAuthRoute) {
         return home;
       }
-      if (loc == '/onboarding' || loc.startsWith('/settings/')) {
+      if (loc == '/onboarding' ||
+          loc == '/notifications' ||
+          loc.startsWith('/settings/')) {
         if (isLoggedIn && user.isSupplier && loc == '/settings/preferences') {
           return '/supplier/dashboard';
         }
@@ -161,6 +164,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/onboarding',
         name: RouteNames.onboarding,
         pageBuilder: (_, __) => _buildPage(const OnboardingScreen()),
+      ),
+
+      GoRoute(
+        path: '/notifications',
+        name: RouteNames.notifications,
+        pageBuilder: (_, __) => _buildPage(const NotificationsScreen()),
       ),
 
       // ── Settings (both roles) ──
@@ -248,7 +257,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/marketplace/orders',
         name: RouteNames.homeownerOrderHistory,
-        pageBuilder: (_, __) => _buildPage(const OrderHistoryScreen()),
+        pageBuilder: (_, state) => _buildPage(OrderHistoryScreen(
+            openQuotes: state.uri.queryParameters['tab'] == 'quotes')),
       ),
       GoRoute(
         path: '/marketplace/orders/:id',

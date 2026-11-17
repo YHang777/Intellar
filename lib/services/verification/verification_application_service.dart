@@ -1,3 +1,4 @@
+import '../auth_race_retry.dart';
 import 'dart:io';
 import 'dart:math';
 
@@ -116,11 +117,11 @@ class VerificationApplicationService {
   }
 
   Stream<VerificationApplication?> watchMyApplication(String uid) {
-    return _db
+    return retryOnPermissionDenied(() => _db
         .collection(_applicationsCol)
         .doc(uid)
         .snapshots()
-        .map(_fromSnapshot);
+        .map(_fromSnapshot));
   }
 
   Future<VerificationApplication?> loadMyApplication(String uid) async {

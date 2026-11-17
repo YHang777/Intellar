@@ -210,7 +210,7 @@ pw.Widget _itemsTable(OrderInvoice invoice) {
       pw.Align(
         alignment: pw.Alignment.centerRight,
         child: pw.Text(
-          '${invoice.lineCount} line items · ${invoice.unitCount} units',
+          '${invoice.lineCount} line item${invoice.lineCount == 1 ? '' : 's'} · ${invoice.unitCount} unit${invoice.unitCount == 1 ? '' : 's'}',
           style: _muted(9),
         ),
       ),

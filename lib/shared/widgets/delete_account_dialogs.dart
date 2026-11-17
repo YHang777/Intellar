@@ -152,6 +152,17 @@ class _TypeToConfirmDialogState extends State<_TypeToConfirmDialog> {
               height: 1.4,
             ),
           ),
+          const SizedBox(height: 8),
+          SelectableText(
+            kDeleteAccountPhrase,
+            textAlign: TextAlign.center,
+            style: GoogleFonts.poppins(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
+              color: AppColors.error,
+            ),
+          ),
           const SizedBox(height: 14),
           TextField(
             autofocus: true,

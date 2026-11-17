@@ -69,7 +69,7 @@ void main() {
       rig.look(-10);
       expect(rig.pitchRad, -0.6);
       rig.zoomFov(100);
-      expect(rig.fovDeg, 95);
+      expect(rig.fovDeg, 105);
       rig.zoomFov(-100);
       expect(rig.fovDeg, 35);
     });
@@ -83,7 +83,7 @@ void main() {
       rig.setZoom(2);
       expect(rig.fovDeg, 35, reason: 'narrow end clamps');
       rig.setZoom(0.5);
-      expect(rig.fovDeg, 95, reason: 'wide end clamps');
+      expect(rig.fovDeg, 105, reason: 'wide end clamps');
     });
   });
 }

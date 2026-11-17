@@ -209,8 +209,8 @@ pw.Widget _itemsTable(Order order) {
       pw.Align(
         alignment: pw.Alignment.centerRight,
         child: pw.Text(
-          '${order.items.length} line items · '
-          '${order.items.fold<int>(0, (sum, i) => sum + i.quantity)} units',
+          '${order.items.length} line item${order.items.length == 1 ? '' : 's'} · '
+          '${_units(order)} unit${_units(order) == 1 ? '' : 's'}',
           style: _muted(9),
         ),
       ),
@@ -287,3 +287,6 @@ pw.Widget _label(String text, {pw.TextAlign align = pw.TextAlign.left}) {
 
 pw.TextStyle _muted(double size) =>
     pw.TextStyle(fontSize: size, color: PdfColors.grey600);
+
+int _units(dynamic order) =>
+    (order.items as List).fold<int>(0, (sum, i) => sum + (i.quantity as int));

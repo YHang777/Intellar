@@ -14,6 +14,7 @@ import { defaultSettingsDeps } from '../services/settings.service';
 import { createCheckoutRouter } from './checkout.routes';
 import { defaultCheckoutDeps } from '../services/checkout.service';
 import { firebaseConfigured } from '../config/firebase';
+import { createAuditLogsRouter } from './audit-logs.routes';
 import { verificationEmailConfigured } from '../services/verification-email.service';
 
 export const apiRouter = Router();
@@ -30,6 +31,7 @@ apiRouter.get('/health', (_req, res) => {
 
 apiRouter.use('/auth', authRouter);
 apiRouter.use('/users', usersRouter);
+apiRouter.use('/audit-logs', createAuditLogsRouter());
 apiRouter.use('/stats', statsRouter);
 // IC + supporting documents — authenticate + requireAdmin applied inside.
 apiRouter.use('/verification', verificationRouter);

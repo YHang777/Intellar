@@ -187,7 +187,7 @@ class _SalesAnalyticsScreenState extends ConsumerState<SalesAnalyticsScreen> {
         // ── Revenue bar chart (hand-rolled) ──
         _card(
           title: 'Revenue — last 6 months',
-          subtitle: 'Your sales + shipping; cancelled orders excluded',
+          subtitle: 'Your sales, excluding tax; cancelled orders excluded',
           child: monthly.every((v) => v == 0)
               ? Padding(
                   padding: const EdgeInsets.symmetric(vertical: 26),
@@ -427,8 +427,6 @@ class _TopProductRow extends StatelessWidget {
               children: [
                 Text(
                   tally.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,

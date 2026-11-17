@@ -161,7 +161,7 @@ void main() {
       final rig = FirstPersonRig();
       rig.setZoom(1, aspect: 0.5);
       expect(rig.fovDeg, greaterThan(85));
-      expect(rig.fovDeg, lessThanOrEqualTo(95));
+      expect(rig.fovDeg, lessThanOrEqualTo(105));
       rig.setZoom(1);
       expect(rig.fovDeg, 70);
       rig.setZoom(2, aspect: 0.5);

@@ -115,16 +115,12 @@ class _NoMidWordText extends StatelessWidget {
         if (tp.width > widest) widest = tp.width;
       }
       final label = Text(text,
-          maxLines: 2,
           textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis,
           style: style);
       if (!c.maxWidth.isFinite || widest <= c.maxWidth) return label;
       // Shrink just enough that the longest word fits on its line.
       return Text(text,
-          maxLines: 2,
           textAlign: TextAlign.center,
-          overflow: TextOverflow.ellipsis,
           style: style.copyWith(
               fontSize: (style.fontSize ?? 12) * c.maxWidth / widest * 0.98));
     });

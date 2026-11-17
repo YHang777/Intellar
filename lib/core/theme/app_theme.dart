@@ -204,13 +204,33 @@ class AppTheme {
         actionTextColor: AppColors.accentLight,
       ),
 
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? Colors.white
+                : AppColors.textHint),
+        trackColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? AppColors.accent
+                : AppColors.surfaceContainer),
+        trackOutlineColor: WidgetStateProperty.resolveWith((states) =>
+            states.contains(WidgetState.selected)
+                ? Colors.transparent
+                : AppColors.border),
+      ),
+
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.surfaceContainer,
         selectedColor: AppColors.accent,
         disabledColor: AppColors.surfaceContainer,
-        labelStyle: GoogleFonts.poppins(
-          fontSize: 13,
-          fontWeight: FontWeight.w500,
+        labelStyle: WidgetStateTextStyle.resolveWith(
+          (states) => GoogleFonts.poppins(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: states.contains(WidgetState.selected)
+                ? AppColors.textOnDark
+                : AppColors.textPrimary,
+          ),
         ),
         secondaryLabelStyle: GoogleFonts.poppins(
           fontSize: 13,

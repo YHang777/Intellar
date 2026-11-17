@@ -214,8 +214,8 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
                     ],
                     const SizedBox(height: 6),
                     Text(
-                      '${invoice.lineCount} line items · '
-                      '${invoice.unitCount} units',
+                      '${invoice.lineCount} line item${invoice.lineCount == 1 ? '' : 's'} · '
+                      '${invoice.unitCount} unit${invoice.unitCount == 1 ? '' : 's'}',
                       style: GoogleFonts.poppins(
                           fontSize: 11, color: AppColors.textHint),
                     ),
@@ -396,8 +396,6 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
               children: [
                 Text(
                   item.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,

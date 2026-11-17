@@ -20,6 +20,7 @@ import type {
   ProductUpdate,
   ReviewDecisionResult,
   AppSettings,
+  AuditLogEntry,
   VerificationApplication,
   VerificationListResult,
   VerificationResult,
@@ -157,4 +158,14 @@ export const ordersApi = {
 export const settingsApi = {
   get: () => apiGet<{ settings: AppSettings }>('/settings'),
   update: (taxRate: number) => apiPatch<{ settings: AppSettings }>('/settings', { taxRate }),
+};
+
+export const auditApi = {
+  list: (opts: { actorId?: string; action?: string; limit?: number } = {}) => {
+    const params = new URLSearchParams();
+    if (opts.actorId) params.set('actorId', opts.actorId);
+    if (opts.action) params.set('action', opts.action);
+    params.set('limit', String(opts.limit ?? 100));
+    return apiGet<{ logs: AuditLogEntry[] }>(`/audit-logs?${params.toString()}`);
+  },
 };

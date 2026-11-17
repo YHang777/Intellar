@@ -358,7 +358,6 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
                       child: Text(
                         value,
                         textAlign: TextAlign.right,
-                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
@@ -476,8 +475,6 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
               children: [
                 Text(
                   item.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
                     fontSize: 14,
                     fontWeight: FontWeight.w500,

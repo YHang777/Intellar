@@ -75,8 +75,6 @@ void showAppSnackbarOn(
             Expanded(
               child: Text(
                 text,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
                 style: GoogleFonts.poppins(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w500,

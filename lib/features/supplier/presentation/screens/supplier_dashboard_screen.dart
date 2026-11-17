@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../notifications/presentation/notifications_screen.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/router/route_names.dart';
 import '../../../../core/utils/formatters.dart';
@@ -132,18 +133,14 @@ class _SupplierDashboardScreenState
     List<Product> lowStock,
   ) {
     final store = supplierFromUser(user);
-    final greeting = switch (DateTime.now().hour) {
-      >= 5 && < 12 => 'Good morning',
-      >= 12 && < 18 => 'Good afternoon',
-      _ => 'Good evening',
-    };
+    final greeting = Formatters.greeting();
 
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(16, MediaQuery.paddingOf(context).top + 16,
           16, MediaQuery.paddingOf(context).bottom + 24),
       children: [
-        const PageHeading(title: 'Dashboard'),
+        const PageHeading(title: 'Dashboard', actions: [NotificationBell()]),
         const SizedBox(height: 16),
 
         // ── Greeting header ──
@@ -172,8 +169,6 @@ class _SupplierDashboardScreenState
                   Expanded(
                     child: Text(
                       '$greeting, ${store.name}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
@@ -677,8 +672,6 @@ class _LowStockTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   product.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,

@@ -315,8 +315,6 @@ class _WishlistRow extends StatelessWidget {
                         Expanded(
                           child: Text(
                             product.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 13.5,
                               fontWeight: FontWeight.w600,

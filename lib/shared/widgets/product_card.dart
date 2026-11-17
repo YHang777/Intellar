@@ -50,11 +50,12 @@ class ProductCard extends StatelessWidget {
             ],
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ── Image with overlays ──
-              Expanded(
-                flex: 3,
+              AspectRatio(
+                aspectRatio: compact ? 1.0 : 1.1,
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -209,10 +210,7 @@ class ProductCard extends StatelessWidget {
               ),
 
               // ── Info section ──
-              Flexible(
-                flex: 2,
-                fit: FlexFit.loose,
-                child: Padding(
+              Padding(
                   padding: EdgeInsets.fromLTRB(
                     compact ? 6 : 8,
                     compact ? 5 : 6,
@@ -225,8 +223,6 @@ class ProductCard extends StatelessWidget {
                     children: [
                       Text(
                         product.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: GoogleFonts.poppins(
                           fontSize: compact ? 11 : 12,
                           fontWeight: FontWeight.w600,
@@ -312,7 +308,6 @@ class ProductCard extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
             ],
           ),
         ),

@@ -290,8 +290,6 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
               children: [
                 Text(
                   item.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w600,

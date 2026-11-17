@@ -94,6 +94,49 @@ class WalkthroughController extends ChangeNotifier {
     return c;
   }
 
+  // First view of a room: stand just inside a corner or wall and face across
+  // the floor toward the furniture (or the room centre when it is empty), so
+  // the room reads at a glance instead of a wall filling the screen.
+  void startAtOverviewIf(bool enabled) {
+    if (enabled) startAtOverview();
+  }
+
+  void startAtOverview() {
+    final grounded = [
+      for (final f in furniture)
+        if (!f.isRaised) furnitureRect(f).center,
+    ];
+    final target = grounded.isEmpty
+        ? Offset(roomW / 2, roomH / 2)
+        : grounded.reduce((a, b) => a + b) / grounded.length.toDouble();
+    const inset = walkerRadiusCm + 30;
+    final candidates = [
+      const Offset(inset, inset),
+      Offset(roomW - inset, inset),
+      Offset(inset, roomH - inset),
+      Offset(roomW - inset, roomH - inset),
+      Offset(roomW / 2, inset),
+      Offset(roomW / 2, roomH - inset),
+      Offset(inset, roomH / 2),
+      Offset(roomW - inset, roomH / 2),
+    ];
+    Offset? best;
+    var bestScore = -1.0;
+    for (final c in candidates) {
+      if (!_validSpot(c)) continue;
+      final score = (c - target).distance;
+      if (score > bestScore) {
+        bestScore = score;
+        best = c;
+      }
+    }
+    if (best == null) return;
+    walker = best;
+    final d = target - best;
+    if (d.distance > 1) heading = atan2(d.dy, d.dx);
+    notifyListeners();
+  }
+
   // Street View semantics: forward/back travel along wherever the camera
   // faces; the arrows only turn when you ask them to.
   void walk(double along) {

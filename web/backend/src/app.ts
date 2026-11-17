@@ -11,6 +11,7 @@ import {
   defaultAccountDeletionDeps,
 } from './routes/account-deletion.routes';
 import { createSecurityCodeRouter, defaultSecurityCodeDeps } from './routes/security-code.routes';
+import { createNotifyRouter, defaultNotifyRouteDeps } from './routes/notify.routes';
 import { createAiChatRouter } from './routes/ai-chat.routes';
 import { defaultAiChatDeps } from './services/ai-chat.service';
 import { createProductVisionRouter } from './routes/product-vision.routes';
@@ -117,6 +118,9 @@ export function createApp(): express.Express {
   app.use('/account/delete', createDeletionConfirmRouter(deletionDeps));
   app.use('/api/account', createAccountDeletionRouter(deletionDeps));
   app.use('/api/account', createSecurityCodeRouter(defaultSecurityCodeDeps()));
+
+  // Notification fan-out + client audit reports for the mobile app.
+  app.use('/api', createNotifyRouter(defaultNotifyRouteDeps()));
 
   // Design assistant for the mobile app. Mounted ahead of the admin /api
   // alias so the path is claimed explicitly, and authenticated: it is a

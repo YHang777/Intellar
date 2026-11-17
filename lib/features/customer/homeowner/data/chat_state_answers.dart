@@ -28,7 +28,8 @@ final List<(ChatDataTopic, RegExp)> _stateRules = [
   ),
   (
     ChatDataTopic.wishlist,
-    RegExp(r'wishlist|wish list|\bsaved\b|favourites?|favorites?',
+    RegExp(
+        r'wishlist|wish list|what (have|did) i save|my saved (items?|products?|pieces?)|favourites?|favorites?',
         caseSensitive: false),
   ),
 ];

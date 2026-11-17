@@ -2305,8 +2305,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                                     color: Colors.white70, size: 20),
                                 title: Text(
                                   item.label,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
                                   style: GoogleFonts.poppins(
                                       fontSize: 13,
                                       color: Colors.white),
@@ -2635,8 +2633,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                   Expanded(
                     child: Text(
                       widget.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -2720,8 +2716,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                   child: Text(
                     _hintText,
                     textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                         fontSize: 12, color: Colors.white),
                   ),
@@ -2934,8 +2928,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     if (entry == null) {
       return Text(
         'No furniture to place',
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
         style: GoogleFonts.poppins(fontSize: 12, color: Colors.white70),
       );
     }
@@ -2977,8 +2969,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                 children: [
                   Text(
                     entry.name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -2991,8 +2981,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                           : product.isResolved
                               ? product.dimsLabel
                               : 'Preparing 3D…',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
                           fontSize: 9, color: Colors.white70),
                     ),
@@ -3097,8 +3085,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           Text(
             product.hasError ? 'Unavailable' : 'Generating…',
             textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
             style: GoogleFonts.poppins(
                 fontSize: 10,
                 fontWeight: FontWeight.w500,
@@ -3124,8 +3110,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
         Text(
           product.dimsLabel,
           textAlign: TextAlign.center,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
           style: GoogleFonts.poppins(
               fontSize: 9, color: AppColors.textSecondary),
         ),
@@ -3282,8 +3266,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
       padding: const EdgeInsets.only(left: 42, top: 2),
       child: Text(
         text,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
         style: GoogleFonts.poppins(
           fontSize: 9,
           fontStyle: FontStyle.italic,
@@ -3629,8 +3611,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
         child: Text(
           'Choose a finish and press Place floor or Place wall, then tap a '
           'detected surface. Tap a placed item to remove it.',
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
           style: hintStyle,
         ),
       );
@@ -3647,8 +3627,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           Expanded(
             child: Text(
               '${pending.label} ready — tap a surface to place it',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontSize: 10,
                 color: Colors.white,

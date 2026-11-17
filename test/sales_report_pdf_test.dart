@@ -47,6 +47,18 @@ void expectValidPdf(List<int> bytes, {int minBytes = 500}) {
 
 void main() {
   group('SalesReportPdf.bytes', () {
+    test('a typical report fits on one A4 page', () async {
+      final bytes = await SalesReportPdf.bytes(_data(topProducts: const [
+        SalesReportProduct(name: 'Nordic Sofa', units: 7, revenue: 4900),
+        SalesReportProduct(name: 'Arc Floor Lamp', units: 3, revenue: 450),
+        SalesReportProduct(name: 'Oak Console Table', units: 1, revenue: 450),
+      ]));
+      final pages = RegExp(r'/Type\s*/Page[^s]')
+          .allMatches(String.fromCharCodes(bytes))
+          .length;
+      expect(pages, 1, reason: 'the footnote must not spill onto page 2');
+    });
+
     test('renders a valid PDF for a full report', () async {
       final bytes = await SalesReportPdf.bytes(_data());
 

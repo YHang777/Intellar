@@ -73,12 +73,23 @@ class SalesReportPdf {
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(40),
         build: (context) => _body(data),
-        footer: (context) => pw.Align(
-          alignment: pw.Alignment.centerRight,
-          child: pw.Text(
-            'Sales Report  ·  Page ${context.pageNumber} of ${context.pagesCount}',
-            style: _muted(8),
-          ),
+        footer: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            if (context.pageNumber == context.pagesCount) ...[
+              pw.Divider(height: 1, thickness: 0.6, color: PdfColors.grey400),
+              pw.SizedBox(height: 6),
+              _footerNote(),
+              pw.SizedBox(height: 6),
+            ],
+            pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Text(
+                'Sales Report  ·  Page ${context.pageNumber} of ${context.pagesCount}',
+                style: _muted(8),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -157,7 +168,7 @@ pw.Widget _headerRow(List<String> cells, List<int> flex) {
 
 pw.Widget _dataRow(List<String> cells, List<int> flex) {
   return pw.Container(
-    padding: const pw.EdgeInsets.symmetric(vertical: 7),
+    padding: const pw.EdgeInsets.symmetric(vertical: 5),
     decoration: const pw.BoxDecoration(
       border: pw.Border(
         bottom: pw.BorderSide(color: PdfColors.grey300, width: 0.5),
@@ -180,7 +191,7 @@ pw.Widget _dataRow(List<String> cells, List<int> flex) {
 }
 
 pw.Widget _sectionTitle(String text) => pw.Padding(
-      padding: const pw.EdgeInsets.only(top: 4, bottom: 8),
+      padding: const pw.EdgeInsets.only(top: 2, bottom: 6),
       child: pw.Text(
         text,
         style: pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold),
@@ -191,18 +202,14 @@ pw.Widget _sectionTitle(String text) => pw.Padding(
 
 List<pw.Widget> _body(SalesReportData data) => [
       _header(data),
-      pw.SizedBox(height: 22),
+      pw.SizedBox(height: 18),
       _kpiTable(data),
-      pw.SizedBox(height: 20),
+      pw.SizedBox(height: 16),
       _monthlyTable(data),
-      pw.SizedBox(height: 20),
+      pw.SizedBox(height: 16),
       _topProductsTable(data),
-      pw.SizedBox(height: 20),
+      pw.SizedBox(height: 16),
       _insightsTable(data),
-      pw.SizedBox(height: 22),
-      pw.Divider(height: 1, thickness: 0.6, color: PdfColors.grey400),
-      pw.SizedBox(height: 8),
-      _footerNote(),
     ];
 
 pw.Widget _header(SalesReportData data) {

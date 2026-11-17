@@ -386,9 +386,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onPressed: () async {
                     final confirmed = await showConfirmDialog(
                       context,
-                      title: 'Logout?',
+                      title: 'Log out?',
                       message: 'Are you sure you want to log out?',
-                      confirmLabel: 'Logout',
+                      confirmLabel: 'Log out',
                       destructive: true,
                     );
                     if (confirmed) {
@@ -397,7 +397,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   },
                   icon: const Icon(Icons.logout, color: AppColors.error),
                   label: const Text(
-                    'Logout',
+                    'Log out',
                     style: TextStyle(color: AppColors.error),
                   ),
                   style: OutlinedButton.styleFrom(

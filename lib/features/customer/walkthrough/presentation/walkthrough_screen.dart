@@ -35,6 +35,9 @@ class WalkthroughScreen extends ConsumerStatefulWidget {
 
   final RoomDesign? design;
 
+  @visibleForTesting
+  static bool debugOverviewStart = true;
+
   @override
   ConsumerState<WalkthroughScreen> createState() => _WalkthroughScreenState();
 }
@@ -60,7 +63,8 @@ class _WalkthroughScreenState extends ConsumerState<WalkthroughScreen> {
   void initState() {
     super.initState();
     _inGallery = widget.design == null;
-    _ctl = WalkthroughController(design: widget.design ?? _emptyDesign());
+    _ctl = WalkthroughController(design: widget.design ?? _emptyDesign())
+      ..startAtOverviewIf(WalkthroughScreen.debugOverviewStart);
     _loadSprites();
   }
 
@@ -406,7 +410,9 @@ class _WalkthroughScreenState extends ConsumerState<WalkthroughScreen> {
 
   void _rebuildController(RoomDesign design) {
     final old = _ctl;
-    setState(() => _ctl = WalkthroughController(design: design));
+    setState(() =>
+        _ctl = WalkthroughController(design: design)
+          ..startAtOverviewIf(WalkthroughScreen.debugOverviewStart));
     old.dispose();
     _loadSprites();
   }
@@ -684,8 +690,6 @@ class _WalkthroughScreenState extends ConsumerState<WalkthroughScreen> {
           Expanded(
             child: Text(
               '${item.name} — walk to position',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,

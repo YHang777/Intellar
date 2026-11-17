@@ -16,6 +16,7 @@ Future<T?> showCatalogPickerSheet<T>({
   String? subtitle,
 }) {
   return showModalBottomSheet<T>(
+    useRootNavigator: true,
     context: context,
     isScrollControlled: true,
     builder: (ctx) => _CatalogPickerSheet<T>(
@@ -196,8 +197,6 @@ class _PickerCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(label,
                   textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.poppins(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
@@ -207,8 +206,6 @@ class _PickerCard extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(sublabel!,
                     textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.poppins(
                         fontSize: 10,
                         fontWeight: FontWeight.w500,

@@ -94,6 +94,9 @@ AppUser user() => AppUser(
     );
 
 void main() {
+  setUp(() => WalkthroughScreen.debugOverviewStart = false);
+  tearDown(() => WalkthroughScreen.debugOverviewStart = true);
+
   group('WalkthroughController', () {
     test('spawns at the room center', () {
       final c = WalkthroughController(design: design());

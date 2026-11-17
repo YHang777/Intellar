@@ -106,6 +106,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
   void _showSortSheet() {
     showModalBottomSheet<void>(
+      useRootNavigator: true,
       context: context,
       backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
@@ -117,6 +118,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
   void _showFiltersSheet() {
     showModalBottomSheet<void>(
+      useRootNavigator: true,
       context: context,
       isScrollControlled: true,
       backgroundColor: AppColors.surface,
@@ -240,37 +242,46 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   }
                   return SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
-                    sliver: SliverGrid(
-                      // Taller cells as the user's text scale grows — the
-                      // fixed 0.68 clipped the price row at 1.3x text.
-                      gridDelegate:
-                          SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.68 /
-                            (1 +
-                                (MediaQuery.textScalerOf(context).scale(1) - 1)
-                                        .clamp(0.0, 1.0) *
-                                    0.4),
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                      ),
+                    sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) {
-                          final product = filtered[index];
-                          return ProductCard(
-                            product: product,
-                            isWishlisted: wishlistIds.contains(product.id),
-                            onTap: () => _openProduct(product),
-                            onArPreview: () => context.pushNamed(
-                              RouteNames.arViewer,
-                              extra: product,
+                        (context, row) {
+                          Widget cardFor(int index) {
+                            final product = filtered[index];
+                            return ProductCard(
+                              product: product,
+                              isWishlisted: wishlistIds.contains(product.id),
+                              onTap: () => _openProduct(product),
+                              onArPreview: () => context.pushNamed(
+                                RouteNames.arViewer,
+                                extra: product,
+                              ),
+                              onAddToCart: () => _addToCart(product),
+                              onToggleWishlist: () =>
+                                  _toggleWishlist(product),
+                            );
+                          }
+
+                          final left = row * 2;
+                          final right = left + 1;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: IntrinsicHeight(
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Expanded(child: cardFor(left)),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: right < filtered.length
+                                        ? cardFor(right)
+                                        : const SizedBox.shrink(),
+                                  ),
+                                ],
+                              ),
                             ),
-                            onAddToCart: () => _addToCart(product),
-                            onToggleWishlist: () =>
-                                _toggleWishlist(product),
                           );
                         },
-                        childCount: filtered.length,
+                        childCount: (filtered.length + 1) ~/ 2,
                       ),
                     ),
                   );
@@ -395,8 +406,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   onLongPress: removeTerm,
                   child: InputChip(
                     label: Text(term,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
                             fontSize: 12, color: AppColors.textPrimary)),
                     backgroundColor: AppColors.background,
@@ -464,8 +473,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text('No products match "$query"',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                             fontSize: 12, color: AppColors.textHint)),
                   ),
@@ -490,8 +497,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(product.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                                 fontSize: 13,
                                 color: AppColors.textPrimary)),
@@ -717,8 +722,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           final entry = _chipRowEntries()[index];
           return InputChip(
             label: Text(entry.label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(fontSize: 11)),
             backgroundColor: AppColors.surface,
             side: BorderSide(

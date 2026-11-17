@@ -29,6 +29,11 @@ void main() {
       expect(matchStateQuestion('Suggest a sofa for a grey floor'), isNull);
       expect(matchStateQuestion('Does it fit my home?'), isNull);
       expect(matchStateQuestion('Hello there'), isNull);
+      expect(
+          matchStateQuestion(
+              'Which design styles have I saved as my preference?'),
+          isNull,
+          reason: 'a saved style preference is not the wishlist');
       expect(matchStateQuestion(''), isNull);
     });
 

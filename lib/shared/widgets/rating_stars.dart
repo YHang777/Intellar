@@ -40,8 +40,6 @@ class RatingStars extends StatelessWidget {
           Flexible(
             child: Text(
               '($count)',
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                 fontSize: size - 2,
                 color: AppColors.textSecondary,

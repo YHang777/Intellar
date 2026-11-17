@@ -158,14 +158,15 @@ void main() {
     expect(find.text('RM 900'), findsOneWidget);
     expect(find.text('RM 150'), findsOneWidget);
     expect(find.text('RM 250'), findsOneWidget);
-    expect(find.text('—'), findsOneWidget);
+    expect(find.text('—'), findsNWidgets(2),
+        reason: 'no flooring price, and no remaining figure without a budget');
 
-    expect(find.text('RM 1,385'), findsNWidgets(3));
-    expect(find.text('Over Budget'), findsOneWidget);
-    expect(
-      find.text('Total covers categories with price data only.'),
-      findsOneWidget,
-    );
+    expect(find.text('RM 1,385'), findsNWidgets(2));
+    expect(find.text('Set a budget'), findsOneWidget);
+    expect(find.text('Over Budget'), findsNothing,
+        reason: 'an estimate is never "over" a budget nobody set');
+    expect(find.textContaining('This estimate is'), findsNothing);
+    expect(find.textContaining('not money spent'), findsOneWidget);
 
     expect(_fieldBudget(tester), 0);
     expect(find.text('RM 0'), findsOneWidget);
@@ -324,7 +325,7 @@ void main() {
     await tester.tap(find.byType(CheckboxListTile));
     await tester.pump();
 
-    expect(find.text('RM 1,200'), findsNWidgets(4));
+    expect(find.text('RM 1,200'), findsNWidgets(3));
     expect(find.text('RM 900'), findsNothing);
     expect(
       find.text('Estimating from eco-friendly listings only'),
@@ -404,8 +405,8 @@ void main() {
       findsOneWidget,
     );
     expect(find.textContaining('no active products'), findsOneWidget);
-    expect(find.text('—'), findsNWidgets(budgetLineLabels.length));
-    expect(find.text('RM 0'), findsNWidgets(4));
+    expect(find.text('—'), findsNWidgets(budgetLineLabels.length + 1));
+    expect(find.text('RM 0'), findsNWidgets(3));
   });
 
   testWidgets('DEFECT: a failed catalogue stream is announced, not '
@@ -418,7 +419,7 @@ void main() {
 
     expect(find.text('Could not load product prices'), findsOneWidget);
     expect(find.text('Retry'), findsOneWidget);
-    expect(find.text('RM 0'), findsNWidgets(4));
+    expect(find.text('RM 0'), findsNWidgets(3));
   });
 
   // ── Material comparison (supplier, range, swap sheet, custom badge) ──────
@@ -469,7 +470,7 @@ void main() {
 
     expect(find.text('Furniture 1200'), findsOneWidget);
     expect(find.text('above lowest'), findsOneWidget);
-    expect(find.text('RM 1,685'), findsNWidgets(3));
+    expect(find.text('RM 1,685'), findsNWidgets(2));
     expect(fake.saves, isNotEmpty);
     expect(fake.saves.last.choices['Furniture'], 'p-Furniture-1200');
 
@@ -477,7 +478,7 @@ void main() {
 
     expect(find.text('Furniture 1200'), findsOneWidget);
     expect(find.text('above lowest'), findsOneWidget);
-    expect(find.text('RM 1,685'), findsNWidgets(3));
+    expect(find.text('RM 1,685'), findsNWidgets(2));
     expect(find.text('RM 1,385'), findsNothing);
   });
 }
