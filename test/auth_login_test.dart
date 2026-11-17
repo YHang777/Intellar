@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:interior_design_recommendation/models/store_profile.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -228,6 +229,7 @@ class _FakeAuthRepository implements IAuthRepository {
     String? businessName,
     String? businessPhone,
     String? businessAddress,
+    StoreProfile? storeProfile,
   }) async =>
       AppUser(
         uid: 'u1',

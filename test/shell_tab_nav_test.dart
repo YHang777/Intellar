@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:interior_design_recommendation/models/store_profile.dart';
 import 'package:interior_design_recommendation/app.dart';
 import 'package:interior_design_recommendation/core/router/app_router.dart';
 import 'package:interior_design_recommendation/features/auth/data/datasources/account_deletion_datasource.dart';
@@ -177,6 +178,7 @@ class _HomeownerAuth implements IAuthRepository {
     String? businessName,
     String? businessPhone,
     String? businessAddress,
+    StoreProfile? storeProfile,
   }) async =>
       _user;
 }

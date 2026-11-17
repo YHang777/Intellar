@@ -6,6 +6,7 @@ import '../../data/datasources/firebase_auth_datasource.dart';
 import '../../data/datasources/firestore_user_datasource.dart';
 import '../../data/datasources/verification_email_datasource.dart';
 import '../../data/models/app_user.dart';
+import '../../../../models/store_profile.dart';
 import '../../data/models/user_preferences.dart';
 import '../../data/datasources/security_code_datasource.dart';
 import '../../data/repositories/account_settings_repository.dart';
@@ -105,6 +106,7 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<AppUser?>> {
     String? businessName,
     String? businessPhone,
     String? businessAddress,
+    StoreProfile? storeProfile,
   }) async {
     final updated = await _repository.updateProfile(
       name: name,
@@ -113,6 +115,7 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<AppUser?>> {
       businessName: businessName,
       businessPhone: businessPhone,
       businessAddress: businessAddress,
+      storeProfile: storeProfile,
     );
     state = AsyncValue.data(updated);
     NotifyClient.instance.audit('profile.update', targetType: 'user');

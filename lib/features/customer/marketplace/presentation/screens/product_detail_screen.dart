@@ -10,6 +10,7 @@ import '../../../../../core/router/route_names.dart';
 import '../../../../../core/utils/formatters.dart';
 import '../../../../../core/utils/user_errors.dart';
 import '../../../../../models/product.dart';
+import '../../../../../models/store_profile.dart';
 import '../../../../../models/quote_request.dart';
 import '../../../../../models/review.dart';
 import '../../../../../services/marketplace_repository.dart';
@@ -704,11 +705,51 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       Text('Pickup at ${supplier.address}',
                           style: TextStyle(
                               fontSize: 11, color: AppColors.textHint)),
+                    if (supplier.storeProfile.hours.trim().isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text('Open ${supplier.storeProfile.hours}',
+                          style: TextStyle(
+                              fontSize: 11, color: AppColors.textHint)),
+                    ],
                   ],
                 ),
               ),
             ],
           ),
+          if (_storeDetailRows(supplier.storeProfile).isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Container(
+              key: const Key('store-profile-block'),
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  for (final row in _storeDetailRows(supplier.storeProfile))
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(row.$1, size: 15, color: AppColors.textSecondary),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(row.$2,
+                                style: TextStyle(
+                                    fontSize: 11.5,
+                                    color: AppColors.textSecondary)),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -835,6 +876,22 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 }
 
 // ── Small building blocks ────────────────────────────────────────────────────
+
+// What a seller says about how they trade, in the order a buyer cares about.
+List<(IconData, String)> _storeDetailRows(StoreProfile store) {
+  final rows = <(IconData, String)>[];
+  if (store.paymentMethods.isNotEmpty) {
+    rows.add((Icons.payments_outlined,
+        'Accepts ${store.paymentMethods.join(', ')}'));
+  }
+  if (store.pickupPolicy.trim().isNotEmpty) {
+    rows.add((Icons.storefront_outlined, store.pickupPolicy.trim()));
+  }
+  if (store.returnPolicy.trim().isNotEmpty) {
+    rows.add((Icons.replay_outlined, store.returnPolicy.trim()));
+  }
+  return rows;
+}
 
 class _FloatButton extends StatelessWidget {
   const _FloatButton({

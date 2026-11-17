@@ -34,6 +34,8 @@ import '../../features/supplier/presentation/screens/quote_requests_screen.dart'
 import '../../features/supplier/presentation/screens/sales_report_screen.dart';
 import '../../features/supplier/presentation/screens/supplier_dashboard_screen.dart';
 import '../../features/supplier/presentation/screens/supplier_profile_screen.dart';
+import '../../features/supplier/presentation/screens/bulk_upload_screen.dart';
+import '../../features/supplier/presentation/screens/store_profile_screen.dart';
 import '../../features/supplier/presentation/screens/supplier_shell.dart';
 import '../../features/supplier/presentation/screens/verification_application_screen.dart';
 
@@ -109,6 +111,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (loc == '/onboarding' ||
           loc == '/notifications' ||
           loc == '/ar-previews' ||
+          loc == '/store-profile' ||
+          loc == '/supplier/products/bulk-upload' ||
           loc.startsWith('/settings/')) {
         if (isLoggedIn && user.isSupplier && loc == '/settings/preferences') {
           return '/supplier/dashboard';
@@ -172,6 +176,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/ar-previews',
         name: RouteNames.arPreviews,
         pageBuilder: (_, __) => _buildPage(const ArPreviewsScreen()),
+      ),
+
+      GoRoute(
+        path: '/supplier/products/bulk-upload',
+        name: RouteNames.supplierBulkUpload,
+        pageBuilder: (_, __) => _buildPage(const BulkUploadScreen()),
+      ),
+
+      GoRoute(
+        path: '/store-profile',
+        name: RouteNames.storeProfile,
+        pageBuilder: (_, __) => _buildPage(const StoreProfileScreen()),
       ),
 
       GoRoute(

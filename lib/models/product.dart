@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 
+import 'store_profile.dart';
 class ProductDimensions {
   final double widthM;
   final double heightM;
@@ -207,8 +208,6 @@ class ProductVision {
       'ProductVision(status: $status, category: $visualCategory, '
       'mismatch: $mismatchFlagged)';
 }
-
-import 'store_profile.dart';
 
 class Supplier {
   final String id;

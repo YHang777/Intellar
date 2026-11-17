@@ -442,6 +442,15 @@ class _ProductManagementScreenState
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
               ),
             ),
+            const SizedBox(width: 6),
+            IconButton(
+              key: const Key('bulk-upload'),
+              tooltip: 'Bulk upload',
+              icon: const Icon(Icons.upload_file_outlined,
+                  color: Colors.white, size: 20),
+              onPressed: () =>
+                  context.push('/supplier/products/bulk-upload'),
+            ),
           ],
         ),
         const SizedBox(height: 16),

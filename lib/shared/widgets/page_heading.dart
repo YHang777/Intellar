@@ -62,14 +62,22 @@ class PageHeading extends StatelessWidget {
         ),
         if (actions != null && actions!.isNotEmpty) ...[
           const SizedBox(width: 8),
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              for (var i = 0; i < actions!.length; i++) ...[
-                if (i > 0) const SizedBox(width: 4),
-                actions![i],
-              ],
-            ],
+          // Scale down rather than overflow: several action buttons plus a
+          // long title exceed a 320dp screen at 1.3x text.
+          Flexible(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerRight,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < actions!.length; i++) ...[
+                    if (i > 0) const SizedBox(width: 4),
+                    actions![i],
+                  ],
+                ],
+              ),
+            ),
           ),
         ],
       ],

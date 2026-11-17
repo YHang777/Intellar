@@ -1,5 +1,6 @@
 import '../../../../core/utils/user_errors.dart';
 import '../../data/datasources/account_deletion_datasource.dart';
+import '../../../../models/store_profile.dart';
 import '../../data/models/app_user.dart';
 
 abstract class IAuthRepository {
@@ -23,6 +24,7 @@ abstract class IAuthRepository {
     String? businessName,
     String? businessPhone,
     String? businessAddress,
+    StoreProfile? storeProfile,
   });
 
   Future<void> logout();

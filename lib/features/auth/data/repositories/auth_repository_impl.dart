@@ -8,6 +8,7 @@ import '../datasources/firebase_auth_datasource.dart';
 import '../datasources/firestore_user_datasource.dart';
 import '../datasources/two_factor_device_store.dart';
 import '../datasources/verification_email_datasource.dart';
+import '../../../../models/store_profile.dart';
 import '../models/app_user.dart';
 
 class AuthRepositoryImpl implements IAuthRepository {
@@ -183,6 +184,7 @@ class AuthRepositoryImpl implements IAuthRepository {
     String? businessName,
     String? businessPhone,
     String? businessAddress,
+    StoreProfile? storeProfile,
   }) async {
     final fbUser = _authDatasource.currentUser;
     if (fbUser == null) {
@@ -195,6 +197,7 @@ class AuthRepositoryImpl implements IAuthRepository {
       'businessName': businessName ?? '',
       'businessPhone': businessPhone ?? '',
       'businessAddress': businessAddress ?? '',
+      if (storeProfile != null) 'storeProfile': storeProfile.toMap(),
     });
     return _fetchAppUser(fbUser);
   }

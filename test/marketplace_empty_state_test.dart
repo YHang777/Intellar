@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:interior_design_recommendation/models/store_profile.dart';
 import 'package:interior_design_recommendation/features/auth/presentation/providers/auth_providers.dart';
 import 'package:interior_design_recommendation/features/customer/marketplace/presentation/providers/marketplace_providers.dart';
 import 'package:interior_design_recommendation/features/customer/marketplace/presentation/screens/marketplace_screen.dart';
@@ -59,7 +60,8 @@ class _Auth implements IAuthRepository {
           String? address,
           String? businessName,
           String? businessPhone,
-          String? businessAddress}) =>
+          String? businessAddress,
+          StoreProfile? storeProfile}) =>
       throw UnimplementedError();
   @override
   Future<void> logout() async {}

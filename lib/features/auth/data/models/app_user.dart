@@ -1,3 +1,4 @@
+import '../../../../models/store_profile.dart';
 import 'user_preferences.dart';
 
 enum UserRole {
@@ -31,6 +32,7 @@ class AppUser {
   final String? businessName;
   final String? businessPhone;
   final String? businessAddress;
+  final StoreProfile storeProfile;
 
   final bool twoFactorEnabled;
   final bool twoFactorPending;
@@ -54,6 +56,7 @@ class AppUser {
     this.businessName,
     this.businessPhone,
     this.businessAddress,
+    this.storeProfile = const StoreProfile(),
     this.twoFactorEnabled = false,
     this.twoFactorPending = false,
     this.onboardingCompleted = true,
@@ -91,6 +94,7 @@ class AppUser {
           (role == UserRole.supplier ? name : null),
       businessPhone: data['businessPhone']?.toString(),
       businessAddress: data['businessAddress']?.toString(),
+      storeProfile: StoreProfile.fromMap(data['storeProfile']),
       twoFactorEnabled: data['twoFactorEnabled'] == true,
       onboardingCompleted: data['onboardingCompleted'] == true,
       designPreferences: DesignPreferences.fromMap(data['designPreferences']),
@@ -127,6 +131,7 @@ class AppUser {
     String? businessName,
     String? businessPhone,
     String? businessAddress,
+    StoreProfile? storeProfile,
     String? email,
     bool? twoFactorEnabled,
     bool? twoFactorPending,
@@ -147,6 +152,7 @@ class AppUser {
       businessName: businessName ?? this.businessName,
       businessPhone: businessPhone ?? this.businessPhone,
       businessAddress: businessAddress ?? this.businessAddress,
+      storeProfile: storeProfile ?? this.storeProfile,
       twoFactorEnabled: twoFactorEnabled ?? this.twoFactorEnabled,
       twoFactorPending: twoFactorPending ?? this.twoFactorPending,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,

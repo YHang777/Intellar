@@ -9,6 +9,8 @@ class RouteNames {
   static const onboarding = 'onboarding';
   static const notifications = 'notifications';
   static const arPreviews = 'ar-previews';
+  static const storeProfile = 'store-profile';
+  static const supplierBulkUpload = 'supplier-bulk-upload';
 
   static const settingsSecurity = 'settings-security';
   static const settingsNotifications = 'settings-notifications';

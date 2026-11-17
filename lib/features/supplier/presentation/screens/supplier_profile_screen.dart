@@ -460,6 +460,8 @@ class _SupplierProfileScreenState
                       children: [
                         _LinkRow(Icons.assessment, 'Sales Report',
                             () => pushOnce(context, '/supplier/sales-report')),
+                        _LinkRow(Icons.storefront_outlined, 'Store Profile',
+                            () => pushOnce(context, '/store-profile')),
                       ],
                     ),
                     const SizedBox(height: 16),
