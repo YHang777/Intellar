@@ -2,7 +2,6 @@ import { auditQuietly } from './audit.service';
 import { defaultNotificationDeps, notifyQuietly } from './notifications.service';
 import { randomInt } from 'node:crypto';
 import type { RequestHandler } from 'express';
-import { FieldValue } from 'firebase-admin/firestore';
 import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
 import Stripe from 'stripe';
 import { fbDb } from '../config/firebase';
@@ -663,10 +662,14 @@ export async function refundOrderIfPaid(
   } catch (err) {
     const message = (err as { message?: string }).message ?? '';
     if (!message.toLowerCase().includes('already been refunded')) {
+      // The Stripe reason is what support actually needs to act on; the
+      // caller-facing line stays generic.
+      console.error(`[checkout] refund failed for ${orderId}: ${message}`);
       throw new ApiError(
         502,
         'REFUND_FAILED',
-        'Could not start the refund. Please contact support.'
+        'Could not start the refund. Please contact support.',
+        { reason: message }
       );
     }
   }
@@ -674,8 +677,9 @@ export async function refundOrderIfPaid(
   return true;
 }
 
-// Popularity counter on each product, kept by the payment path only. The
-// read layer clamps at zero — a refund can race a legacy doc without one.
+// Popularity counter on each product, kept by the payment path only.
+// Read-modify-write per product so a refund can never push the counter below
+// zero — an order paid before the counter existed has nothing to give back.
 export async function applySoldCountDelta(
   db: Firestore,
   items: unknown,
@@ -683,13 +687,16 @@ export async function applySoldCountDelta(
 ): Promise<void> {
   const quantities = stockQuantities(items);
   if (quantities.size === 0) return;
-  const batch = db.batch();
-  for (const [productId, qty] of quantities) {
-    batch.update(db.collection('products').doc(productId), {
-      soldCount: FieldValue.increment(delta * qty),
-    });
-  }
-  await batch.commit();
+  await Promise.all(
+    [...quantities.entries()].map(async ([productId, qty]) => {
+      const ref = db.collection('products').doc(productId);
+      await db.runTransaction(async (txn) => {
+        const snap = await txn.get(ref);
+        const current = asNumber((snap.data() as Record<string, unknown> | undefined)?.soldCount);
+        txn.set(ref, { soldCount: Math.max(0, current + delta * qty) }, { merge: true });
+      });
+    })
+  );
 }
 
 async function markRefunded(db: Firestore, orderId: string, amount: number): Promise<void> {
