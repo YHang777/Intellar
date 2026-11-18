@@ -11,6 +11,7 @@ import '../../../../../core/utils/formatters.dart';
 import '../../../../../core/utils/user_errors.dart';
 import '../../../../../models/product.dart';
 import '../../../../../models/store_profile.dart';
+import '../../../../../models/weekly_hours.dart';
 import '../../../../../models/quote_request.dart';
 import '../../../../../models/review.dart';
 import '../../../../../services/marketplace_repository.dart';
@@ -713,12 +714,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       Text('Pickup at ${supplier.address}',
                           style: TextStyle(
                               fontSize: 11, color: AppColors.textHint)),
-                    if (supplier.storeProfile.hours.trim().isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text('Open ${supplier.storeProfile.hours}',
-                          style: TextStyle(
-                              fontSize: 11, color: AppColors.textHint)),
-                    ],
+                    ..._hoursLines(supplier.storeProfile),
                   ],
                 ),
               ),
@@ -893,6 +889,42 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
 }
 
 // ── Small building blocks ────────────────────────────────────────────────────
+
+// Opening hours on the seller card: a live open/closed line (Malaysian time)
+// and the week at a glance; a profile saved before the schedule existed
+// shows its free-text hours instead.
+List<Widget> _hoursLines(StoreProfile store, {DateTime? nowUtc}) {
+  final weekly = store.weeklyHours;
+  final note = store.hours.trim();
+  if (weekly == null || weekly.isEmpty) {
+    if (note.isEmpty) return const [];
+    return [
+      const SizedBox(height: 4),
+      Text('Open $note',
+          style: TextStyle(fontSize: 11, color: AppColors.textHint)),
+    ];
+  }
+  final now = WeeklyHours.malaysiaNow(nowUtc);
+  final open = weekly.isOpenAt(now);
+  return [
+    const SizedBox(height: 4),
+    Text(
+      weekly.statusAt(now),
+      key: const Key('store-open-status'),
+      style: TextStyle(
+        fontSize: 11.5,
+        fontWeight: FontWeight.w600,
+        color: open ? AppColors.success : AppColors.textSecondary,
+      ),
+    ),
+    const SizedBox(height: 2),
+    Text(weekly.summary,
+        key: const Key('store-hours-summary'),
+        style: TextStyle(fontSize: 11, color: AppColors.textHint)),
+    if (note.isNotEmpty)
+      Text(note, style: TextStyle(fontSize: 11, color: AppColors.textHint)),
+  ];
+}
 
 // What a seller says about how they trade, in the order a buyer cares about.
 List<(IconData, String)> _storeDetailRows(StoreProfile store) {

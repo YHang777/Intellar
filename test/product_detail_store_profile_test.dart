@@ -11,6 +11,7 @@ import 'package:interior_design_recommendation/models/cart_item.dart';
 import 'package:interior_design_recommendation/models/product.dart';
 import 'package:interior_design_recommendation/models/review.dart';
 import 'package:interior_design_recommendation/models/store_profile.dart';
+import 'package:interior_design_recommendation/models/weekly_hours.dart';
 import 'package:interior_design_recommendation/services/marketplace_repository.dart';
 
 final _day = DateTime(2026, 1, 1);
@@ -124,6 +125,28 @@ void main() {
     expect(avatar.backgroundColor?.toARGB32(),
         const Color(0xFF1565C0).withValues(alpha: 0.14).toARGB32(),
         reason: 'the brand colour tints the seller avatar');
+  });
+
+  testWidgets('a weekly schedule shows open/closed status and the week',
+      (tester) async {
+    await _pump(
+      tester,
+      _product(const StoreProfile(
+        weeklyHours: WeeklyHours.typical,
+        hours: 'Closed on public holidays',
+      )),
+    );
+    await _reveal(tester, find.byKey(const Key('store-hours-summary')));
+    expect(
+        tester
+            .widget<Text>(find.byKey(const Key('store-hours-summary')))
+            .data!
+            .replaceAll(' ', ' '),
+        'Mon–Fri 9:00 am – 6:00 pm · Sat 10:00 am – 2:00 pm · Sun closed');
+    final status =
+        tester.widget<Text>(find.byKey(const Key('store-open-status'))).data!;
+    expect(status, anyOf(startsWith('Open now'), startsWith('Closed')));
+    expect(find.text('Closed on public holidays'), findsOneWidget);
   });
 
   testWidgets('a seller without a profile shows no empty store block',

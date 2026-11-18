@@ -151,13 +151,15 @@ void main() {
     expect(find.text('Branding'), findsOneWidget);
     expect(find.text('Business hours'), findsOneWidget);
 
-    await reveal(tester, find.text('Policies'));
-    expect(find.text('Policies'), findsOneWidget);
+    // Top to bottom: scrollUntilVisible only scrolls one way.
     await reveal(tester, find.text('Accepted payment options'));
     expect(find.text('Accepted payment options'), findsOneWidget);
     for (final option in StoreProfile.paymentOptions) {
+      await reveal(tester, find.text(option));
       expect(find.text(option), findsOneWidget);
     }
+    await reveal(tester, find.text('Policies'));
+    expect(find.text('Policies'), findsOneWidget);
   });
 
   testWidgets('saving sends the drafted values to the account', (tester) async {
@@ -244,6 +246,55 @@ void main() {
     }
     expect(auth.saved?.paymentMethods, isEmpty,
         reason: 'the option should be cleared, not just left alone');
+  });
+
+  Future<void> save(WidgetTester tester) async {
+    await tester.tap(find.byKey(const Key('save-store-profile')));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 120));
+    }
+  }
+
+  testWidgets('hours are set day by day, not typed', (tester) async {
+    final auth = await pump(tester);
+
+    await reveal(tester, find.byKey(const Key('hours-typical')));
+    await tester.tap(find.byKey(const Key('hours-typical')));
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(find.text('9:00 am'), findsWidgets);
+
+    // Close on Saturday.
+    await reveal(tester, find.byKey(const Key('hours-open-6')));
+    await tester.tap(find.byKey(const Key('hours-open-6')));
+    await tester.pump(const Duration(milliseconds: 150));
+
+    await save(tester);
+    final week = auth.saved?.weeklyHours;
+    expect(week, isNotNull);
+    expect(week!.summary.replaceAll(' ', ' '), 'Mon–Fri 9:00 am – 6:00 pm · Sat–Sun closed');
+  });
+
+  testWidgets('a policy can be quick-picked and still edited', (tester) async {
+    final auth = await pump(tester);
+
+    await reveal(tester, find.byKey(const Key('preset-pickup-1')));
+    await tester.tap(find.byKey(const Key('preset-pickup-1')));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byKey(const Key('preset-pickup-2')));
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(
+        tester
+            .widget<TextField>(find.byKey(const Key('store-pickup-policy')))
+            .controller!
+            .text,
+        'Collect within 7 days. Bring your order number.');
+
+    // Second tap takes it back out.
+    await tester.tap(find.byKey(const Key('preset-pickup-1')));
+    await tester.pump(const Duration(milliseconds: 100));
+
+    await save(tester);
+    expect(auth.saved?.pickupPolicy, 'Bring your order number.');
   });
 }
 

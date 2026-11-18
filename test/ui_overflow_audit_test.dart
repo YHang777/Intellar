@@ -43,6 +43,8 @@ const _homeownerRoutes = [
   '/marketplace/orders',
   '/marketplace/wishlist',
   '/marketplace/product/p1',
+  '/ar-previews',
+  '/notifications',
 ];
 
 const _supplierRoutes = [
@@ -55,6 +57,8 @@ const _supplierRoutes = [
   '/supplier/products/new',
   '/supplier/verification',
   '/supplier/sales-report',
+  '/supplier/products/bulk-upload',
+  '/store-profile',
 ];
 
 const _authRoutes = ['/login', '/register', '/forgot-password'];

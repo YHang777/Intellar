@@ -5,6 +5,8 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/user_errors.dart';
 import '../../../../models/store_profile.dart';
+import '../../../../models/weekly_hours.dart';
+import '../widgets/weekly_hours_editor.dart';
 import '../../../../shared/widgets/app_feedback.dart';
 import '../../../../shared/widgets/float_button.dart';
 import '../../../../shared/widgets/page_heading.dart';
@@ -75,6 +77,11 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
   Future<void> _save() async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;
+    final hoursProblem = _draft.weeklyHours?.problem;
+    if (hoursProblem != null) {
+      showAppSnackbar(context, hoursProblem, isError: true);
+      return;
+    }
     final profile = _draft.copyWith(
       description: _description.text.trim(),
       hours: _hours.text.trim(),
@@ -193,10 +200,30 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
             _card(
               'Business hours',
               [
+                WeeklyHoursEditor(
+                  value: _draft.weeklyHours ?? const WeeklyHours({}),
+                  onChanged: (h) => setState(() {
+                    // A profile from before the schedule kept its hours as
+                    // free text; the first schedule replaces that text
+                    // rather than leaving it to repeat as the note.
+                    final legacy =
+                        ref.read(currentUserProvider)?.storeProfile;
+                    if (_draft.weeklyHours == null &&
+                        !h.isEmpty &&
+                        legacy?.weeklyHours == null &&
+                        _hours.text.trim() == (legacy?.hours.trim() ?? '')) {
+                      _hours.clear();
+                    }
+                    _draft = h.isEmpty
+                        ? _draft.copyWith(clearWeeklyHours: true)
+                        : _draft.copyWith(weeklyHours: h);
+                  }),
+                ),
+                const SizedBox(height: 12),
                 _field(
                   key: 'store-hours',
-                  label: 'When you are open',
-                  hint: 'e.g. Mon–Fri 9:00–18:00, Sat 10:00–14:00',
+                  label: 'Note (optional)',
+                  hint: 'e.g. Closed on public holidays',
                   controller: _hours,
                   maxLines: 2,
                 ),
@@ -235,18 +262,22 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
             _card(
               'Policies',
               [
+                _presetChips('pickup', StoreProfile.pickupPresets, _pickup),
+                const SizedBox(height: 8),
                 _field(
                   key: 'store-pickup-policy',
                   label: 'Pickup / collection policy',
-                  hint: 'e.g. Collect within 7 days, bring your order number',
+                  hint: 'Pick above or write your own',
                   controller: _pickup,
                   maxLines: 3,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
+                _presetChips('returns', StoreProfile.returnPresets, _returns),
+                const SizedBox(height: 8),
                 _field(
                   key: 'store-return-policy',
                   label: 'Returns & exchanges',
-                  hint: 'e.g. 14-day returns on unused items with the receipt',
+                  hint: 'Pick above or write your own',
                   controller: _returns,
                   maxLines: 3,
                 ),
@@ -281,6 +312,43 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
               ],
             ),
           ),
+        ),
+      );
+
+  // Common terms as one-tap chips: a tap adds the sentence to the field (or
+  // takes it out again); the field stays free to edit.
+  Widget _presetChips(
+          String group, List<String> presets, TextEditingController c) =>
+      ListenableBuilder(
+        listenable: c,
+        builder: (context, _) => Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            for (final p in presets)
+              FilterChip(
+                key: Key('preset-$group-${presets.indexOf(p)}'),
+                // Explicit colour: the chip theme's label colour is white,
+                // which vanished on this light card.
+                label: Text(p,
+                    style: GoogleFonts.poppins(
+                        fontSize: 12.5, color: AppColors.textPrimary)),
+                backgroundColor: AppColors.surface,
+                side: BorderSide(color: AppColors.border),
+                // Without these each chip reserves a 48dp tap box and they
+                // stack one per row with wide gaps.
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                visualDensity: VisualDensity.compact,
+                selected: StoreProfile.hasPhrase(c.text, p),
+                selectedColor: AppColors.accent.withValues(alpha: 0.15),
+                checkmarkColor: AppColors.accent,
+                onSelected: (_) {
+                  c.text = StoreProfile.togglePhrase(c.text, p);
+                  c.selection =
+                      TextSelection.collapsed(offset: c.text.length);
+                },
+              ),
+          ],
         ),
       );
 
