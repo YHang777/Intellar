@@ -85,5 +85,24 @@ void main() {
       expect(preserveStoredVision(write, null), same(write));
       expect(preserveStoredVision(write, {...stored, 'vision': null}), same(write));
     });
+
+    test('also keeps the server-owned sold count, so a sold product stays '
+        'editable', () {
+      // Dropping soldCount reads as an edit to it, which the rules refuse.
+      final out = preserveStoredVision(write, {...stored, 'soldCount': 3});
+      expect(out['soldCount'], 3);
+      expect(out['name'], 'Edited name');
+      final sold = Product.fromJson({
+        'id': 'p1',
+        'name': 'Oak table',
+        'price': 450,
+        'stock': 2,
+        'soldCount': 3,
+        'supplier': {'id': 's1', 'name': 'Store'},
+      });
+      expect(sold.soldCount, 3);
+      expect(sold.toJson().containsKey('soldCount'), isFalse,
+          reason: 'the app never writes it itself');
+    });
   });
 }

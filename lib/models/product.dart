@@ -489,10 +489,19 @@ DateTime? _parseDate(dynamic value) {
   return DateTime.tryParse(value.toString());
 }
 
+// Fields only the server writes (photo analysis, the popularity counter).
+// A seller's edit replaces the whole document, so these are carried over
+// unchanged: dropping one reads as an edit to it, which the rules refuse.
+const serverOwnedProductFields = ['vision', 'soldCount'];
+
 Map<String, dynamic> preserveStoredVision(
   Map<String, dynamic> json,
   Map<String, dynamic>? stored,
 ) {
-  if (stored == null || stored['vision'] == null) return json;
-  return {...json, 'vision': stored['vision']};
+  if (stored == null) return json;
+  final carried = {
+    for (final k in serverOwnedProductFields)
+      if (stored[k] != null) k: stored[k],
+  };
+  return carried.isEmpty ? json : {...json, ...carried};
 }
