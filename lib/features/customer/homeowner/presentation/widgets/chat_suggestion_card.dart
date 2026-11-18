@@ -4,7 +4,9 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/formatters.dart';
+import '../../../../../core/utils/user_errors.dart';
 import '../../../../../models/chat_session.dart';
+import '../../../../../shared/widgets/app_feedback.dart';
 import '../../../../../shared/widgets/product_image.dart';
 import '../../../../notifications/data/product_feedback.dart';
 import '../../../../auth/presentation/providers/auth_providers.dart';
@@ -40,15 +42,25 @@ class ChatSuggestionCard extends ConsumerWidget {
     final saved = ref.watch(wishlistProvider).contains(s.productId);
     final verdict = (ref.watch(productFeedbackProvider).valueOrNull ??
         const <String, ProductFeedback>{})[s.productId];
-    void toggle(FeedbackValue value) {
+    Future<void> toggle(FeedbackValue value) async {
       final uid = ref.read(currentUserProvider)?.uid;
       if (uid == null) return;
       final repo = ref.read(productFeedbackRepositoryProvider);
-      if (verdict?.value == value) {
-        repo.clear(uid, s.productId);
-      } else {
-        repo.save(uid,
-            ProductFeedback(productId: s.productId, value: value, name: s.name));
+      try {
+        if (verdict?.value == value) {
+          await repo.clear(uid, s.productId);
+        } else {
+          await repo.save(uid,
+              ProductFeedback(productId: s.productId, value: value, name: s.name));
+        }
+      } catch (e) {
+        // Unawaited, a failed write vanished silently (a missing rule once
+        // dropped every verdict unnoticed).
+        if (context.mounted) {
+          showAppSnackbar(context,
+              userMessage(e, fallback: 'Could not save that. Please try again.'),
+              isError: true);
+        }
       }
     }
 

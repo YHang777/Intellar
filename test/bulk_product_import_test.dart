@@ -108,6 +108,68 @@ void main() {
       expect(rows.single.isValid, isTrue);
     });
 
+    const cats = ['Furniture', 'Lighting', 'Decor', 'Wall Covering'];
+    const styles = ['Modern', 'Classic', 'Scandinavian'];
+    const goodDesc = 'Solid oak console table with two drawers';
+
+    BulkProductRow one(List<String> cells) => BulkProductImport.parse(
+          [header, row(cells)].join(_nl),
+          categories: cats,
+          styles: styles,
+        ).single;
+
+    test('a decimal point is never deleted from a price or stock', () {
+      // Before: "450.00" was read as 45000 and "5.0" stock as 50.
+      expect(one(['Table', 'Furniture', 'Modern', goodDesc, '450.00', '5.0']).price, 450);
+      expect(one(['Table', 'Furniture', 'Modern', goodDesc, '450.00', '5.0']).stock, 5);
+      expect(one(['Table', 'Furniture', 'Modern', goodDesc, '450.50', '5']).error,
+          contains('whole number of RM'));
+      expect(one(['Table', 'Furniture', 'Modern', goodDesc, '450', '5.5']).error,
+          contains('Stock must be a whole number'));
+    });
+
+    test('currency marks and thousands commas are understood', () {
+      final r = BulkProductImport.parse(
+        [header, 'Sofa,Furniture,Modern,$goodDesc,"RM 1,200",3'].join(_nl),
+        categories: cats,
+        styles: styles,
+      ).single;
+      expect(r.isValid, isTrue);
+      expect(r.price, 1200);
+    });
+
+    test('price must be above RM 0, like the product form', () {
+      expect(one(['Table', 'Furniture', 'Modern', goodDesc, '0', '5']).error,
+          contains('above RM 0'));
+    });
+
+    test('category and style must be real ones, any letter case', () {
+      final ok = one(['Lamp', 'lighting', 'scandinavian', goodDesc, '95', '2']);
+      expect(ok.isValid, isTrue);
+      expect(ok.category, 'Lighting', reason: 'stored with the list spelling');
+      expect(ok.designStyle, 'Scandinavian');
+
+      final typo = one(['Table', 'Furnture', 'Modern', goodDesc, '450', '5']);
+      expect(typo.error, contains('Unknown category "Furnture"'));
+      expect(typo.error, contains('Furniture'), reason: 'lists the valid ones');
+
+      expect(one(['Table', 'Furniture', 'Retro', goodDesc, '450', '5']).error,
+          contains('Unknown design style'));
+    });
+
+    test('name, description and size follow the product form limits', () {
+      expect(one(['TV', 'Furniture', 'Modern', goodDesc, '9', '1']).error,
+          contains('at least 3'));
+      expect(one(['A' * 81, 'Furniture', 'Modern', goodDesc, '9', '1']).error,
+          contains('longer than 80'));
+      expect(one(['Table', 'Furniture', 'Modern', 'x' * 501, '9', '1']).error,
+          contains('longer than 500'));
+      expect(
+          one(['Table', 'Furniture', 'Modern', goodDesc, '9', '1', '12', '1', '1'])
+              .error,
+          contains('between 0.1 and 10'));
+    });
+
     test('a headerless file says so instead of inventing columns', () {
       expect(BulkProductImport.parse(''), isEmpty);
       final blank = BulkProductImport.parse(_blank);

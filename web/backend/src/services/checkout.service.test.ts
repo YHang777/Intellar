@@ -98,8 +98,11 @@ test('sold count follows the money: up on payment, down on refund', async () => 
   const fake = {
     runTransaction: async (fn: (txn: unknown) => Promise<unknown>) =>
       fn({
-        get: async (ref: { id: string }) => ({ data: () => ({ soldCount: stock[ref.id] ?? 0 }) }),
-        set: async (ref: { id: string }, data: { soldCount: number }) => {
+        get: async (ref: { id: string }) => ({
+          exists: ref.id in stock,
+          data: () => (ref.id in stock ? { soldCount: stock[ref.id] } : undefined),
+        }),
+        update: async (ref: { id: string }, data: { soldCount: number }) => {
           stock[ref.id] = data.soldCount;
           written.push([ref.id, data.soldCount]);
         },
@@ -126,4 +129,10 @@ test('sold count follows the money: up on payment, down on refund', async () => 
   written.length = 0;
   await applySoldCountDelta(fake, [], 1);
   assert.deepEqual(written, [], 'an order with no items bumps nothing');
+
+  // The seller deleted the listing before the refund: nothing is written,
+  // so no bare { soldCount } document reappears in the catalogue.
+  await applySoldCountDelta(fake, [{ productId: 'gone', quantity: 1 }], -1);
+  assert.equal('gone' in stock, false);
+  assert.deepEqual(written, []);
 });

@@ -108,11 +108,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (isLoggedIn && isOnAuthRoute) {
         return home;
       }
+      // Supplier-only, but outside /supplier/ (so the supplier rule below
+      // would otherwise bounce it to the dashboard).
+      if (loc == '/store-profile') {
+        return (isLoggedIn && user.isSupplier) ? null : home;
+      }
       if (loc == '/onboarding' ||
           loc == '/notifications' ||
           loc == '/ar-previews' ||
-          loc == '/store-profile' ||
-          loc == '/supplier/products/bulk-upload' ||
           loc.startsWith('/settings/')) {
         if (isLoggedIn && user.isSupplier && loc == '/settings/preferences') {
           return '/supplier/dashboard';

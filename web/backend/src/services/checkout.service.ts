@@ -692,8 +692,11 @@ export async function applySoldCountDelta(
       const ref = db.collection('products').doc(productId);
       await db.runTransaction(async (txn) => {
         const snap = await txn.get(ref);
+        // A listing deleted since the sale: writing here would recreate it as
+        // a bare { soldCount } document in the catalogue.
+        if (!snap.exists) return;
         const current = asNumber((snap.data() as Record<string, unknown> | undefined)?.soldCount);
-        txn.set(ref, { soldCount: Math.max(0, current + delta * qty) }, { merge: true });
+        txn.update(ref, { soldCount: Math.max(0, current + delta * qty) });
       });
     })
   );
@@ -701,21 +704,22 @@ export async function applySoldCountDelta(
 
 async function markRefunded(db: Firestore, orderId: string, amount: number): Promise<void> {
   const ref = db.collection('orders').doc(orderId);
-  await db.runTransaction(async (txn) => {
+  const refundedItems = await db.runTransaction(async (txn) => {
     const snap = await txn.get(ref);
-    if (!snap.exists) return;
+    if (!snap.exists) return null;
     const current = asRecord(snap.data());
-    if (asString(current.paymentStatus) === 'refunded') return;
+    if (asString(current.paymentStatus) === 'refunded') return null;
     txn.update(ref, {
       paymentStatus: 'refunded',
       refundStatus: 'processed',
       refundAmount: amount,
     });
-    return asRecord(current);
+    return current.items;
   });
-  // The sale is undone — the popularity counter follows the money.
-  const after = await ref.get();
-  void applySoldCountDelta(db, asRecord(after.data()).items, -1).catch((err) =>
+  // The sale is undone — the popularity counter follows the money, once:
+  // only the call that actually flipped the order rolls it back.
+  if (refundedItems == null) return;
+  void applySoldCountDelta(db, refundedItems, -1).catch((err) =>
     console.log(`[checkout] soldCount rollback skipped: ${err.message}`)
   );
 }

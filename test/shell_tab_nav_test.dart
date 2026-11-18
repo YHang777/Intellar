@@ -110,6 +110,19 @@ void main() {
           'so the nav bar highlights the pushed branch',
     );
   });
+
+  testWidgets('a homeowner cannot open the supplier-only store pages',
+      (tester) async {
+    final router = await _boot(tester);
+    for (final loc in ['/store-profile', '/supplier/products/bulk-upload']) {
+      router.go(loc);
+      await _settle(tester);
+      expect(tester.takeException(), isNull);
+      expect(router.routerDelegate.currentConfiguration.uri.path, '/home',
+          reason: '$loc is supplier-only');
+      expect(find.byType(DashboardScreen), findsOneWidget);
+    }
+  });
 }
 
 class _HomeownerAuth implements IAuthRepository {

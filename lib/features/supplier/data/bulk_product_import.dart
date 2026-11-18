@@ -54,12 +54,27 @@ class BulkProductImport {
     'imageurl',
   ];
 
+  // Same limits as the Add Product form, so a CSV cannot publish what the
+  // form would refuse.
+  static const minNameChars = 3;
+  static const maxNameChars = 80;
   static const minDescriptionChars = 20;
+  static const maxDescriptionChars = 500;
+  static const minSizeM = 0.1;
+  static const maxSizeM = 10.0;
 
   /// Header row maps columns by name (case-insensitive). Missing optional
   /// columns are fine; a missing required one fails the whole file, because
   /// guessing which column is which would create wrong listings.
-  static List<BulkProductRow> parse(String csvText) {
+  ///
+  /// [categories] / [styles] are the marketplace's own lists: a value must
+  /// match one (any letter case) and is stored with the list's spelling, so
+  /// a typo cannot create a category no filter shows. Null skips the check.
+  static List<BulkProductRow> parse(
+    String csvText, {
+    List<String>? categories,
+    List<String>? styles,
+  }) {
     final rows = _rows(csvText);
     if (rows.isEmpty) return const [];
     final header = [
@@ -96,24 +111,40 @@ class BulkProductImport {
         return (v == null || v.isEmpty) ? null : v;
       }
 
+      // Whole numbers only. Currency marks, spaces and thousands commas are
+      // dropped, and "450.00" counts as 450 — but the decimal point is never
+      // silently deleted ("450.50" or "5.5" are refused, not read as 45050).
       int? integer(String name) {
         final v = str(name);
         if (v == null) return null;
-        final n = int.tryParse(v.replaceAll(RegExp(r'[^0-9-]'), ''));
-        return n;
+        final cleaned =
+            v.replaceAll(RegExp(r'rm|\s|,', caseSensitive: false), '');
+        final n = num.tryParse(cleaned);
+        if (n == null || !n.isFinite || n != n.roundToDouble()) return null;
+        return n.toInt();
       }
 
       double? decimal(String name) {
         final v = str(name);
         if (v == null) return null;
-        return double.tryParse(v.replaceAll(RegExp(r'[^0-9.-]'), ''));
+        return double.tryParse(
+            v.replaceAll(RegExp(r'\s|m$', caseSensitive: false), ''));
+      }
+
+      // Unknown values stay as typed so _validate can name them.
+      String? canonical(String? value, List<String>? known) {
+        if (value == null || known == null) return value;
+        for (final k in known) {
+          if (k.toLowerCase() == value.toLowerCase()) return k;
+        }
+        return value;
       }
 
       final row = BulkProductRow(
         line: r + 1,
         name: str('name'),
-        category: str('category'),
-        designStyle: str('designstyle'),
+        category: canonical(str('category'), categories),
+        designStyle: canonical(str('designstyle'), styles),
         description: str('description'),
         price: integer('price'),
         stock: integer('stock'),
@@ -123,34 +154,55 @@ class BulkProductImport {
         ecoFriendly: (str('eco') ?? '').toLowerCase() == 'true',
         imageUrl: str('imageurl'),
       );
-      out.add(_validate(row));
+      out.add(_validate(row, categories: categories, styles: styles));
     }
     return out;
   }
 
-  static BulkProductRow _validate(BulkProductRow r) {
+  static BulkProductRow _validate(
+    BulkProductRow r, {
+    List<String>? categories,
+    List<String>? styles,
+  }) {
     String? problem;
-    if (r.name == null || r.name!.length < 2) {
+    final name = r.name;
+    final description = r.description;
+    if (name == null) {
       problem = 'Name is missing';
+    } else if (name.length < minNameChars) {
+      problem = 'Name needs at least $minNameChars characters';
+    } else if (name.length > maxNameChars) {
+      problem = 'Name is longer than $maxNameChars characters';
     } else if (r.category == null) {
       problem = 'Category is missing';
+    } else if (categories != null && !categories.contains(r.category)) {
+      problem = 'Unknown category "${r.category}". '
+          'Use one of: ${categories.join(', ')}';
     } else if (r.designStyle == null) {
       problem = 'Design style is missing';
-    } else if (r.description == null ||
-        r.description!.length < minDescriptionChars) {
+    } else if (styles != null && !styles.contains(r.designStyle)) {
+      problem = 'Unknown design style "${r.designStyle}". '
+          'Use one of: ${styles.join(', ')}';
+    } else if (description == null ||
+        description.length < minDescriptionChars) {
       problem = 'Description needs at least $minDescriptionChars characters';
-    } else if (r.price == null || r.price! < 0) {
-      problem = 'Price is missing or not a number';
+    } else if (description.length > maxDescriptionChars) {
+      problem = 'Description is longer than $maxDescriptionChars characters';
+    } else if (r.price == null) {
+      problem = 'Price must be a whole number of RM';
+    } else if (r.price! <= 0) {
+      problem = 'Price must be above RM 0';
     } else if (r.stock == null || r.stock! < 0) {
-      problem = 'Stock is missing or not a whole number';
+      problem = 'Stock must be a whole number, 0 or more';
     } else {
       for (final (label, value) in [
         ('Width', r.widthM),
         ('Height', r.heightM),
         ('Depth', r.depthM),
       ]) {
-        if (value != null && (value <= 0 || value > 100)) {
-          problem = '$label must be between 0 and 100 metres';
+        if (value != null && (value < minSizeM || value > maxSizeM)) {
+          problem = '$label must be between $minSizeM and ${maxSizeM.toInt()} '
+              'metres';
           break;
         }
       }

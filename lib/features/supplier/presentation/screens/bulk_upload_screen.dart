@@ -59,9 +59,30 @@ class _BulkUploadScreenState extends ConsumerState<BulkUploadScreen> {
       }
       return;
     }
+    // The marketplace's own lists, so each row's category and style are
+    // checked like the form's dropdowns. If they cannot load, the import
+    // refuses rather than guessing.
+    final List<String> categories;
+    final List<String> styles;
+    try {
+      categories = [
+        for (final c in await ref.read(categoriesProvider.future)) c.name,
+      ];
+      styles = await ref.read(stylesProvider.future);
+    } catch (_) {
+      if (mounted) {
+        showAppSnackbar(context,
+            'Could not load categories. Check your connection and try again.',
+            isError: true);
+      }
+      return;
+    }
+    if (!mounted) return;
     setState(() {
       _fileName = file.name;
-      _rows = BulkProductImport.parse(text);
+      _rows = BulkProductImport.parse(text,
+          categories: categories.isEmpty ? null : categories,
+          styles: styles.isEmpty ? null : styles);
     });
   }
 
