@@ -117,6 +117,40 @@ void main() {
         reason: 'the active filter chip must say which filter is on');
   });
 
+  testWidgets('a price range can be typed beyond the dearest listing',
+      (tester) async {
+    tester.view.physicalSize = const Size(430, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+    await pump(tester, [_p('a'), _p('b'), _p('c').copyWith(price: 1500)]);
+
+    await tester.tap(find.text('Filters'));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    final container = ProviderScope.containerOf(
+        tester.element(find.byType(MarketplaceScreen)));
+
+    await tester.ensureVisible(find.byKey(const Key('price-max')));
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.enterText(find.byKey(const Key('price-min')), '2000');
+    await tester.enterText(find.byKey(const Key('price-max')), '10000');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final range = container.read(priceRangeFilterProvider);
+    expect(range?.min, 2000);
+    expect(range?.max, 10000,
+        reason: 'not capped at the RM 1,500 dearest listing');
+
+    // The box just edited wins: a max below the min pulls the min down.
+    await tester.enterText(find.byKey(const Key('price-max')), '100');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump(const Duration(milliseconds: 100));
+    expect(container.read(priceRangeFilterProvider)?.min, 100);
+    expect(container.read(priceRangeFilterProvider)?.max, 100);
+  });
+
   testWidgets('a search that matches nothing also explains itself',
       (tester) async {
     await pump(tester, [_p('a')]);

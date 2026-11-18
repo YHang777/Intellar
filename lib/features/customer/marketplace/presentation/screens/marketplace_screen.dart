@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -1101,7 +1102,9 @@ class _FiltersSheet extends ConsumerWidget {
             values: RangeValues(start, end),
             min: bounds.min.toDouble(),
             max: bounds.max.toDouble(),
-            divisions: 100,
+            // Step sized to the spread (RM 10 / 50 / 100), not a fixed 100
+            // notches that jump hundreds of ringgit on a wide catalogue.
+            divisions: _priceDivisions(bounds),
             labels: RangeLabels(
               Formatters.myr(start.round()),
               Formatters.myr(end.round()),
@@ -1116,19 +1119,25 @@ class _FiltersSheet extends ConsumerWidget {
               );
             },
           ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8, left: 4),
-            child: Text(
-              '${Formatters.myr(start.round())} – ${Formatters.myr(end.round())}',
-              style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.textPrimary),
-            ),
+          // Typed amounts are not limited to the slider: a buyer can ask for
+          // RM 2,000–10,000 even before anything that dear is listed.
+          _PriceInputs(
+            min: selected?.min ?? bounds.min,
+            max: selected?.max ?? bounds.max,
+            onChanged: (min, max) =>
+                ref.read(priceRangeFilterProvider.notifier).state =
+                    PriceFilter(min: min, max: max),
           ),
+          const SizedBox(height: 8),
         ],
       ],
     );
+  }
+
+  static int _priceDivisions(PriceFilter bounds) {
+    final spread = bounds.max - bounds.min;
+    final step = spread <= 2000 ? 10 : (spread <= 10000 ? 50 : 100);
+    return (spread / step).ceil().clamp(1, 200);
   }
 
   Widget _buildToggleRow(
@@ -1196,4 +1205,114 @@ class _SheetLabel extends StatelessWidget {
               color: AppColors.textSecondary)),
     );
   }
+}
+
+// ── Typed price range ───────────────────────────────────────────────────────
+
+class _PriceInputs extends StatefulWidget {
+  const _PriceInputs({
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+
+  final int min;
+  final int max;
+  final void Function(int min, int max) onChanged;
+
+  @override
+  State<_PriceInputs> createState() => _PriceInputsState();
+}
+
+class _PriceInputsState extends State<_PriceInputs> {
+  late final TextEditingController _min =
+      TextEditingController(text: '${widget.min}');
+  late final TextEditingController _max =
+      TextEditingController(text: '${widget.max}');
+  final _minFocus = FocusNode();
+  final _maxFocus = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    _minFocus.addListener(() {
+      if (!_minFocus.hasFocus) _apply(editedMin: true);
+    });
+    _maxFocus.addListener(() {
+      if (!_maxFocus.hasFocus) _apply(editedMin: false);
+    });
+  }
+
+  // Follow the slider, but never overwrite what the buyer is typing.
+  @override
+  void didUpdateWidget(_PriceInputs old) {
+    super.didUpdateWidget(old);
+    if (!_minFocus.hasFocus && _min.text != '${widget.min}') {
+      _min.text = '${widget.min}';
+    }
+    if (!_maxFocus.hasFocus && _max.text != '${widget.max}') {
+      _max.text = '${widget.max}';
+    }
+  }
+
+  // The box just edited wins; the other only moves if it now contradicts
+  // it. (Swapping instead misread "min 2000, then tab to max" against the
+  // old max and flipped the range.)
+  void _apply({required bool editedMin}) {
+    var lo = int.tryParse(_min.text) ?? widget.min;
+    var hi = int.tryParse(_max.text) ?? widget.max;
+    if (hi < lo) {
+      if (editedMin) {
+        hi = lo;
+      } else {
+        lo = hi;
+      }
+    }
+    _min.text = '$lo';
+    _max.text = '$hi';
+    widget.onChanged(lo, hi);
+  }
+
+  @override
+  void dispose() {
+    _min.dispose();
+    _max.dispose();
+    _minFocus.dispose();
+    _maxFocus.dispose();
+    super.dispose();
+  }
+
+  Widget _box(String label, TextEditingController c, FocusNode f, Key key) =>
+      Expanded(
+        child: TextField(
+          key: key,
+          controller: c,
+          focusNode: f,
+          keyboardType: TextInputType.number,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(7),
+          ],
+          textInputAction: TextInputAction.done,
+          onSubmitted: (_) => _apply(editedMin: identical(c, _min)),
+          decoration: InputDecoration(
+            labelText: label,
+            prefixText: 'RM ',
+            isDense: true,
+            border: const OutlineInputBorder(),
+          ),
+        ),
+      );
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: [
+          _box('Min', _min, _minFocus, const Key('price-min')),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Text('–', style: TextStyle(color: AppColors.textSecondary)),
+          ),
+          _box('Max', _max, _maxFocus, const Key('price-max')),
+        ],
+      );
 }
