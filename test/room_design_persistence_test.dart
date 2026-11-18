@@ -166,8 +166,10 @@ void main() {
     setUp(() {
       sent = [];
       ds = SupabaseRoomDesignDatasource(
+        idTokenProvider: () async => 'tok',
         client: MockClient((request) async {
           sent.add(http.Request(request.method, request.url)
+            ..headers.addAll(request.headers)
             ..bodyBytes = request.bodyBytes);
           return http.Response('{}', 200,
               headers: {'content-type': 'application/json'});
@@ -190,7 +192,12 @@ void main() {
       expect(body['width_cm'], 400);
       expect(body['height_cm'], 500);
       expect(body['detected_items'], ['sofa']);
-      expect(body['user_id'], 'u1');
+      // The owner comes from the verified sign-in on the backend, never
+      // from the app, and the request goes to our API, not to Supabase.
+      expect(body.containsKey('user_id'), isFalse);
+      expect(sent.single.url.path, '/api/designs');
+      expect(sent.single.headers['Authorization'], 'Bearer tok');
+      expect(sent.single.url.host.contains('supabase'), isFalse);
 
       // No camelCase leftovers — PostgREST rejects unknown columns.
       expect(body.containsKey('roomType'), isFalse);
@@ -226,10 +233,11 @@ void main() {
 
     test('getDesign reads back an embedded row', () async {
       ds = SupabaseRoomDesignDatasource(
+        idTokenProvider: () async => 'tok',
         client: MockClient((request) async {
           return http.Response(
-            jsonEncode([
-              {
+            jsonEncode({
+              'design': {
                 'id': 'd9',
                 'name': 'Round Trip',
                 'room_type': 'office',
@@ -260,7 +268,7 @@ void main() {
                 'updated_at': '2026-01-02T00:00:00Z',
                 'user_id': 'u1',
               }
-            ]),
+            }),
             200,
             headers: {'content-type': 'application/json'},
           );
@@ -301,10 +309,11 @@ void main() {
       });
 
       ds = SupabaseRoomDesignDatasource(
+        idTokenProvider: () async => 'tok',
         client: MockClient((request) async {
           return http.Response(
-            jsonEncode([
-              {
+            jsonEncode({
+              'design': {
                 'id': 'd1',
                 'name': 'My Room',
                 'room_type': 'living_room',
@@ -326,7 +335,7 @@ void main() {
                 'updated_at': '2026-01-02T00:00:00Z',
                 'user_id': 'u1',
               }
-            ]),
+            }),
             200,
             headers: {'content-type': 'application/json'},
           );
@@ -342,6 +351,7 @@ void main() {
     test('network errors propagate as typed exceptions for userMessage',
         () async {
       ds = SupabaseRoomDesignDatasource(
+        idTokenProvider: () async => 'tok',
         client: MockClient((request) async {
           throw http.ClientException('connection refused');
         }),

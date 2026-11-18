@@ -15,6 +15,7 @@ import { createCheckoutRouter } from './checkout.routes';
 import { defaultCheckoutDeps } from '../services/checkout.service';
 import { firebaseConfigured } from '../config/firebase';
 import { createAuditLogsRouter } from './audit-logs.routes';
+import { supabaseKeyStyle } from '../lib/supabase-headers';
 import { verificationEmailConfigured } from '../services/verification-email.service';
 
 export const apiRouter = Router();
@@ -26,6 +27,9 @@ apiRouter.get('/health', (_req, res) => {
     service: 'interior-design-admin-api',
     firebaseConfigured: firebaseConfigured(),
     verificationEmailConfigured: verificationEmailConfigured(),
+    // Which kind of Supabase key is set (never the key): diagnoses the
+    // saved-designs relay without opening the dashboard.
+    supabase: supabaseKeyStyle(),
   });
 });
 

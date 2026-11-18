@@ -71,7 +71,9 @@ export function createDesignsRouter(deps: DesignsDeps): Router {
     if (!res.ok) {
       const text = (await res.text()).slice(0, 300);
       console.error(`[designs] supabase ${res.status}: ${text}`);
-      throw new ApiError(502, 'DESIGNS_FAILED', 'Could not reach your saved designs. Please try again.');
+      throw new ApiError(502, 'DESIGNS_FAILED', 'Could not reach your saved designs. Please try again.', {
+        upstreamStatus: res.status,
+      });
     }
     const text = await res.text();
     if (!text) return [];

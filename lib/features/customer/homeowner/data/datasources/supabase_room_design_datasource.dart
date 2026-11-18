@@ -1,32 +1,50 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 import '../../../../../config/app_config.dart';
 import '../../../../../models/room_design.dart';
 
+// Saved designs go through our backend (/api/designs), never straight to
+// Supabase: the app's anon key is public, so with direct access anyone could
+// read or change every user's designs. The backend checks the Firebase
+// sign-in and only ever touches the caller's own rows. Rows keep the table's
+// snake_case shape, so the mapping below is unchanged.
 class SupabaseRoomDesignDatasource {
-  SupabaseRoomDesignDatasource({http.Client? client})
-      : _client = client ?? http.Client();
+  SupabaseRoomDesignDatasource({
+    http.Client? client,
+    Future<String?> Function()? idTokenProvider,
+  })  : _client = client ?? http.Client(),
+        _idTokenProvider = idTokenProvider ?? _firebaseIdToken;
 
   final http.Client _client;
+  final Future<String?> Function() _idTokenProvider;
   static const Duration _timeout = Duration(seconds: 30);
   static const Duration pollInterval = Duration(seconds: 5);
-  static const String _table = 'room_designs';
 
-  String get _baseUrl => AppConfig.supabaseUrl;
-  String get _anonKey => AppConfig.supabaseAnonKey;
+  static Future<String?> _firebaseIdToken() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    return user.getIdToken();
+  }
 
-  bool get isConfigured =>
-      _baseUrl.trim().isNotEmpty && _anonKey.trim().isNotEmpty;
+  String get _baseUrl =>
+      '${AppConfig.verificationApiUrl.replaceAll(RegExp(r'/+$'), '')}/api/designs';
 
-  Map<String, String> get _headers => {
-        'apikey': _anonKey,
-        'Authorization': 'Bearer $_anonKey',
-        'Content-Type': 'application/json',
-        'Prefer': 'return=representation',
-      };
+  bool get isConfigured => AppConfig.verificationApiUrl.trim().isNotEmpty;
+
+  Future<Map<String, String>> _headers() async {
+    final token = await _idTokenProvider();
+    if (token == null || token.isEmpty) {
+      throw Exception('Sign in to see your saved designs.');
+    }
+    return {
+      'Authorization': 'Bearer $token',
+      'Content-Type': 'application/json',
+    };
+  }
 
   // ── CRUD ──────────────────────────────────────────────────────────────────
 
@@ -100,14 +118,13 @@ class SupabaseRoomDesignDatasource {
     await _delete(designId);
   }
 
+  // userId is kept for callers; the backend reads it from the sign-in.
   Future<List<RoomDesign>> getDesigns(String userId) async {
-    final url = Uri.parse(
-        '$_baseUrl/rest/v1/$_table?user_id=eq.$userId&order=updated_at.desc');
     final resp = await _client
-        .get(url, headers: _headers)
+        .get(Uri.parse(_baseUrl), headers: await _headers())
         .timeout(_timeout);
     _checkError(resp);
-    final List json = jsonDecode(resp.body);
+    final List json = (jsonDecode(resp.body) as Map)['designs'] as List? ?? [];
     return json.map((e) {
       final map = _fromRow(e);
       return RoomDesign.fromJson(map);
@@ -125,14 +142,15 @@ class SupabaseRoomDesignDatasource {
   }
 
   Future<RoomDesign?> getDesign(String designId) async {
-    final url = Uri.parse('$_baseUrl/rest/v1/$_table?id=eq.$designId&limit=1');
     final resp = await _client
-        .get(url, headers: _headers)
+        .get(Uri.parse('$_baseUrl/${Uri.encodeComponent(designId)}'),
+            headers: await _headers())
         .timeout(_timeout);
+    if (resp.statusCode == 404) return null;
     _checkError(resp);
-    final List json = jsonDecode(resp.body);
-    if (json.isEmpty) return null;
-    return RoomDesign.fromJson(_fromRow(json.first));
+    final row = (jsonDecode(resp.body) as Map)['design'];
+    if (row is! Map<String, dynamic>) return null;
+    return RoomDesign.fromJson(_fromRow(row));
   }
 
   // ── HTTP helpers ──────────────────────────────────────────────────────────
@@ -141,42 +159,41 @@ class SupabaseRoomDesignDatasource {
   // to propagate — userMessage() maps each to a plain sentence at the
   // call site (wrapping them here would flatten every failure into the
   // generic fallback).
-  Future<Map<String, dynamic>> _post(Map<String, dynamic> body) async {
-    final url = Uri.parse('$_baseUrl/rest/v1/$_table');
+  Future<void> _post(Map<String, dynamic> body) async {
+    // user_id is set by the backend from the sign-in, never from here.
     final resp = await _client
-        .post(url, headers: _headers, body: jsonEncode(body))
+        .post(Uri.parse(_baseUrl),
+            headers: await _headers(),
+            body: jsonEncode(Map.of(body)..remove('user_id')))
         .timeout(_timeout);
     _checkError(resp);
-    return jsonDecode(resp.body);
   }
 
-  Future<Map<String, dynamic>> _patch(
-      String id, Map<String, dynamic> body) async {
-    final url =
-        Uri.parse('$_baseUrl/rest/v1/$_table?id=eq.$id');
+  Future<void> _patch(String id, Map<String, dynamic> body) async {
     final resp = await _client
-        .patch(url, headers: _headers, body: jsonEncode(body))
+        .patch(Uri.parse('$_baseUrl/${Uri.encodeComponent(id)}'),
+            headers: await _headers(),
+            body: jsonEncode(Map.of(body)..remove('user_id')))
         .timeout(_timeout);
     _checkError(resp);
-    return jsonDecode(resp.body);
   }
 
   Future<void> _delete(String id) async {
-    final url =
-        Uri.parse('$_baseUrl/rest/v1/$_table?id=eq.$id');
     final resp = await _client
-        .delete(url, headers: _headers)
+        .delete(Uri.parse('$_baseUrl/${Uri.encodeComponent(id)}'),
+            headers: await _headers())
         .timeout(_timeout);
     _checkError(resp);
   }
 
   void _checkError(http.Response resp) {
     if (resp.statusCode < 200 || resp.statusCode >= 300) {
-      final body = resp.body.length > 300
-          ? resp.body.substring(0, 300)
-          : resp.body;
-      throw Exception(
-          'Supabase error (HTTP ${resp.statusCode}): $body');
+      String? message;
+      try {
+        message = ((jsonDecode(resp.body) as Map)['error'] as Map?)?['message']
+            as String?;
+      } catch (_) {}
+      throw Exception(message ?? 'Saved designs error (HTTP ${resp.statusCode}).');
     }
   }
 
