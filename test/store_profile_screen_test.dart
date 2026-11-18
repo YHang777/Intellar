@@ -8,6 +8,7 @@ import 'package:interior_design_recommendation/features/auth/domain/repositories
 import 'package:interior_design_recommendation/features/auth/presentation/providers/auth_providers.dart';
 import 'package:interior_design_recommendation/features/customer/marketplace/presentation/providers/marketplace_providers.dart';
 import 'package:interior_design_recommendation/features/supplier/presentation/screens/store_profile_screen.dart';
+import 'package:interior_design_recommendation/models/product.dart';
 import 'package:interior_design_recommendation/models/store_profile.dart';
 import 'package:interior_design_recommendation/services/marketplace_repository.dart';
 
@@ -17,12 +18,14 @@ class _RecordingRepo implements MarketplaceRepository {
   final bool fail;
   String? syncedFor;
   StoreProfile? synced;
+  Supplier? syncedSupplier;
 
   @override
-  Future<int> syncStoreProfile(String supplierId, StoreProfile profile) async {
+  Future<int> syncSupplierDetails(Supplier supplier) async {
     if (fail) throw Exception('offline');
-    syncedFor = supplierId;
-    synced = profile;
+    syncedSupplier = supplier;
+    syncedFor = supplier.id;
+    synced = supplier.storeProfile;
     return 3;
   }
 

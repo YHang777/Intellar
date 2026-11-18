@@ -6,6 +6,7 @@ import '../../../../services/verification/verification_application_model.dart';
 import '../../../../services/verification/verification_application_service.dart';
 import '../../../auth/data/models/app_user.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../customer/marketplace/presentation/providers/marketplace_providers.dart';
 
 // ─── Supplier identity ────────────────────────────────────────────────────────
 
@@ -14,6 +15,22 @@ final currentSupplierProvider = Provider<Supplier?>((ref) {
   if (user == null) return null;
   return supplierFromUser(user);
 });
+
+// Call after any save that changes what buyers see about the seller (business
+// name, phone, address, store profile). Returns false when the account saved
+// but the listings could not be updated, so the screen can say so.
+Future<bool> syncSupplierToListings(WidgetRef ref) async {
+  final user = ref.read(currentUserProvider);
+  if (user == null || !user.isSupplier) return true;
+  try {
+    await ref
+        .read(marketplaceRepositoryProvider)
+        .syncSupplierDetails(supplierFromUser(user));
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
 
 Supplier supplierFromUser(AppUser user) {
   final businessName =

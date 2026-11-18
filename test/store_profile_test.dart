@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
+import 'package:interior_design_recommendation/features/auth/data/models/app_user.dart';
+import 'package:interior_design_recommendation/features/supplier/presentation/providers/supplier_providers.dart';
 import 'package:interior_design_recommendation/models/product.dart';
 import 'package:interior_design_recommendation/models/store_profile.dart';
 
@@ -81,6 +83,31 @@ void main() {
       const bare = Supplier(
           id: 's1', name: 'Old', phone: '', address: '', email: '');
       expect(bare.toJson().containsKey('storeProfile'), isFalse);
+    });
+
+    test('listings get the business details buyers should see', () {
+      final now = DateTime(2026, 11, 18);
+      final user = AppUser(
+        uid: 'sup-1',
+        email: 'seller@example.com',
+        name: 'Personal Name',
+        role: UserRole.supplier,
+        phone: '0111',
+        address: 'Home address',
+        businessName: 'Oak & Co',
+        businessPhone: '0312345678',
+        businessAddress: '1 Jalan Kedai, Shah Alam',
+        storeProfile: const StoreProfile(hours: 'Sat 10–2'),
+        createdAt: now,
+        updatedAt: now,
+      );
+      final s = supplierFromUser(user);
+      expect(s.id, 'sup-1');
+      expect(s.name, 'Oak & Co');
+      expect(s.phone, '0312345678');
+      expect(s.address, '1 Jalan Kedai, Shah Alam',
+          reason: 'pickup must be the shop, never the home address');
+      expect(s.storeProfile.hours, 'Sat 10–2');
     });
 
     test('clearBrandColor removes the colour; plain copyWith keeps it', () {

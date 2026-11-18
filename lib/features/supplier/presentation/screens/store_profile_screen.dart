@@ -9,8 +9,8 @@ import '../../../../shared/widgets/app_feedback.dart';
 import '../../../../shared/widgets/float_button.dart';
 import '../../../../shared/widgets/page_heading.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
-import '../../../customer/marketplace/presentation/providers/marketplace_providers.dart';
 import '../../../settings/presentation/widgets/settings_widgets.dart';
+import '../providers/supplier_providers.dart';
 
 // Storefront details buyers see on a seller's listings: how they trade,
 // when they are open, what they accept, and their own policies (report:
@@ -92,14 +92,7 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
             businessAddress: user.businessAddress,
             storeProfile: profile,
           );
-      var reachedListings = true;
-      try {
-        await ref
-            .read(marketplaceRepositoryProvider)
-            .syncStoreProfile(user.uid, profile);
-      } catch (_) {
-        reachedListings = false;
-      }
+      final reachedListings = await syncSupplierToListings(ref);
       if (!mounted) return;
       showAppSnackbar(
         context,

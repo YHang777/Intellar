@@ -78,14 +78,27 @@ class _SupplierProfileScreenState
             businessPhone: _businessPhoneCtrl.text.trim(),
             businessAddress: _businessAddressCtrl.text.trim(),
           );
+      // Listings keep their own copy of these details, and buyers see that
+      // copy on product pages and in order pickup info.
+      final reachedListings = await syncSupplierToListings(ref);
       if (mounted) {
         setState(() => _editing = false);
-        showAppSnackbar(
-          context,
-          'Business profile updated',
-          color: AppColors.success,
-          duration: const Duration(seconds: 3),
-        );
+        if (reachedListings) {
+          showAppSnackbar(
+            context,
+            'Business profile updated',
+            color: AppColors.success,
+            duration: const Duration(seconds: 3),
+          );
+        } else {
+          showAppSnackbar(
+            context,
+            'Saved, but your listings could not be updated yet. '
+            'Save again to retry.',
+            isError: true,
+            duration: const Duration(seconds: 3),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

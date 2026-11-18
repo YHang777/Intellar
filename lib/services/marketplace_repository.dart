@@ -12,7 +12,6 @@ import '../models/product.dart';
 import '../models/product_category.dart';
 import '../models/quote_request.dart';
 import '../models/review.dart';
-import '../models/store_profile.dart';
 import 'auth_race_retry.dart';
 import 'media/media_store.dart';
 import 'model_generation/model_glb_resolver.dart';
@@ -113,18 +112,28 @@ class MarketplaceRepository {
     return product;
   }
 
-  // Each product carries its own copy of the supplier, so a saved store
-  // profile reaches buyers only once it is copied onto the seller's listings.
-  // Field-path write: name and verification status are left alone.
-  Future<int> syncStoreProfile(String supplierId, StoreProfile profile) async {
+  // Each product carries its own copy of the supplier, and buyers (product
+  // page, order pickup details) read that copy. Copy the seller's current
+  // details onto every listing so buyers never see stale contact or pickup
+  // info. Verification status is admin-owned (the backend copies it) and is
+  // left alone.
+  Future<int> syncSupplierDetails(Supplier supplier) async {
     final snap =
-        await _products.where('supplierId', isEqualTo: supplierId).get();
+        await _products.where('supplierId', isEqualTo: supplier.id).get();
     if (snap.docs.isEmpty) return 0;
-    final value = profile.isEmpty ? FieldValue.delete() : profile.toMap();
+    final fields = <String, Object>{
+      'supplier.name': supplier.name,
+      'supplier.phone': supplier.phone,
+      'supplier.address': supplier.address,
+      'supplier.email': supplier.email,
+      'supplier.storeProfile': supplier.storeProfile.isEmpty
+          ? FieldValue.delete()
+          : supplier.storeProfile.toMap(),
+    };
     for (var i = 0; i < snap.docs.length; i += 400) {
       final batch = _db.batch();
       for (final doc in snap.docs.skip(i).take(400)) {
-        batch.update(doc.reference, {'supplier.storeProfile': value});
+        batch.update(doc.reference, fields);
       }
       await batch.commit();
     }
