@@ -1,6 +1,7 @@
 import { ApiError } from '../lib/errors';
 import { env } from '../config/env';
 import { fbDb, fbStorage, Timestamp } from '../config/firebase';
+import { supabaseAuthHeaders } from '../lib/supabase-headers';
 import { deleteAuthUser, getAuthUserOrNull } from './identity.service';
 
 /**
@@ -478,10 +479,7 @@ export async function purgeSelfService(
     const supabaseBase = deps.supabaseUrl.replace(/\/+$/, '');
     if (supabaseBase.length > 0 && deps.supabaseServiceRoleKey.trim().length > 0) {
       const url = `${supabaseBase}/rest/v1/room_designs?user_id=eq.${encodeURIComponent(uid)}`;
-      const headers = {
-        Authorization: `Bearer ${deps.supabaseServiceRoleKey}`,
-        apikey: deps.supabaseServiceRoleKey,
-      };
+      const headers = supabaseAuthHeaders(deps.supabaseServiceRoleKey);
       // Cheap count first (one small SELECT); fall back to 'deleted'.
       let roomDesigns: number | string = 'deleted';
       try {

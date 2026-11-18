@@ -4,6 +4,7 @@ import { ApiError, asyncHandler } from '../lib/errors';
 import { authenticate } from '../middleware/authenticate';
 import { requireUser } from '../middleware/types';
 import { env } from '../config/env';
+import { supabaseAuthHeaders } from '../lib/supabase-headers';
 
 // Saved room designs live in Supabase (`room_designs`). The app used to call
 // Supabase directly with the public anon key, so with RLS off anyone holding
@@ -61,8 +62,7 @@ export function createDesignsRouter(deps: DesignsDeps): Router {
     const res = await deps.fetchFn(`${base}/rest/v1/${TABLE}${path}`, {
       ...init,
       headers: {
-        apikey: deps.serviceRoleKey,
-        Authorization: `Bearer ${deps.serviceRoleKey}`,
+        ...supabaseAuthHeaders(deps.serviceRoleKey),
         'Content-Type': 'application/json',
         Prefer: 'return=representation',
         ...(init.headers ?? {}),

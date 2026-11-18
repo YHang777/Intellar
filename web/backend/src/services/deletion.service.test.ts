@@ -489,7 +489,8 @@ test('Supabase configured: room_designs counted and deleted with the service key
   assert.equal(calls[1].url, 'https://proj.supabase.co/rest/v1/room_designs?user_id=eq.u1');
   assert.equal(calls[1].init?.method, 'DELETE');
   const headers = calls[0].init?.headers as Record<string, string>;
-  assert.equal(headers.Authorization, 'Bearer svc-secret');
+  // A new-style secret key rides only in apikey (as Bearer it is rejected).
+  assert.equal(headers.Authorization, undefined);
   assert.equal(headers.apikey, 'svc-secret');
 
   const purged = fake.all('deletion_audit_logs').find((a) => a.event === 'purged');
