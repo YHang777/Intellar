@@ -84,7 +84,7 @@ class _ChatTypingBubbleState extends State<ChatTypingBubble>
                 status,
                 key: ValueKey(status),
                 style: GoogleFonts.poppins(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontStyle: FontStyle.italic,
                   color: AppColors.textSecondary,
                 ),

@@ -144,7 +144,7 @@ class _OrderManagementScreenState
             child: Text(
               '${filtered.length} of $total orders',
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
+                fontSize: 12,
                 color: AppColors.textHint,
               ),
             ),
@@ -234,7 +234,7 @@ class _OrderTile extends StatelessWidget {
                         Text(
                           Formatters.formatOrderNumber(order.orderNumber),
                           style: GoogleFonts.poppins(
-                            fontSize: 13.5,
+                            fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: AppColors.textPrimary,
                           ),
@@ -243,7 +243,7 @@ class _OrderTile extends StatelessWidget {
                         Text(
                           'Placed ${Formatters.shortDateTime(order.createdAt)}',
                           style: GoogleFonts.poppins(
-                            fontSize: 11.5,
+                            fontSize: 12,
                             color: AppColors.textHint,
                           ),
                         ),
@@ -257,7 +257,7 @@ class _OrderTile extends StatelessWidget {
                               child: Text(
                                 order.customerName,
                                 style: GoogleFonts.poppins(
-                                  fontSize: 12.5,
+                                  fontSize: 13,
                                   fontWeight: FontWeight.w500,
                                   color: AppColors.textSecondary,
                                 ),
@@ -292,7 +292,7 @@ class _OrderTile extends StatelessWidget {
                   Text(
                     Formatters.myr(myTotal),
                     style: GoogleFonts.poppins(
-                      fontSize: 13.5,
+                      fontSize: 14,
                       fontWeight: FontWeight.w700,
                       color: AppColors.accent,
                     ),

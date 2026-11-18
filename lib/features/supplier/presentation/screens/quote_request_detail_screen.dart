@@ -187,7 +187,7 @@ class _QuoteRequestDetailScreenState
                     Text(
                       request.productName,
                       style: GoogleFonts.poppins(
-                        fontSize: 13.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
@@ -197,7 +197,7 @@ class _QuoteRequestDetailScreenState
                       'Qty ${request.quantity} · '
                       'Requested ${Formatters.shortDateTime(request.createdAt)}',
                       style: GoogleFonts.poppins(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         color: AppColors.textHint,
                       ),
                     ),
@@ -265,7 +265,7 @@ class _QuoteRequestDetailScreenState
                     Text(
                       email,
                       style: GoogleFonts.poppins(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         color: AppColors.textHint,
                       ),
                     ),
@@ -311,7 +311,7 @@ class _QuoteRequestDetailScreenState
                   'mailto:$email', 'Email isn\'t supported on this device'),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                textStyle: const TextStyle(fontSize: 12),
+                textStyle: GoogleFonts.poppins(fontSize: 12),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
               ),
@@ -332,7 +332,7 @@ class _QuoteRequestDetailScreenState
                 'Contact the buyer outside the app to agree on price, '
                 'quantity and delivery.',
                 style: GoogleFonts.poppins(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   height: 1.4,
                   color: AppColors.textSecondary,
                 ),
@@ -368,7 +368,7 @@ class _QuoteRequestDetailScreenState
               Text(
                 title,
                 style: GoogleFonts.poppins(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
@@ -422,7 +422,7 @@ class _QuoteRequestDetailScreenState
                       Text(
                         'Contacted ✓',
                         style: GoogleFonts.poppins(
-                          fontSize: 13.5,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.success,
                         ),
@@ -432,7 +432,7 @@ class _QuoteRequestDetailScreenState
                         Text(
                           Formatters.shortDate(contactedAt),
                           style: GoogleFonts.poppins(
-                            fontSize: 11.5,
+                            fontSize: 12,
                             color: AppColors.textSecondary,
                           ),
                         ),

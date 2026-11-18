@@ -139,7 +139,7 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
                                 '${design.roomTypeLabel} · '
                                 '${Formatters.shortDate(design.updatedAt)}',
                                 style: GoogleFonts.poppins(
-                                  fontSize: 11.5,
+                                  fontSize: 12,
                                   color: AppColors.textHint,
                                 ),
                               ),
@@ -242,7 +242,7 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
         Text(
           'Design Report',
           style: GoogleFonts.poppins(
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
             letterSpacing: -0.3,
@@ -342,7 +342,7 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 12.5,
+              fontSize: 13,
               color: AppColors.textSecondary,
             ),
           ),
@@ -377,7 +377,7 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
                     caption,
                     textAlign: TextAlign.right,
                     style: GoogleFonts.poppins(
-                      fontSize: 10.5,
+                      fontSize: 11,
                       color: AppColors.textHint,
                     ),
                   ),
@@ -400,7 +400,7 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
       child: Text(
         label,
         style: GoogleFonts.poppins(
-          fontSize: 10,
+          fontSize: 11,
           fontWeight: FontWeight.w600,
           color: AppColors.accent,
           height: 1.2,

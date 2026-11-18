@@ -177,7 +177,7 @@ class _ChatQuickSelectSheetState extends ConsumerState<ChatQuickSelectSheet> {
                 Text(
                   'MESSAGE BOX',
                   style: GoogleFonts.poppins(
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                     letterSpacing: 0.8,
                     color: AppColors.textHint,
@@ -320,7 +320,7 @@ class _ChatQuickSelectSheetState extends ConsumerState<ChatQuickSelectSheet> {
                   child: Text(
                     chip.label,
                     style: GoogleFonts.poppins(
-                      fontSize: 13.5,
+                      fontSize: 14,
                       fontWeight: FontWeight.w500,
                       color: AppColors.textPrimary,
                     ),

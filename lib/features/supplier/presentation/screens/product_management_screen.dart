@@ -97,7 +97,7 @@ class _ProductManagementScreenState
             title: Text(
               'Edit stock',
               style: GoogleFonts.poppins(
-                fontSize: 17,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
@@ -508,7 +508,7 @@ class _ProductManagementScreenState
                 child: Text(
                   '${visible.length} of $total products',
                   style: GoogleFonts.poppins(
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: AppColors.textHint,
                   ),
                 ),
@@ -637,7 +637,7 @@ class _ProductTile extends StatelessWidget {
                           Text(
                             product.name,
                             style: GoogleFonts.poppins(
-                              fontSize: 13.5,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textPrimary,
                             ),
@@ -802,7 +802,7 @@ class _ProductTile extends StatelessWidget {
               'Customers won\'t see AR for this product. '
               'Check dimensions (W×H×D) and product photo, then retry.',
               style: GoogleFonts.poppins(
-                fontSize: 9,
+                fontSize: 11,
                 color: AppColors.textHint,
                 height: 1.3,
               ),
@@ -830,7 +830,7 @@ class _ProductTile extends StatelessWidget {
                   'Customers won\'t see AR for this product. '
                   'Check dimensions (W×H×D) and product photo, then retry.',
                   style: GoogleFonts.poppins(
-                    fontSize: 9,
+                    fontSize: 11,
                     color: AppColors.textHint,
                     height: 1.3,
                   ),
@@ -872,7 +872,7 @@ class _Pill extends StatelessWidget {
       child: Text(
         label,
         style: GoogleFonts.poppins(
-          fontSize: 9.5,
+          fontSize: 11,
           fontWeight: FontWeight.w600,
           color: color,
         ),
@@ -912,7 +912,7 @@ class _RowAction extends StatelessWidget {
               child: Text(
                 label,
                 style: GoogleFonts.poppins(
-                  fontSize: 11.5,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: enabled ? color : AppColors.textHint,
                 ),

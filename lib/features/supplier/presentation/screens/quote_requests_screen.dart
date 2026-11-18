@@ -173,7 +173,7 @@ class _QuoteTile extends StatelessWidget {
                     Text(
                       request.productName,
                       style: GoogleFonts.poppins(
-                        fontSize: 13.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                       ),
@@ -182,7 +182,7 @@ class _QuoteTile extends StatelessWidget {
                     Text(
                       'Qty ${request.quantity} · ${request.customerName}',
                       style: GoogleFonts.poppins(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         color: AppColors.textSecondary,
                       ),
                     ),

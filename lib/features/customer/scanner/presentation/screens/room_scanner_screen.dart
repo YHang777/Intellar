@@ -1607,12 +1607,12 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                             ? GoogleFonts.poppins(
                                 color: fgColor,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 20,
+                                fontSize: 18,
                               )
                             : GoogleFonts.poppins(
                                 color: fgColor,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 24,
+                                fontSize: 22,
                                 letterSpacing: -0.3,
                                 height: 1.2,
                               ),
@@ -1968,7 +1968,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                               const SizedBox(width: 6),
                               Text('${p.$2}×${p.$3}cm',
                                   style: GoogleFonts.poppins(
-                                      fontSize: 10,
+                                      fontSize: 11,
                                       color: isSelected ? Colors.white70 : AppColors.textHint)),
                             ],
                           ),
@@ -2059,7 +2059,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                                       _roomTypeLabel,
                                       style: GoogleFonts.poppins(
                                         color: Colors.white,
-                                        fontSize: 10,
+                                        fontSize: 11,
                                         fontWeight: FontWeight.w600,
                                       ),
                                     ),
@@ -2380,7 +2380,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
         ),
         child: Text(text,
             style: GoogleFonts.poppins(
-                fontSize: 9,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textSecondary)),
       ),
@@ -2603,7 +2603,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
               cat.name,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary),
             ),
@@ -2668,18 +2668,26 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
             Text(
               p.name,
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: FontWeight.w600,
+                  height: 1.25,
                   color: AppColors.textPrimary),
             ),
-            Text(
-              dims == null
-                  ? Formatters.myr(p.price)
-                  : '${Formatters.myr(p.price)} · ${(dims.widthM * 100).round()}×${(dims.depthM * 100).round()}',
-              textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(
-                  fontSize: 9, color: AppColors.textSecondary),
+            // One line that shrinks to fit the 84dp tile instead of wrapping
+            // into the fixed-height strip.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                dims == null
+                    ? Formatters.myr(p.price)
+                    : '${Formatters.myr(p.price)} · ${(dims.widthM * 100).round()}×${(dims.depthM * 100).round()}',
+                maxLines: 1,
+                style: GoogleFonts.poppins(
+                    fontSize: 11, color: AppColors.textSecondary),
+              ),
             ),
           ],
         ),

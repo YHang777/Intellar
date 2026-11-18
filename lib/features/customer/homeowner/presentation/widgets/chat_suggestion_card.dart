@@ -110,7 +110,7 @@ class ChatSuggestionCard extends ConsumerWidget {
                         Formatters.myr(s.price),
                         softWrap: false,
                         style: GoogleFonts.poppins(
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppColors.accent,
                         ),
@@ -155,7 +155,7 @@ class ChatSuggestionCard extends ConsumerWidget {
                 label: Text(
                   'Add',
                   style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -173,7 +173,7 @@ class ChatSuggestionCard extends ConsumerWidget {
                   label: Text(
                     'Place',
                     style: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
                   ),

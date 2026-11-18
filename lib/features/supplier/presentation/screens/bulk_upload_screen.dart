@@ -243,7 +243,7 @@ class _BulkUploadScreenState extends ConsumerState<BulkUploadScreen> {
               children: [
                 Text('Row ${row.line} · ${row.name ?? '(no name)'}',
                     style: GoogleFonts.poppins(
-                        fontSize: 13.5, fontWeight: FontWeight.w600)),
+                        fontSize: 14, fontWeight: FontWeight.w600)),
                 Text(
                   ok
                       ? '${row.category} · ${row.designStyle} · '

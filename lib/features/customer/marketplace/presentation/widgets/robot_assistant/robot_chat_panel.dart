@@ -235,7 +235,7 @@ class _RobotChatPanelState extends ConsumerState<RobotChatPanel> {
                             : 'Ask me anything about these products.',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
-                          fontSize: 13.5,
+                          fontSize: 14,
                           color: AppColors.textSecondary,
                           height: 1.4,
                         ),

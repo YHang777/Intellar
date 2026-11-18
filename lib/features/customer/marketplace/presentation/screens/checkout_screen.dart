@@ -260,7 +260,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         title: const Text(
           'Some items are no longer available',
           style: TextStyle(
-            fontSize: 17,
+            fontSize: 18,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
           ),
@@ -269,7 +269,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           '$message\n\nGo back to your cart, adjust the quantities and try '
           'again.',
           style: TextStyle(
-            fontSize: 13.5,
+            fontSize: 14,
             color: AppColors.textSecondary,
             height: 1.4,
           ),
@@ -426,7 +426,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                 Text(
                                   'Secure payment by Stripe',
                                   style: TextStyle(
-                                    fontSize: 12.5,
+                                    fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.textPrimary,
                                   ),
@@ -439,7 +439,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               'banking. Your items are reserved while you '
                               'pay.',
                               style: TextStyle(
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 height: 1.4,
                                 color: AppColors.textSecondary,
                               ),
@@ -458,7 +458,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                     'from each supplier\'s store. No '
                                     'delivery fee.',
                                     style: TextStyle(
-                                      fontSize: 11.5,
+                                      fontSize: 12,
                                       height: 1.4,
                                       color: AppColors.textSecondary,
                                     ),
@@ -518,7 +518,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                                   'choose another',
                           textAlign: TextAlign.center,
                           style: const TextStyle(
-                            fontSize: 11.5,
+                            fontSize: 12,
                             color: AppColors.warning,
                             fontWeight: FontWeight.w600,
                           ),
@@ -577,7 +577,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                         'suppliers\' stores.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 10.5,
+                          fontSize: 11,
                           height: 1.4,
                           color: AppColors.textHint,
                         ),
@@ -654,7 +654,7 @@ class _RowBlockNotice extends StatelessWidget {
             child: Text(
               message,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.warning.withValues(alpha: 0.95),
               ),
@@ -701,7 +701,7 @@ class _SectionTitle extends StatelessWidget {
               title,
               maxLines: 1,
               style: GoogleFonts.poppins(
-                fontSize: 17,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
@@ -754,7 +754,7 @@ class _ItemSummaryRow extends StatelessWidget {
                 Text(
                   product.name,
                   style: const TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textPrimary,
                   ),
@@ -762,7 +762,7 @@ class _ItemSummaryRow extends StatelessWidget {
                 VerifiedSellerLine(
                   supplier: product.supplier,
                   nameStyle: TextStyle(
-                    fontSize: 10.5,
+                    fontSize: 11,
                     color: AppColors.textHint,
                     height: 1.2,
                   ),
@@ -770,7 +770,7 @@ class _ItemSummaryRow extends StatelessWidget {
                 Text(
                   '× $quantity',
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -781,7 +781,7 @@ class _ItemSummaryRow extends StatelessWidget {
           Text(
             Formatters.myr(product.price * quantity),
             style: const TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),

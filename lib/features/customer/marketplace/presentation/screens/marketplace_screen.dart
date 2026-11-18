@@ -169,7 +169,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                               isLabelVisible: wishlistCount > 0,
                               label: Text('$wishlistCount',
                                   style: const TextStyle(
-                                      fontSize: 10, color: Colors.white)),
+                                      fontSize: 11, color: Colors.white)),
                               child: const Icon(Icons.favorite_outline,
                                   color: AppColors.textPrimary),
                             ),
@@ -181,7 +181,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                               isLabelVisible: orderCount > 0,
                               label: Text('$orderCount',
                                   style: const TextStyle(
-                                      fontSize: 10, color: Colors.white)),
+                                      fontSize: 11, color: Colors.white)),
                               child: const Icon(Icons.receipt_long_outlined,
                                   color: AppColors.textPrimary),
                             ),
@@ -194,7 +194,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                               label: Text(
                                   cartCount > 99 ? '99+' : '$cartCount',
                                   style: const TextStyle(
-                                      fontSize: 10, color: Colors.white)),
+                                      fontSize: 11, color: Colors.white)),
                               child: const Icon(Icons.shopping_cart_outlined,
                                   color: AppColors.textPrimary),
                             ),
@@ -680,7 +680,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                               ),
                               child: Text('$sheetFilterCount',
                                   style: const TextStyle(
-                                      fontSize: 9,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.white)),
                             ),
@@ -933,7 +933,7 @@ class _FiltersSheet extends ConsumerWidget {
                   children: [
                     const Text('Filters',
                         style: TextStyle(
-                            fontSize: 17,
+                            fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: AppColors.textPrimary)),
                     const SizedBox(width: 10),
@@ -1160,7 +1160,7 @@ class _FiltersSheet extends ConsumerWidget {
               children: [
                 Text(title,
                     style: const TextStyle(
-                        fontSize: 13.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textPrimary)),
                 if (subtitle != null)

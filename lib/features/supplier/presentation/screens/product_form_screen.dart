@@ -718,7 +718,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
             title: Text(
               "Photo doesn't match the description",
               style: GoogleFonts.poppins(
-                fontSize: 17,
+                fontSize: 18,
                 fontWeight: FontWeight.w600,
                 color: AppColors.textPrimary,
               ),
@@ -727,7 +727,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               '$visual What buyers see is the photo — our team will review '
               'this listing.',
               style: GoogleFonts.poppins(
-                fontSize: 13.5,
+                fontSize: 14,
                 color: AppColors.textSecondary,
               ),
             ),
@@ -789,7 +789,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
         title: Text(
           'Discard changes?',
           style: GoogleFonts.poppins(
-            fontSize: 17,
+            fontSize: 18,
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
           ),
@@ -799,7 +799,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
               ? 'Your edits to this product will be lost.'
               : 'Your draft product will be lost.',
           style: GoogleFonts.poppins(
-            fontSize: 13.5,
+            fontSize: 14,
             color: AppColors.textSecondary,
           ),
         ),
@@ -1072,7 +1072,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 child: Text(
                   'Cover',
                   style: GoogleFonts.poppins(
-                    fontSize: 9,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textOnDark,
                   ),
@@ -1551,7 +1551,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                   child: Text(
                     'Used to auto-generate the 3D model at true size in AR.',
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12,
                       height: 1.4,
                       color: AppColors.textSecondary,
                     ),
@@ -1916,7 +1916,7 @@ class _SectionCard extends StatelessWidget {
               Text(
                 title,
                 style: GoogleFonts.poppins(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
@@ -1929,7 +1929,7 @@ class _SectionCard extends StatelessWidget {
             Text(
               subtitle!,
               style: GoogleFonts.poppins(
-                fontSize: 11.5,
+                fontSize: 12,
                 color: AppColors.textHint,
               ),
             ),

@@ -184,7 +184,7 @@ class _NotificationTile extends StatelessWidget {
                       Text(
                         Formatters.shortDateTime(n.createdAt!),
                         style: GoogleFonts.poppins(
-                            fontSize: 11.5, color: AppColors.textHint),
+                            fontSize: 12, color: AppColors.textHint),
                       ),
                     ],
                   ],

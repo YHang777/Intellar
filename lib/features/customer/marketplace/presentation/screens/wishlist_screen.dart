@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -316,7 +317,7 @@ class _WishlistRow extends StatelessWidget {
                           child: Text(
                             product.name,
                             style: const TextStyle(
-                              fontSize: 13.5,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textPrimary,
                               height: 1.25,
@@ -339,7 +340,7 @@ class _WishlistRow extends StatelessWidget {
                     else
                       const Text('New',
                           style: TextStyle(
-                              fontSize: 10.5,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: AppColors.accent)),
                     const SizedBox(height: 4),
@@ -354,7 +355,7 @@ class _WishlistRow extends StatelessWidget {
                             child: Text(
                               Formatters.myr(product.price),
                               style: const TextStyle(
-                                fontSize: 15,
+                                fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: AppColors.accent,
                               ),
@@ -386,7 +387,7 @@ class _WishlistRow extends StatelessWidget {
                         padding: const EdgeInsets.only(top: 2),
                         child: Text('Only ${product.stock} left',
                             style: const TextStyle(
-                                fontSize: 10.5,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.warning)),
                       ),
@@ -399,7 +400,7 @@ class _WishlistRow extends StatelessWidget {
                               style: OutlinedButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 10),
-                                textStyle: const TextStyle(fontSize: 11.5),
+                                textStyle: GoogleFonts.poppins(fontSize: 12),
                                 shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(8)),
                               ),
@@ -420,7 +421,7 @@ class _WishlistRow extends StatelessWidget {
                                   shadowColor: Colors.transparent,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                                  textStyle: const TextStyle(fontSize: 11.5),
+                                  textStyle: GoogleFonts.poppins(fontSize: 12),
                                   shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(8)),
                                 ),

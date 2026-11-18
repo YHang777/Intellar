@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -106,12 +107,12 @@ class OrderHistoryScreen extends ConsumerWidget {
                       indicatorWeight: 3,
                       labelColor: AppColors.accent,
                       unselectedLabelColor: AppColors.textSecondary,
-                      labelStyle: TextStyle(
-                        fontSize: 13.5,
+                      labelStyle: GoogleFonts.poppins(
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                       unselectedLabelStyle: TextStyle(
-                        fontSize: 13.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                       tabs: [
@@ -308,7 +309,7 @@ class _QuoteRequestCard extends ConsumerWidget {
                         Text(
                           'Bulk quote · Qty ${request.quantity}',
                           style: TextStyle(
-                            fontSize: 12.5,
+                            fontSize: 13,
                             color: AppColors.textSecondary,
                           ),
                         ),
@@ -455,7 +456,7 @@ class _OrderCard extends StatelessWidget {
                         'Order ${order.orderNumber}',
                         maxLines: 1,
                         style: const TextStyle(
-                          fontSize: 14.5,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary,
                         ),
@@ -474,7 +475,7 @@ class _OrderCard extends StatelessWidget {
                       '${Formatters.shortDate(order.createdAt)} · '
                       '$itemCount item${itemCount == 1 ? '' : 's'}',
                       style: TextStyle(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         color: AppColors.textSecondary,
                       ),
                     ),
@@ -482,7 +483,7 @@ class _OrderCard extends StatelessWidget {
                   Text(
                     Formatters.myr(order.total),
                     style: const TextStyle(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.w700,
                       color: AppColors.accent,
                     ),

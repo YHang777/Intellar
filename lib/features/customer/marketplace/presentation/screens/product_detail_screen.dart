@@ -539,7 +539,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
       children: [
         Text(Formatters.myr(product.price),
             style: GoogleFonts.poppins(
-                fontSize: 26,
+                fontSize: 22,
                 fontWeight: FontWeight.w800,
                 color: AppColors.accent)),
         if (product.originalPrice != null) ...[
@@ -699,7 +699,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         Flexible(
                           child: Text(supplier.name,
                               style: const TextStyle(
-                                  fontSize: 15,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.w600,
                                   color: AppColors.textPrimary)),
                         ),
@@ -725,7 +725,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
             Text(about,
                 key: const Key('store-about'),
                 style: TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     height: 1.4,
                     color: AppColors.textSecondary)),
           ],
@@ -753,7 +753,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                           Expanded(
                             child: Text(row.$2,
                                 style: TextStyle(
-                                    fontSize: 11.5,
+                                    fontSize: 12,
                                     color: AppColors.textSecondary)),
                           ),
                         ],
@@ -775,7 +775,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       : null,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    textStyle: const TextStyle(fontSize: 12),
+                    textStyle: GoogleFonts.poppins(fontSize: 12),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
@@ -793,7 +793,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                       : null,
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 10),
-                    textStyle: const TextStyle(fontSize: 12),
+                    textStyle: GoogleFonts.poppins(fontSize: 12),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
@@ -810,7 +810,7 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               onPressed: () => _openQuoteDialog(product),
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 10),
-                textStyle: const TextStyle(fontSize: 13),
+                textStyle: GoogleFonts.poppins(fontSize: 13),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
               ),
@@ -912,7 +912,7 @@ List<Widget> _hoursLines(StoreProfile store, {DateTime? nowUtc}) {
       weekly.statusAt(now),
       key: const Key('store-open-status'),
       style: TextStyle(
-        fontSize: 11.5,
+        fontSize: 12,
         fontWeight: FontWeight.w600,
         color: open ? AppColors.success : AppColors.textSecondary,
       ),
@@ -1162,7 +1162,7 @@ class _BulkQuoteDialogState extends State<_BulkQuoteDialog> {
                       'The supplier will contact you personally by phone or '
                       'email.',
                       style: TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         height: 1.4,
                         color: AppColors.textSecondary,
                       ),
@@ -1193,7 +1193,7 @@ class _BulkQuoteDialogState extends State<_BulkQuoteDialog> {
                 'Bulk quotes start at $kBulkQuoteMinQty units — for fewer, '
                 'add to cart instead.',
                 style: GoogleFonts.poppins(
-                    fontSize: 11.5, color: AppColors.textSecondary),
+                    fontSize: 12, color: AppColors.textSecondary),
               ),
               const SizedBox(height: 10),
               TextFormField(
@@ -1366,7 +1366,7 @@ class _ReviewsSection extends ConsumerWidget {
                       'No reviews yet — be the first after you collect your order.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
-                          fontSize: 12.5,
+                          fontSize: 13,
                           color: AppColors.textSecondary,
                           height: 1.4),
                     ),
@@ -1437,7 +1437,7 @@ class _ReviewTile extends StatelessWidget {
                     ),
                     Text(Formatters.shortDate(review.createdAt),
                         style: TextStyle(
-                            fontSize: 10.5, color: AppColors.textHint)),
+                            fontSize: 11, color: AppColors.textHint)),
                   ],
                 ),
               ),
@@ -1470,7 +1470,7 @@ class _ExpandableCommentState extends State<_ExpandableComment> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final style = TextStyle(
-          fontSize: 12.5,
+          fontSize: 13,
           color: AppColors.textSecondary,
           height: 1.45,
         );

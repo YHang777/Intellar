@@ -135,7 +135,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   const SizedBox(height: 24),
                   Text('Intellar',
                       style: GoogleFonts.poppins(
-                          fontSize: 28,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textPrimary)),
                   const SizedBox(height: 6),
@@ -167,7 +167,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                             children: [
                               Text('Welcome back',
                                   style: GoogleFonts.poppins(
-                                      fontSize: 24,
+                                      fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                       color: AppColors.textPrimary)),
                               const SizedBox(height: 6),

@@ -593,7 +593,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                         const SizedBox(height: 2),
                         Text('above lowest',
                             style: GoogleFonts.poppins(
-                                fontSize: 10,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.accent)),
                       ],
@@ -1062,7 +1062,7 @@ class _CompareSheet extends StatelessWidget {
         ),
         child: Text(text,
             style: GoogleFonts.poppins(
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: color)),
       );
@@ -1137,7 +1137,7 @@ class _CheaperSwapsCard extends StatelessWidget {
                         children: [
                           Text(s.label,
                               style: GoogleFonts.poppins(
-                                  fontSize: 11.5,
+                                  fontSize: 12,
                                   color: AppColors.textSecondary)),
                           Text(
                             '${s.swapName} · ${Formatters.myr(s.swapPrice)}',
@@ -1150,7 +1150,7 @@ class _CheaperSwapsCard extends StatelessWidget {
                             'replaces ${s.currentName} · '
                             '${Formatters.myr(s.currentPrice)}',
                             style: GoogleFonts.poppins(
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 color: AppColors.textHint),
                           ),
                         ],

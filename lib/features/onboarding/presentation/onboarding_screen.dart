@@ -191,7 +191,7 @@ class _SlideView extends StatelessWidget {
             slide.title,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
               color: AppColors.textPrimary,
             ),
@@ -201,7 +201,7 @@ class _SlideView extends StatelessWidget {
             slide.body,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              fontSize: 15,
+              fontSize: 16,
               height: 1.5,
               color: AppColors.textSecondary,
             ),

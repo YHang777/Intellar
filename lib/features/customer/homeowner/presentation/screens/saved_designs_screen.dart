@@ -99,7 +99,7 @@ class SavedDesignsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Text('No Saved Designs',
               style: GoogleFonts.poppins(
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AppColors.textPrimary)),
           const SizedBox(height: 8),
@@ -118,7 +118,7 @@ class SavedDesignsScreen extends ConsumerWidget {
               icon: const Icon(Icons.camera_alt, size: 20),
               label: Text('Create Design',
                   style: GoogleFonts.poppins(
-                      fontSize: 15, fontWeight: FontWeight.w600)),
+                      fontSize: 16, fontWeight: FontWeight.w600)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accent,
                 foregroundColor: Colors.white,
@@ -413,7 +413,7 @@ class SavedDesignsScreen extends ConsumerWidget {
             child: Text(subtitle,
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                    fontSize: 9, color: AppColors.textHint)),
+                    fontSize: 11, color: AppColors.textHint)),
           ),
         ],
       ),

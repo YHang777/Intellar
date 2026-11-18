@@ -93,7 +93,7 @@ class ScanCoachOverlay extends StatelessWidget {
                 child: Text(
                   state.tip,
                   style: GoogleFonts.poppins(
-                    fontSize: 10.5,
+                    fontSize: 11,
                     height: 1.3,
                     color: state.hasIssue ? AppColors.warning : Colors.white70,
                   ),
@@ -130,7 +130,7 @@ class ScanCoachOverlay extends StatelessWidget {
           Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 11.5,
+              fontSize: 12,
               fontWeight: active || done ? FontWeight.w500 : FontWeight.w400,
               color: done
                   ? Colors.white70

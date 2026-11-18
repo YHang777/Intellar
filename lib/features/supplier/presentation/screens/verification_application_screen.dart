@@ -346,7 +346,7 @@ class _VerificationApplicationScreenState
           'Up to $kMaxVerificationSupportingDocs images — business '
           'registration, licences, etc.',
           style:
-              GoogleFonts.poppins(fontSize: 11.5, color: AppColors.textHint),
+              GoogleFonts.poppins(fontSize: 12, color: AppColors.textHint),
         ),
         const SizedBox(height: 10),
         for (var i = 0; i < _supporting.length; i++)
@@ -387,7 +387,7 @@ class _VerificationApplicationScreenState
                   )
                 : Text('Submit application',
                     style: GoogleFonts.poppins(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
+                        fontSize: 16, fontWeight: FontWeight.w600)),
           ),
         ),
       ],
@@ -408,7 +408,7 @@ class _VerificationApplicationScreenState
         children: [
           Text('What you need to submit',
               style: GoogleFonts.poppins(
-                  fontSize: 13.5,
+                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary)),
           const SizedBox(height: 6),
@@ -468,7 +468,7 @@ class _VerificationApplicationScreenState
                         const SizedBox(height: 6),
                         Text('Tap to add',
                             style: GoogleFonts.poppins(
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 color: AppColors.textHint)),
                       ],
                     ),
@@ -540,7 +540,7 @@ class _VerificationApplicationScreenState
             child: Text(
               name,
               style: GoogleFonts.poppins(
-                  fontSize: 12.5, color: AppColors.textPrimary),
+                  fontSize: 13, color: AppColors.textPrimary),
             ),
           ),
           IconButton(
@@ -590,7 +590,7 @@ class _VerificationApplicationScreenState
                 'This page updates automatically once a decision is made — '
                 'no need to refresh.',
                 style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     color: AppColors.textSecondary,
                     height: 1.5),
               ),
@@ -598,7 +598,7 @@ class _VerificationApplicationScreenState
                 const SizedBox(height: 10),
                 Text('Submitted ${Formatters.shortDateTime(submittedAt.toLocal())}',
                     style: GoogleFonts.poppins(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textHint)),
               ],
@@ -617,7 +617,7 @@ class _VerificationApplicationScreenState
             'No document details are on file for this application. If this '
             'persists, contact support.',
             style: GoogleFonts.poppins(
-                fontSize: 12.5, color: AppColors.textSecondary, height: 1.5),
+                fontSize: 13, color: AppColors.textSecondary, height: 1.5),
           )
         else
           for (final doc in documents) _documentRow(doc),
@@ -652,12 +652,12 @@ class _VerificationApplicationScreenState
               children: [
                 Text(_kindLabel(doc.kind),
                     style: GoogleFonts.poppins(
-                        fontSize: 10.5,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textHint)),
                 Text(doc.fileName,
                     style: GoogleFonts.poppins(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textPrimary)),
               ],

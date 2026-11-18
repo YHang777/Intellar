@@ -128,7 +128,7 @@ class _SuccessView extends ConsumerWidget {
           'Payment successful!',
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: FontWeight.w700,
             color: AppColors.textPrimary,
           ),
@@ -180,7 +180,7 @@ class _SuccessView extends ConsumerWidget {
                       'Paid ${Formatters.myr(order.total)}'
                       '${order.paymentMethodLabel.isEmpty ? '' : ' · ${order.paymentMethodLabel}'}',
                       style: const TextStyle(
-                          fontSize: 13.5,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: AppColors.textPrimary),
                     ),
@@ -192,7 +192,7 @@ class _SuccessView extends ConsumerWidget {
                 Text(
                   'Ref ${order.paymentIntentId}',
                   style: TextStyle(
-                      fontSize: 11.5, color: AppColors.textHint),
+                      fontSize: 12, color: AppColors.textHint),
                 ),
               ],
             ],
@@ -205,7 +205,7 @@ class _SuccessView extends ConsumerWidget {
             children: [
               Text('PICKUP FROM',
                   style: TextStyle(
-                      fontSize: 10.5,
+                      fontSize: 11,
                       letterSpacing: 0.8,
                       color: AppColors.textHint)),
               const SizedBox(height: 8),
@@ -220,7 +220,7 @@ class _SuccessView extends ConsumerWidget {
                 '${order.customerPhone.trim().isEmpty ? '' : ' · ${order.customerPhone.trim()}'}'
                 ' — the supplier will contact you to arrange collection.',
                 style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 12,
                     height: 1.4,
                     color: AppColors.textSecondary),
               ),

@@ -301,7 +301,7 @@ class _AiRecommendationScreenState
                 const SizedBox(height: 14),
                 Text('Welcome to the design assistant',
                     style: GoogleFonts.poppins(
-                        fontSize: 20,
+                        fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary)),
                 const SizedBox(height: 6),
@@ -344,7 +344,7 @@ class _AiRecommendationScreenState
                     Expanded(
                       child: Text(prompt,
                           style: GoogleFonts.poppins(
-                              fontSize: 13.5,
+                              fontSize: 14,
                               color: AppColors.textPrimary)),
                     ),
                     Icon(Icons.north_east,
@@ -663,7 +663,7 @@ class _ChatHistoryRow extends ConsumerWidget {
                         '${session.messages.length} messages · '
                         '${_relativeTime(session.updatedAt)}',
                         style: GoogleFonts.poppins(
-                            fontSize: 11.5,
+                            fontSize: 12,
                             color: AppColors.textSecondary),
                       ),
                     ],

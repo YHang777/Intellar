@@ -147,7 +147,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       child: Text(
                         (user?.name ?? 'U')[0].toUpperCase(),
                         style: GoogleFonts.poppins(
-                          fontSize: 30,
+                          fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: AppColors.textOnDark,
                         ),

@@ -233,10 +233,10 @@ class _CartEstimateCard extends StatelessWidget {
               children: [
                 Text('Member discount',
                     style: TextStyle(
-                        fontSize: 12.5, color: AppColors.textSecondary)),
+                        fontSize: 13, color: AppColors.textSecondary)),
                 Text('-${Formatters.myr(bd.discount)}',
                     style: const TextStyle(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w600,
                         color: AppColors.success)),
               ],
@@ -248,10 +248,10 @@ class _CartEstimateCard extends StatelessWidget {
             children: [
               Text('Est. tax (${taxPercentLabel(taxRate)})',
                   style: TextStyle(
-                      fontSize: 12.5, color: AppColors.textSecondary)),
+                      fontSize: 13, color: AppColors.textSecondary)),
               Text(Formatters.myr(bd.tax),
                   style: const TextStyle(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.textPrimary)),
             ],
@@ -388,7 +388,7 @@ class _CartItemCard extends ConsumerWidget {
                           child: Text(
                             product.name,
                             style: const TextStyle(
-                              fontSize: 13.5,
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: AppColors.textPrimary,
                               height: 1.3,
@@ -506,7 +506,7 @@ class _RowNotice extends StatelessWidget {
             child: Text(
               message,
               style: TextStyle(
-                fontSize: 11.5,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: AppColors.warning.withValues(alpha: 0.95),
               ),
@@ -560,7 +560,7 @@ class _CheckoutBar extends StatelessWidget {
                         '${tier!.name} member: ${tier!.discountPercent}% off '
                         'applies at checkout',
                         style: TextStyle(
-                          fontSize: 11.5,
+                          fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
                         ),
@@ -576,7 +576,7 @@ class _CheckoutBar extends StatelessWidget {
                     child: Text(
                       'Subtotal ($itemCount item${itemCount == 1 ? '' : 's'})',
                       style: const TextStyle(
-                        fontSize: 13.5,
+                        fontSize: 14,
                         color: AppColors.textPrimary,
                       ),
                     ),
@@ -605,7 +605,7 @@ class _CheckoutBar extends StatelessWidget {
                   'Some items are no longer available — remove them to '
                   'checkout',
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: AppColors.warning,
                     fontWeight: FontWeight.w500,
                   ),
@@ -637,7 +637,7 @@ class _CheckoutBar extends StatelessWidget {
                       ),
                     ),
                     child: const Text('Checkout',
-                        style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w600)),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                   ),
                 ),
               ),

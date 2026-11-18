@@ -215,7 +215,7 @@ class _SupplierProfileScreenState
               const SizedBox(width: 6),
               Text('Application under review',
                   style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: AppColors.warning)),
             ],
@@ -230,7 +230,7 @@ class _SupplierProfileScreenState
                 'Rejected: $note',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.poppins(
-                    fontSize: 11.5, color: AppColors.error, height: 1.4),
+                    fontSize: 12, color: AppColors.error, height: 1.4),
               ),
               const SizedBox(height: 6),
             ],
@@ -319,7 +319,7 @@ class _SupplierProfileScreenState
                             child: Text(
                               _initials(supplier.name),
                               style: GoogleFonts.poppins(
-                                  fontSize: 30,
+                                  fontSize: 22,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.textOnDark),
                             ),

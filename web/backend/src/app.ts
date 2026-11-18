@@ -19,6 +19,7 @@ import { defaultProductVisionDeps } from './services/product-vision.service';
 import { createRoomMaterialRouter } from './routes/room-material.routes';
 import { defaultRoomMaterialDeps } from './services/room-material.service';
 import { createTripoRouter } from './routes/tripo.routes';
+import { createDesignsRouter, defaultDesignsDeps } from './routes/designs.routes';
 import { defaultTripoDeps } from './services/tripo.service';
 import { defaultCheckoutDeps } from './services/checkout.service';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
@@ -104,6 +105,10 @@ export function createApp(): express.Express {
   // second json() sees an already-parsed body and skips).
   app.use('/api/ai/analyze-room-material', express.json({ limit: '16mb' }));
 
+  // A saved design carries its walls and furniture as JSON — larger than the
+  // global cap allows for a busy room.
+  app.use('/api/designs', express.json({ limit: '2mb' }));
+
   app.use(express.json({ limit: '128kb' }));
 
   // Email verification for the mobile app (registration flow).
@@ -118,6 +123,10 @@ export function createApp(): express.Express {
   app.use('/account/delete', createDeletionConfirmRouter(deletionDeps));
   app.use('/api/account', createAccountDeletionRouter(deletionDeps));
   app.use('/api/account', createSecurityCodeRouter(defaultSecurityCodeDeps()));
+
+  // Saved room designs: Firebase-authenticated, pinned to the caller's own
+  // rows, Supabase reached with the service key (never the app's anon key).
+  app.use('/api/designs', createDesignsRouter(defaultDesignsDeps()));
 
   // Notification fan-out + client audit reports for the mobile app.
   app.use('/api', createNotifyRouter(defaultNotifyRouteDeps()));

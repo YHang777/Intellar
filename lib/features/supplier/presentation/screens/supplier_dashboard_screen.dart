@@ -170,7 +170,7 @@ class _SupplierDashboardScreenState
                     child: Text(
                       '$greeting, ${store.name}',
                       style: GoogleFonts.poppins(
-                        fontSize: 17,
+                        fontSize: 18,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textOnDark,
                       ),
@@ -194,7 +194,7 @@ class _SupplierDashboardScreenState
                           Text(
                             'Verified',
                             style: GoogleFonts.poppins(
-                              fontSize: 10,
+                              fontSize: 11,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
@@ -398,7 +398,7 @@ class _SupplierDashboardScreenState
             child: Text(
               message,
               style: GoogleFonts.poppins(
-                fontSize: 12.5,
+                fontSize: 13,
                 color: AppColors.textSecondary,
                 height: 1.4,
               ),
@@ -461,20 +461,20 @@ class _SupplierDashboardScreenState
               children: [
                 Text(title,
                     style: GoogleFonts.poppins(
-                        fontSize: 13.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary)),
                 const SizedBox(height: 2),
                 Text(subtitle,
                     style: GoogleFonts.poppins(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         color: AppColors.textSecondary,
                         height: 1.45)),
                 if (rejected && note.isNotEmpty) ...[
                   const SizedBox(height: 4),
                   Text('Rejected: $note',
                       style: GoogleFonts.poppins(
-                          fontSize: 11.5,
+                          fontSize: 12,
                           fontWeight: FontWeight.w500,
                           color: AppColors.error,
                           height: 1.4)),
@@ -517,7 +517,7 @@ class _SupplierDashboardScreenState
                     child: Text(
                       rejected ? 'Re-apply' : 'Apply for verification',
                       style: GoogleFonts.poppins(
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: accent),
                     ),
@@ -598,7 +598,7 @@ class _RecentOrderTile extends StatelessWidget {
                       '${order.customerName} · $count '
                       '${count == 1 ? 'item' : 'items'}',
                       style: GoogleFonts.poppins(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         color: AppColors.textHint,
                       ),
                     ),
@@ -673,7 +673,7 @@ class _LowStockTile extends StatelessWidget {
                 child: Text(
                   product.name,
                   style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
@@ -692,7 +692,7 @@ class _LowStockTile extends StatelessWidget {
                       ? 'Out of stock'
                       : '${product.stock} left',
                   style: GoogleFonts.poppins(
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w600,
                     color: AppColors.warning,
                   ),

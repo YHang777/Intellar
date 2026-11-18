@@ -412,7 +412,7 @@ class _OrderBody extends ConsumerWidget {
         Text(
           'Order ${order.id}',
           textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 10.5, color: AppColors.textHint),
+          style: TextStyle(fontSize: 11, color: AppColors.textHint),
         ),
       ],
     );
@@ -441,7 +441,7 @@ class _OrderBody extends ConsumerWidget {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
@@ -611,7 +611,7 @@ class _StatusCard extends StatelessWidget {
                 child: Text(
                   'Status',
                   style: TextStyle(
-                    fontSize: 15,
+                    fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
@@ -671,7 +671,7 @@ class _CancelledBanner extends StatelessWidget {
                     _ => 'Nothing was charged',
                   }}${cancelDate == null ? '' : ' on ${Formatters.shortDateTime(cancelDate)}'}',
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -796,7 +796,7 @@ class _StatusTimeline extends StatelessWidget {
                       Text(
                         _steps[index].$2,
                         style: TextStyle(
-                          fontSize: 13.5,
+                          fontSize: 14,
                           fontWeight:
                               done ? FontWeight.w700 : FontWeight.w500,
                           color:
@@ -874,7 +874,7 @@ class _ItemRow extends StatelessWidget {
                 Text(
                   item.name,
                   style: const TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                     height: 1.3,
@@ -893,7 +893,7 @@ class _ItemRow extends StatelessWidget {
                 Text(
                   '${item.quantity} × ${Formatters.myr(item.unitPrice)}',
                   style: TextStyle(
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: AppColors.textHint,
                   ),
                 ),
@@ -904,7 +904,7 @@ class _ItemRow extends StatelessWidget {
           Text(
             Formatters.myr(item.lineTotal),
             style: const TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),
@@ -956,7 +956,7 @@ class _ReviewEntryRow extends ConsumerWidget {
             child: Text(
               item.name,
               style: const TextStyle(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
@@ -983,7 +983,7 @@ class _ReviewEntryRow extends ConsumerWidget {
                         size: 16, color: AppColors.accent),
                     label: const Text('Write review',
                         style: TextStyle(
-                            fontSize: 12.5, color: AppColors.accent)),
+                            fontSize: 13, color: AppColors.accent)),
                   )
                 : Container(
                     padding: const EdgeInsets.symmetric(
@@ -1000,7 +1000,7 @@ class _ReviewEntryRow extends ConsumerWidget {
                         SizedBox(width: 4),
                         Text('Reviewed ✓',
                             style: TextStyle(
-                                fontSize: 11.5,
+                                fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.success)),
                       ],
@@ -1232,7 +1232,7 @@ class _InvoiceRow extends StatelessWidget {
                   Text(
                     invoice.invoiceNumber,
                     style: TextStyle(
-                        fontSize: 11.5, color: AppColors.textHint),
+                        fontSize: 12, color: AppColors.textHint),
                   ),
                 ],
               ),
@@ -1266,7 +1266,7 @@ class _MetaRow extends StatelessWidget {
               Text(
                 label,
                 style: const TextStyle(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: AppColors.textPrimary,
                 ),

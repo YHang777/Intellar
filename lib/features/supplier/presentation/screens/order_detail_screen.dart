@@ -333,7 +333,7 @@ class _SupplierOrderDetailScreenState
                     Text(
                       'Payment: ${order.paymentMethodLabel}',
                       style: GoogleFonts.poppins(
-                        fontSize: 12.5,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textSecondary,
                       ),
@@ -371,7 +371,7 @@ class _SupplierOrderDetailScreenState
           'Order ${order.orderNumber} · ${order.id}',
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-            fontSize: 10.5,
+            fontSize: 11,
             color: AppColors.textHint,
           ),
         ),
@@ -413,7 +413,7 @@ class _SupplierOrderDetailScreenState
                   Text(
                     order.customerEmail,
                     style: GoogleFonts.poppins(
-                      fontSize: 11.5,
+                      fontSize: 12,
                       color: AppColors.textHint,
                     ),
                   ),
@@ -461,7 +461,7 @@ class _SupplierOrderDetailScreenState
               child: Text(
                 'Contact the buyer to arrange collection of their items.',
                 style: GoogleFonts.poppins(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   height: 1.4,
                   color: AppColors.textSecondary,
                 ),
@@ -499,7 +499,7 @@ class _SupplierOrderDetailScreenState
               Text(
                 title,
                 style: GoogleFonts.poppins(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
@@ -747,7 +747,7 @@ class _StatusTimeline extends StatelessWidget {
                       ? 'Cancelled ${Formatters.shortDateTime(order.statusHistory[OrderStatus.cancelled.name]!)}'
                       : 'Placed ${Formatters.shortDateTime(order.createdAt)}',
                   style: GoogleFonts.poppins(
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: AppColors.textSecondary,
                   ),
                 ),
@@ -801,7 +801,7 @@ class _StatusTimeline extends StatelessWidget {
                       Text(
                         status.label,
                         style: GoogleFonts.poppins(
-                          fontSize: 13.5,
+                          fontSize: 14,
                           fontWeight: isCurrent
                               ? FontWeight.w700
                               : FontWeight.w600,
@@ -894,7 +894,7 @@ class _PillPending extends StatelessWidget {
       child: Text(
         label,
         style: GoogleFonts.poppins(
-          fontSize: 9.5,
+          fontSize: 11,
           fontWeight: FontWeight.w600,
           color: AppColors.accent,
         ),
@@ -941,7 +941,7 @@ class _ItemRow extends StatelessWidget {
                       child: Text(
                         item.name,
                         style: GoogleFonts.poppins(
-                          fontSize: 12.5,
+                          fontSize: 13,
                           fontWeight: mine
                               ? FontWeight.w600
                               : FontWeight.w500,
@@ -961,7 +961,7 @@ class _ItemRow extends StatelessWidget {
                         child: Text(
                           'Your item',
                           style: GoogleFonts.poppins(
-                            fontSize: 8.5,
+                            fontSize: 11,
                             fontWeight: FontWeight.w700,
                             color: AppColors.accent,
                           ),
@@ -974,7 +974,7 @@ class _ItemRow extends StatelessWidget {
                 Text(
                   '${item.quantity} × ${Formatters.myr(item.unitPrice)}',
                   style: GoogleFonts.poppins(
-                    fontSize: 11.5,
+                    fontSize: 12,
                     color: AppColors.textHint,
                   ),
                 ),
@@ -985,7 +985,7 @@ class _ItemRow extends StatelessWidget {
           Text(
             Formatters.myr(item.lineTotal),
             style: GoogleFonts.poppins(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),

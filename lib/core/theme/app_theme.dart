@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../constants/app_colors.dart';
+import 'app_type.dart';
 
 class AppTheme {
   AppTheme._();
@@ -31,7 +32,7 @@ class AppTheme {
         titleTextStyle: GoogleFonts.poppins(
           color: AppColors.textPrimary,
           fontWeight: FontWeight.w600,
-          fontSize: 20,
+          fontSize: AppType.title,
         ),
         systemOverlayStyle: const SystemUiOverlayStyle(
           statusBarBrightness: Brightness.light,
@@ -39,10 +40,7 @@ class AppTheme {
         ),
       ),
 
-      textTheme: GoogleFonts.poppinsTextTheme().apply(
-        bodyColor: AppColors.textPrimary,
-        displayColor: AppColors.textPrimary,
-      ),
+      textTheme: AppType.textTheme(),
 
       cardTheme: CardThemeData(
         color: AppColors.surfaceElevated,
@@ -142,7 +140,7 @@ class AppTheme {
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final isSelected = states.contains(WidgetState.selected);
           return GoogleFonts.poppins(
-            fontSize: 10,
+            fontSize: AppType.tiny,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             color: isSelected ? AppColors.accent : AppColors.textHint,
           );

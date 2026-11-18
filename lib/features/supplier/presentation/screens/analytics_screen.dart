@@ -199,7 +199,7 @@ class _SalesAnalyticsScreenState extends ConsumerState<SalesAnalyticsScreen> {
                       Text(
                         'No sales recorded in this period',
                         style: GoogleFonts.poppins(
-                          fontSize: 12.5,
+                          fontSize: 13,
                           color: AppColors.textSecondary,
                         ),
                       ),
@@ -238,7 +238,7 @@ class _SalesAnalyticsScreenState extends ConsumerState<SalesAnalyticsScreen> {
                     'No products sold yet — share your store to get '
                     'your first order.',
                     style: GoogleFonts.poppins(
-                      fontSize: 12.5,
+                      fontSize: 13,
                       color: AppColors.textSecondary,
                     ),
                   ),
@@ -280,7 +280,7 @@ class _SalesAnalyticsScreenState extends ConsumerState<SalesAnalyticsScreen> {
           Text(
             title,
             style: GoogleFonts.poppins(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
@@ -331,7 +331,7 @@ class _MonthBar extends StatelessWidget {
         Text(
           amount,
           style: GoogleFonts.poppins(
-            fontSize: 9,
+            fontSize: 11,
             fontWeight: FontWeight.w600,
             color: value == 0 ? AppColors.textHint : AppColors.accent,
           ),
@@ -361,7 +361,7 @@ class _MonthBar extends StatelessWidget {
         Text(
           label,
           style: GoogleFonts.poppins(
-            fontSize: 10,
+            fontSize: 11,
             fontWeight: FontWeight.w500,
             color: AppColors.textHint,
           ),
@@ -428,7 +428,7 @@ class _TopProductRow extends StatelessWidget {
                 Text(
                   tally.name,
                   style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
@@ -459,7 +459,7 @@ class _TopProductRow extends StatelessWidget {
               Text(
                 'revenue',
                 style: GoogleFonts.poppins(
-                  fontSize: 9.5,
+                  fontSize: 11,
                   color: AppColors.textHint,
                 ),
               ),

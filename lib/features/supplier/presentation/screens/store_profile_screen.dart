@@ -306,7 +306,7 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
               children: [
                 Text(title,
                     style: GoogleFonts.poppins(
-                        fontSize: 15, fontWeight: FontWeight.w600)),
+                        fontSize: 16, fontWeight: FontWeight.w600)),
                 const SizedBox(height: 12),
                 ...children,
               ],
@@ -332,7 +332,7 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
                 // which vanished on this light card.
                 label: Text(p,
                     style: GoogleFonts.poppins(
-                        fontSize: 12.5, color: AppColors.textPrimary)),
+                        fontSize: 13, color: AppColors.textPrimary)),
                 backgroundColor: AppColors.surface,
                 side: BorderSide(color: AppColors.border),
                 // Without these each chip reserves a 48dp tap box and they

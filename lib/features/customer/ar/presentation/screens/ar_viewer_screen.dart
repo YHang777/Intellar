@@ -2274,7 +2274,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                         Text(
                           'Placed items (${items.length})',
                           style: GoogleFonts.poppins(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
                               color: Colors.white),
                         ),
@@ -2424,7 +2424,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
             const SizedBox(height: 16),
             Text('AR is not available yet',
                 style: GoogleFonts.poppins(
-                    fontSize: 20,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white)),
             const SizedBox(height: 10),
@@ -3000,7 +3000,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                               ? product.dimsLabel
                               : 'Preparing 3D…',
                       style: GoogleFonts.poppins(
-                          fontSize: 9, color: Colors.white70),
+                          fontSize: 11, color: Colors.white70),
                     ),
                 ],
               ),
@@ -3104,7 +3104,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
             product.hasError ? 'Unavailable' : 'Generating…',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: product.hasError
                     ? AppColors.warning
@@ -3129,7 +3129,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           product.dimsLabel,
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-              fontSize: 9, color: AppColors.textSecondary),
+              fontSize: 11, color: AppColors.textSecondary),
         ),
       ],
     );
@@ -3285,7 +3285,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
       child: Text(
         text,
         style: GoogleFonts.poppins(
-          fontSize: 9,
+          fontSize: 11,
           fontStyle: FontStyle.italic,
           color: Colors.white54,
         ),
@@ -3488,7 +3488,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     Widget? trailing,
   }) {
     final style = GoogleFonts.poppins(
-      fontSize: 9,
+      fontSize: 11,
       fontWeight: FontWeight.w600,
       color: Colors.white54,
       letterSpacing: 0.4,
@@ -3543,7 +3543,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           child: Text(
             label,
             style: GoogleFonts.poppins(
-              fontSize: 10,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
               color: Colors.white,
             ),
@@ -3628,7 +3628,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                       Text(
                         label,
                         style: GoogleFonts.poppins(
-                          fontSize: 10,
+                          fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
@@ -3644,7 +3644,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
   Widget _buildFinishHintRow() {
     final pending = _pendingFinish;
     final hintStyle = GoogleFonts.poppins(
-      fontSize: 9,
+      fontSize: 11,
       color: Colors.white60,
       height: 1.35,
     );
@@ -3673,7 +3673,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
             child: Text(
               '${pending.label} ready — tap a surface to place it',
               style: GoogleFonts.poppins(
-                fontSize: 10,
+                fontSize: 11,
                 color: Colors.white,
                 fontWeight: FontWeight.w500,
               ),
@@ -3701,7 +3701,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                     Text(
                       'Done',
                       style: GoogleFonts.poppins(
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
@@ -3789,7 +3789,7 @@ class _SourceBadge extends StatelessWidget {
       child: Text(
         text,
         style: GoogleFonts.poppins(
-            fontSize: 7,
+            fontSize: 11,
             fontWeight: FontWeight.w700,
             color: Colors.white),
       ),

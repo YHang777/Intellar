@@ -248,7 +248,7 @@ class _PreviewCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.poppins(
-                          fontSize: 12.5, fontWeight: FontWeight.w600)),
+                          fontSize: 13, fontWeight: FontWeight.w600)),
                   Text(Formatters.shortDateTime(preview.createdAt),
                       style: GoogleFonts.poppins(
                           fontSize: 11, color: AppColors.textHint)),
@@ -318,10 +318,10 @@ class _PreviewDetail extends StatelessWidget {
                 children: [
                   Text(preview.label,
                       style: GoogleFonts.poppins(
-                          fontSize: 17, fontWeight: FontWeight.w600)),
+                          fontSize: 18, fontWeight: FontWeight.w600)),
                   Text(Formatters.shortDateTime(preview.createdAt),
                       style: GoogleFonts.poppins(
-                          fontSize: 12.5, color: AppColors.textSecondary)),
+                          fontSize: 13, color: AppColors.textSecondary)),
                   const SizedBox(height: 12),
                   FilledButton.icon(
                     style: FilledButton.styleFrom(
