@@ -9,6 +9,8 @@ import '../../../../shared/widgets/app_feedback.dart';
 import '../../../../shared/widgets/float_button.dart';
 import '../../../../shared/widgets/page_heading.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import '../../../customer/marketplace/presentation/providers/marketplace_providers.dart';
+import '../../../settings/presentation/widgets/settings_widgets.dart';
 
 // Storefront details buyers see on a seller's listings: how they trade,
 // when they are open, what they accept, and their own policies (report:
@@ -71,25 +73,46 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
   }
 
   Future<void> _save() async {
+    final user = ref.read(currentUserProvider);
+    if (user == null) return;
+    final profile = _draft.copyWith(
+      description: _description.text.trim(),
+      hours: _hours.text.trim(),
+      pickupPolicy: _pickup.text.trim(),
+      returnPolicy: _returns.text.trim(),
+    );
     setState(() => _saving = true);
     try {
       await ref.read(authStateProvider.notifier).updateProfile(
-            name: ref.read(currentUserProvider)?.name ?? '',
-            phone: ref.read(currentUserProvider)?.phone,
-            address: ref.read(currentUserProvider)?.address,
-            businessName: ref.read(currentUserProvider)?.businessName,
-            businessPhone: ref.read(currentUserProvider)?.businessPhone,
-            businessAddress: ref.read(currentUserProvider)?.businessAddress,
-            storeProfile: _draft.copyWith(
-              description: _description.text.trim(),
-              hours: _hours.text.trim(),
-              pickupPolicy: _pickup.text.trim(),
-              returnPolicy: _returns.text.trim(),
-            ),
+            name: user.name,
+            phone: user.phone,
+            address: user.address,
+            businessName: user.businessName,
+            businessPhone: user.businessPhone,
+            businessAddress: user.businessAddress,
+            storeProfile: profile,
           );
+      var reachedListings = true;
+      try {
+        await ref
+            .read(marketplaceRepositoryProvider)
+            .syncStoreProfile(user.uid, profile);
+      } catch (_) {
+        reachedListings = false;
+      }
       if (!mounted) return;
-      showAppSnackbar(context, 'Store profile saved');
-      Navigator.of(context).pop();
+      showAppSnackbar(
+        context,
+        reachedListings
+            ? 'Store profile saved'
+            : 'Saved, but your listings could not be updated yet. '
+                'Save again to retry.',
+        isError: !reachedListings,
+      );
+      if (!reachedListings) return;
+      // Through the router, not Navigator.pop: the save re-emits the user and
+      // refreshes routing, and a raw pop let that refresh put this page back.
+      leaveSettings(context, ref);
     } catch (e) {
       if (mounted) {
         showAppSnackbar(context,
@@ -168,7 +191,7 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
                       null,
                       selected: _draft.brandColorValue == null,
                       onTap: () => setState(() =>
-                          _draft = _draft.copyWith(brandColorValue: 0)),
+                          _draft = _draft.copyWith(clearBrandColor: true)),
                     ),
                   ],
                 ),

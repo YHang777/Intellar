@@ -12,6 +12,7 @@ import '../models/product.dart';
 import '../models/product_category.dart';
 import '../models/quote_request.dart';
 import '../models/review.dart';
+import '../models/store_profile.dart';
 import 'auth_race_retry.dart';
 import 'media/media_store.dart';
 import 'model_generation/model_glb_resolver.dart';
@@ -110,6 +111,24 @@ class MarketplaceRepository {
     );
     await _products.doc(id).set(product.toJson());
     return product;
+  }
+
+  // Each product carries its own copy of the supplier, so a saved store
+  // profile reaches buyers only once it is copied onto the seller's listings.
+  // Field-path write: name and verification status are left alone.
+  Future<int> syncStoreProfile(String supplierId, StoreProfile profile) async {
+    final snap =
+        await _products.where('supplierId', isEqualTo: supplierId).get();
+    if (snap.docs.isEmpty) return 0;
+    final value = profile.isEmpty ? FieldValue.delete() : profile.toMap();
+    for (var i = 0; i < snap.docs.length; i += 400) {
+      final batch = _db.batch();
+      for (final doc in snap.docs.skip(i).take(400)) {
+        batch.update(doc.reference, {'supplier.storeProfile': value});
+      }
+      await batch.commit();
+    }
+    return snap.docs.length;
   }
 
   Future<Product> updateProduct(

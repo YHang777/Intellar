@@ -31,6 +31,7 @@ Supplier supplierFromUser(AppUser user) {
     address: businessAddress,
     email: user.email,
     verificationStatus: user.verificationStatus,
+    storeProfile: user.storeProfile,
   );
 }
 

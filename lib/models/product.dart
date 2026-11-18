@@ -254,6 +254,8 @@ class Supplier {
         'address': address,
         'email': email,
         'verificationStatus': verificationStatus,
+        // Buyers read the store profile from this per-product copy.
+        if (!storeProfile.isEmpty) 'storeProfile': storeProfile.toMap(),
       };
 }
 

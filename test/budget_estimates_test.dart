@@ -353,4 +353,3 @@ void _cheaperSwapCoverage() {
   });
 }
 
-void _runCheaperSwapCoverage() => _cheaperSwapCoverage();

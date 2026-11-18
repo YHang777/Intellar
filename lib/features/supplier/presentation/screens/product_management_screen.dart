@@ -442,15 +442,6 @@ class _ProductManagementScreenState
                     style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
               ),
             ),
-            const SizedBox(width: 6),
-            IconButton(
-              key: const Key('bulk-upload'),
-              tooltip: 'Bulk upload',
-              icon: const Icon(Icons.upload_file_outlined,
-                  color: Colors.white, size: 20),
-              onPressed: () =>
-                  context.push('/supplier/products/bulk-upload'),
-            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -510,13 +501,31 @@ class _ProductManagementScreenState
           onSelected: (f) => setState(() => _filter = f),
         ),
         Padding(
-          padding: const EdgeInsets.only(top: 12, bottom: 2),
-          child: Text(
-            '${visible.length} of $total products',
-            style: GoogleFonts.poppins(
-              fontSize: 11.5,
-              color: AppColors.textHint,
-            ),
+          padding: const EdgeInsets.only(top: 6, bottom: 2),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  '${visible.length} of $total products',
+                  style: GoogleFonts.poppins(
+                    fontSize: 11.5,
+                    color: AppColors.textHint,
+                  ),
+                ),
+              ),
+              TextButton.icon(
+                key: const Key('bulk-upload'),
+                onPressed: () =>
+                    context.push('/supplier/products/bulk-upload'),
+                icon: const Icon(Icons.upload_file_outlined, size: 18),
+                label: const Text('Bulk upload'),
+                style: TextButton.styleFrom(
+                  foregroundColor: AppColors.accent,
+                  textStyle: GoogleFonts.poppins(
+                      fontSize: 13, fontWeight: FontWeight.w600),
+                ),
+              ),
+            ],
           ),
         ),
         if (visible.isEmpty)

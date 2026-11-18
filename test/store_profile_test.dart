@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:interior_design_recommendation/models/product.dart';
@@ -59,6 +57,37 @@ void main() {
       // Products written before this feature must not break.
       expect(Supplier.fromJson({'id': 's1', 'name': 'Old'}).storeProfile.isEmpty,
           isTrue);
+    });
+
+    test('the per-listing supplier copy carries the profile buyers see', () {
+      const supplier = Supplier(
+        id: 's1',
+        name: 'Oak & Co',
+        phone: '0123',
+        address: '1 Jalan Test',
+        email: 'a@b.com',
+        storeProfile: StoreProfile(
+          hours: 'Mon–Fri 9:00–18:00',
+          paymentMethods: ['E-wallet'],
+        ),
+      );
+      final json = supplier.toJson();
+      expect(json['storeProfile'], isA<Map>());
+      final back = Supplier.fromJson(Map<String, dynamic>.from(json));
+      expect(back.storeProfile.hours, 'Mon–Fri 9:00–18:00');
+      expect(back.storeProfile.paymentMethods, ['E-wallet']);
+
+      // An empty profile adds nothing to old-style listings.
+      const bare = Supplier(
+          id: 's1', name: 'Old', phone: '', address: '', email: '');
+      expect(bare.toJson().containsKey('storeProfile'), isFalse);
+    });
+
+    test('clearBrandColor removes the colour; plain copyWith keeps it', () {
+      const p = StoreProfile(brandColorValue: 0xFF1565C0, hours: 'Sat');
+      expect(p.copyWith(hours: 'Sun').brandColorValue, 0xFF1565C0);
+      expect(p.copyWith(clearBrandColor: true).brandColorValue, isNull);
+      expect(p.copyWith(clearBrandColor: true).hours, 'Sat');
     });
   });
 }

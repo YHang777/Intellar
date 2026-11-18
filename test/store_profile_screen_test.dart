@@ -6,8 +6,29 @@ import 'package:interior_design_recommendation/features/auth/data/datasources/ac
 import 'package:interior_design_recommendation/features/auth/data/models/app_user.dart';
 import 'package:interior_design_recommendation/features/auth/domain/repositories/auth_repository.dart';
 import 'package:interior_design_recommendation/features/auth/presentation/providers/auth_providers.dart';
+import 'package:interior_design_recommendation/features/customer/marketplace/presentation/providers/marketplace_providers.dart';
 import 'package:interior_design_recommendation/features/supplier/presentation/screens/store_profile_screen.dart';
 import 'package:interior_design_recommendation/models/store_profile.dart';
+import 'package:interior_design_recommendation/services/marketplace_repository.dart';
+
+// Records the copy-out onto listings; everything else is unused here.
+class _RecordingRepo implements MarketplaceRepository {
+  _RecordingRepo({this.fail = false});
+  final bool fail;
+  String? syncedFor;
+  StoreProfile? synced;
+
+  @override
+  Future<int> syncStoreProfile(String supplierId, StoreProfile profile) async {
+    if (fail) throw Exception('offline');
+    syncedFor = supplierId;
+    synced = profile;
+    return 3;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 class _RecordingAuth implements IAuthRepository {
   _RecordingAuth({this.initial = const StoreProfile()});
@@ -86,11 +107,17 @@ class _RecordingAuth implements IAuthRepository {
 }
 
 void main() {
+  late _RecordingRepo repo;
+
   Future<_RecordingAuth> pump(WidgetTester tester,
-      {StoreProfile initial = const StoreProfile()}) async {
+      {StoreProfile initial = const StoreProfile(), bool syncFails = false}) async {
     final auth = _RecordingAuth(initial: initial);
+    repo = _RecordingRepo(fail: syncFails);
     await tester.pumpWidget(ProviderScope(
-      overrides: [authRepositoryProvider.overrideWithValue(auth)],
+      overrides: [
+        authRepositoryProvider.overrideWithValue(auth),
+        marketplaceRepositoryProvider.overrideWithValue(repo),
+      ],
       child: const MaterialApp(home: StoreProfileScreen()),
     ));
     for (var i = 0; i < 6; i++) {
@@ -155,6 +182,44 @@ void main() {
     expect(auth.saved?.hours, 'Mon–Fri 9:00–18:00');
     expect(auth.saved?.pickupPolicy, 'Collect within 7 days');
     expect(auth.saved?.paymentMethods, ['Bank transfer']);
+
+    // Buyers read the profile from each listing, so it must be copied there.
+    expect(repo.syncedFor, 'u1');
+    expect(repo.synced?.hours, 'Mon–Fri 9:00–18:00');
+    expect(repo.synced?.paymentMethods, ['Bank transfer']);
+  });
+
+  testWidgets('if listings cannot be updated, it says so and stays open',
+      (tester) async {
+    final auth = await pump(tester, syncFails: true);
+
+    await tester.enterText(
+        find.byKey(const Key('store-description')), 'Oak furniture');
+    await tester.tap(find.byKey(const Key('save-store-profile')));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 120));
+    }
+
+    expect(auth.saves, 1, reason: 'the account copy is still saved');
+    expect(find.textContaining('listings could not be updated'), findsOneWidget);
+    expect(find.byType(StoreProfileScreen), findsOneWidget,
+        reason: 'stay so the seller can retry');
+  });
+
+  testWidgets('"no colour" clears the brand colour instead of storing 0',
+      (tester) async {
+    final auth = await pump(tester,
+        initial: const StoreProfile(brandColorValue: 0xFF1565C0));
+
+    await tester.tap(find.byKey(const Key('swatch-clear')));
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.tap(find.byKey(const Key('save-store-profile')));
+    for (var i = 0; i < 8; i++) {
+      await tester.pump(const Duration(milliseconds: 120));
+    }
+
+    expect(auth.saves, 1);
+    expect(auth.saved?.brandColorValue, isNull);
   });
 
   testWidgets('a saved option can be turned off again', (tester) async {

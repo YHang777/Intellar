@@ -651,6 +651,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     final initial = supplier.name.trim().isNotEmpty
         ? supplier.name.trim()[0].toUpperCase()
         : '?';
+    // The seller's brand colour tints their avatar; unset falls back to the
+    // app accent.
+    final brandValue = supplier.storeProfile.brandColorValue;
+    final brand = (brandValue == null || brandValue == 0)
+        ? AppColors.accent
+        : Color(brandValue);
+    final about = supplier.storeProfile.description.trim();
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -672,13 +679,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           Row(
             children: [
               CircleAvatar(
+                key: const Key('seller-avatar'),
                 radius: 20,
-                backgroundColor: AppColors.accent.withValues(alpha: 0.12),
+                backgroundColor: brand.withValues(alpha: 0.14),
                 child: Text(initial,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.accent)),
+                        color: brand)),
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -716,6 +724,15 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
               ),
             ],
           ),
+          if (about.isNotEmpty) ...[
+            const SizedBox(height: 10),
+            Text(about,
+                key: const Key('store-about'),
+                style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.4,
+                    color: AppColors.textSecondary)),
+          ],
           if (_storeDetailRows(supplier.storeProfile).isNotEmpty) ...[
             const SizedBox(height: 10),
             Container(

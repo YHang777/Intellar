@@ -75,6 +75,7 @@ class StoreProfile {
     String? description,
     String? hours,
     int? brandColorValue,
+    bool clearBrandColor = false,
     String? logoUrl,
     String? pickupPolicy,
     String? returnPolicy,
@@ -83,7 +84,9 @@ class StoreProfile {
       StoreProfile(
         description: description ?? this.description,
         hours: hours ?? this.hours,
-        brandColorValue: brandColorValue ?? this.brandColorValue,
+        brandColorValue: clearBrandColor
+            ? null
+            : (brandColorValue ?? this.brandColorValue),
         logoUrl: logoUrl ?? this.logoUrl,
         pickupPolicy: pickupPolicy ?? this.pickupPolicy,
         returnPolicy: returnPolicy ?? this.returnPolicy,
