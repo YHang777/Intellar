@@ -1,7 +1,7 @@
 import { ApiError } from '../lib/errors';
 import { env } from '../config/env';
 import { fbDb, fbStorage, Timestamp } from '../config/firebase';
-import { supabaseAuthHeaders } from '../lib/supabase-headers';
+import { supabaseAuthHeaders, supabaseOrigin } from '../lib/supabase-headers';
 import { deleteAuthUser, getAuthUserOrNull } from './identity.service';
 
 /**
@@ -476,7 +476,7 @@ export async function purgeSelfService(
     // 7. Supabase `room_designs` — service-role key, server-side only.
     //    Without the key: skipped AND recorded as skipped (audit shows the
     //    gap); `room_designs` then stays out of dataTypes.
-    const supabaseBase = deps.supabaseUrl.replace(/\/+$/, '');
+    const supabaseBase = supabaseOrigin(deps.supabaseUrl);
     if (supabaseBase.length > 0 && deps.supabaseServiceRoleKey.trim().length > 0) {
       const url = `${supabaseBase}/rest/v1/room_designs?user_id=eq.${encodeURIComponent(uid)}`;
       const headers = supabaseAuthHeaders(deps.supabaseServiceRoleKey);
