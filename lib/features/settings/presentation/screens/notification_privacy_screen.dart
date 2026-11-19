@@ -79,11 +79,11 @@ class _NotificationPrivacyScreenState
           children: [
             SettingsSwitchTile(
               key: const Key('notif-orders'),
-              icon: Icons.local_shipping_outlined,
+              icon: Icons.receipt_long_outlined,
               title: 'Order updates',
               subtitle: homeowner
                   ? 'When a seller confirms or readies your order'
-                  : 'When customers place or cancel orders',
+                  : 'New and cancelled orders, and low-stock alerts',
               value: notif.orderUpdates,
               onChanged: (v) => _saveNotif(notif.copyWith(orderUpdates: v)),
             ),

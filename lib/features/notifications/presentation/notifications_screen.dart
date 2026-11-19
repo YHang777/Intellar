@@ -130,7 +130,7 @@ class _NotificationTile extends StatelessWidget {
 
   IconData get _icon => switch (n.kind) {
         'new_order' => Icons.shopping_bag_outlined,
-        'order_update' => Icons.local_shipping_outlined,
+        'order_update' => Icons.receipt_long_outlined,
         'quote' => Icons.request_quote_outlined,
         'recommendation' => Icons.auto_awesome_outlined,
         'promotion' => Icons.local_offer_outlined,

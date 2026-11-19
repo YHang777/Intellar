@@ -10,7 +10,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/native_scene_guard.dart';
 import '../../../../../core/utils/user_errors.dart';
@@ -30,7 +29,6 @@ import '../../../homeowner/presentation/providers/design_providers.dart';
 import '../../../../auth/presentation/providers/auth_providers.dart';
 import '../../../walkthrough/presentation/plan_preview_3d.dart';
 import '../../data/camera_rig.dart';
-import '../../data/design_share.dart';
 import '../../data/furniture_catalog.dart';
 import '../../data/plan_scene_math.dart';
 import '../../data/planner_scene_bridge.dart';
@@ -38,6 +36,7 @@ import '../../data/room_fit.dart';
 import '../../data/room_shell.dart'
     show ShellGeometry, cutawaySignature, shellRing;
 import '../scene3d_view.dart';
+import '../share_design_link.dart';
 
 const int kMinRoomSideCm = 100;
 const int kMaxRoomSideCm = 3000;
@@ -1448,31 +1447,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     _pushCamera();
   }
 
-  bool _sharing = false;
-
-  Future<void> _shareLink() async {
-    if (_sharing) return;
-    _sharing = true;
-    showAppSnackbar(context, 'Creating a share link…');
-    try {
-      final url = await DesignShareClient().createLink(_snapshotDesign());
-      if (!mounted) return;
-      await SharePlus.instance.share(ShareParams(
-        text: 'Take a look around my room design in 3D: $url',
-        subject: _designName ?? 'My room design',
-      ));
-    } catch (e) {
-      if (mounted) {
-        showAppSnackbar(
-            context,
-            userMessage(e,
-                fallback: 'Could not create a share link. Please try again.'),
-            isError: true);
-      }
-    } finally {
-      _sharing = false;
-    }
-  }
+  Future<void> _shareLink() => shareDesignLink(context, _snapshotDesign());
 
   Future<void> _saveDesign() async {
     final user = ref.read(currentUserProvider);

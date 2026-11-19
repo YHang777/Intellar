@@ -8,6 +8,7 @@ import '../../../../../core/utils/user_errors.dart';
 import '../../../../../shared/widgets/app_feedback.dart';
 import '../../../../../models/room_design.dart';
 import '../../../ar/data/furniture_model_library.dart';
+import '../../../scanner/presentation/share_design_link.dart';
 
 import '../../../../../shared/widgets/confirm_dialog.dart';
 import '../../../../../shared/widgets/gradient_scaffold.dart';
@@ -258,6 +259,8 @@ class SavedDesignsScreen extends ConsumerWidget {
                       extra: ArFurnitureLibrary.fromIconNames(
                           design.furniture.map((f) => f.iconName).toList()),
                     );
+                  } else if (value == 'share') {
+                    await shareDesignLink(context, design);
                   } else if (value == 'delete') {
                     final confirm = await showDialog<bool>(
                       context: context,
@@ -330,6 +333,16 @@ class SavedDesignsScreen extends ConsumerWidget {
                               size: 18, color: AppColors.textSecondary),
                           const SizedBox(width: 10),
                           const Text('View in AR'),
+                        ],
+                      )),
+                  PopupMenuItem(
+                      value: 'share',
+                      child: Row(
+                        children: [
+                          Icon(Icons.share_outlined,
+                              size: 18, color: AppColors.textSecondary),
+                          const SizedBox(width: 10),
+                          const Text('Share link'),
                         ],
                       )),
                   PopupMenuItem(

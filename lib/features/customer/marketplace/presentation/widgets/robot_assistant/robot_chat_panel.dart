@@ -22,7 +22,7 @@ import '../../providers/marketplace_providers.dart';
 const List<String> kProductDetailQuickQuestions = [
   'Is it in stock?',
   'What are the dimensions?',
-  'How much is delivery?',
+  'How does collection work?',
   'Is the seller verified?',
   'Is it eco-friendly?',
 ];
