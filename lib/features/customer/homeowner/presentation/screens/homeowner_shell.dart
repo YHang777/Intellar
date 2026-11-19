@@ -3,6 +3,9 @@ import 'package:go_router/go_router.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../shared/widgets/floating_nav_bar.dart';
 
+// Full-screen tools inside a tab (the room scanner) hide the tab bar.
+final ValueNotifier<bool> homeownerNavHidden = ValueNotifier(false);
+
 class HomeownerShell extends StatelessWidget {
   const HomeownerShell({super.key, required this.navigationShell});
 
@@ -20,7 +23,11 @@ class HomeownerShell extends StatelessWidget {
       backgroundColor: AppColors.background,
       extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: FloatingNavBar(
+      bottomNavigationBar: ValueListenableBuilder<bool>(
+        valueListenable: homeownerNavHidden,
+        builder: (context, hidden, navBar) =>
+            hidden ? const SizedBox.shrink() : navBar!,
+        child: FloatingNavBar(
         selectedIndex: navigationShell.currentIndex,
         onDestinationSelected: (index) => navigationShell.goBranch(
           index,
@@ -58,6 +65,7 @@ class HomeownerShell extends StatelessWidget {
             label: 'Profile',
           ),
         ],
+      ),
       ),
     ),
     );

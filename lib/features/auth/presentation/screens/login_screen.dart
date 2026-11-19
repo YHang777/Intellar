@@ -100,7 +100,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     final loading = state is AsyncLoading<AppUser?> || _submitting;
     final isGuest = ref.watch(currentUserProvider)?.isGuest ?? false;
 
-    ref.listen<AsyncValue<AppUser?>>(authStateProvider, (_, next) {
+    ref.listen<AsyncValue<AppUser?>>(authStateProvider, (prev, next) {
+      // This screen may sit ON TOP of the app (opened from a guest prompt),
+      // where the router's "signed in → leave sign-in" rule never sees it.
+      // So move on explicitly: after a real sign-in, or when the user just
+      // became a guest. The router still routes /home to two-step,
+      // onboarding or the seller dashboard as needed.
+      final was = prev?.valueOrNull;
+      final now = next.valueOrNull;
+      if (now != null && (!now.isGuest || was?.uid != now.uid)) {
+        context.go('/home');
+      }
       next.whenOrNull(error: (e, _) {
         showAppSnackbar(
           context,

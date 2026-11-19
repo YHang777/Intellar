@@ -36,6 +36,7 @@ import '../../data/room_shell.dart'
     show ShellGeometry, cutawaySignature, shellRing;
 import '../scene3d_view.dart';
 import '../share_design_link.dart';
+import '../../../homeowner/presentation/screens/homeowner_shell.dart' show homeownerNavHidden;
 
 const int kMinRoomSideCm = 100;
 const int kMaxRoomSideCm = 3000;
@@ -1486,8 +1487,15 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     setState(() => _roomType = picked);
   }
 
+  // The scanner is a full-screen tool: hide the tab bar while it is open.
+  void _syncTabBar() {
+    final hide = _stage != _Stage.plan;
+    if (homeownerNavHidden.value != hide) homeownerNavHidden.value = hide;
+  }
+
   @override
   void dispose() {
+    if (homeownerNavHidden.value) homeownerNavHidden.value = false;
     _shellThrottle?.cancel();
     _furnitureThrottle?.cancel();
     try {
@@ -1506,9 +1514,18 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     final bgColor = isDark ? Colors.black : AppColors.background;
     final fgColor = isDark ? Colors.white : AppColors.textPrimary;
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _syncTabBar();
+    });
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
-      child: Scaffold(
+      child: PopScope(
+        // Back while scanning closes the scanner, not the planner/tab.
+        canPop: _stage == _Stage.plan,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop && _stage != _Stage.plan && !_scanReading) _closeScanner();
+        },
+        child: Scaffold(
         backgroundColor: bgColor,
         body: Column(
           children: [
@@ -1614,6 +1631,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
           ),
         ],
         ),
+      ),
       ),
     );
   }
@@ -2553,13 +2571,16 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     );
     final url = item.imageUrl;
     if (url != null && url.startsWith('http')) {
-      return Image.network(url,
-          fit: BoxFit.cover, errorBuilder: (_, __, ___) => fallback);
+      return ColoredBox(
+        color: Colors.white,
+        child: Image.network(url,
+            fit: BoxFit.contain, errorBuilder: (_, __, ___) => fallback),
+      );
     }
     if (path == null) return fallback;
     return Image.asset(
       path,
-      fit: BoxFit.cover,
+      fit: BoxFit.contain,
       errorBuilder: (_, __, ___) => fallback,
     );
   }
@@ -2680,18 +2701,20 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                 children: [
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      color: AppColors.background,
+                      color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.accent),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
+                      // Seller photos vary in shape: fit the whole product
+                      // inside the tile instead of cropping it.
                       child: p.image.isEmpty
                           ? Icon(_iconFor(iconNameForProduct(p)),
                               color: AppColors.accent)
                           : Image.network(
                               p.image,
-                              fit: BoxFit.cover,
+                              fit: BoxFit.contain,
                               errorBuilder: (_, __, ___) => Icon(
                                   _iconFor(iconNameForProduct(p)),
                                   color: AppColors.accent),
