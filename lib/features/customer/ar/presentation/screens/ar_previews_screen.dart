@@ -47,13 +47,14 @@ class _ArPreviewsScreenState extends ConsumerState<ArPreviewsScreen> {
     }
   }
 
-  Future<void> _delete(ArPreview preview) async {
+  Future<bool> _delete(ArPreview preview) async {
     final ok = await showConfirmDialogLocal(context, preview.label);
-    if (!ok || !mounted) return;
+    if (!ok || !mounted) return false;
     await _store.delete(preview.id);
     setState(() => _selected.remove(preview.id));
     ref.invalidate(arPreviewsProvider);
-    if (mounted) showAppSnackbar(context, 'Preview deleted');
+    if (mounted) showAppSnackbar(context, 'Photo deleted');
+    return true;
   }
 
   void _toggle(String id) {
@@ -163,6 +164,8 @@ class _ArPreviewsScreenState extends ConsumerState<ArPreviewsScreen> {
                             onTap: () => _comparing
                                 ? _toggle(p.id)
                                 : _open(context, p),
+                            onShare: () => _share(p),
+                            onDelete: () => _delete(p),
                           );
                         },
                       ),
@@ -177,10 +180,15 @@ class _ArPreviewsScreenState extends ConsumerState<ArPreviewsScreen> {
   void _open(BuildContext context, ArPreview preview) {
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => _PreviewDetail(
+        builder: (detail) => _PreviewDetail(
           preview: preview,
           onShare: () => _share(preview),
-          onDelete: () => _delete(preview),
+          onDelete: () async {
+            // Close the photo once it is gone instead of showing a ghost.
+            if (await _delete(preview) && detail.mounted) {
+              Navigator.of(detail).pop();
+            }
+          },
         ),
       ),
     );
@@ -193,12 +201,16 @@ class _PreviewCard extends StatelessWidget {
     required this.comparing,
     required this.selected,
     required this.onTap,
+    required this.onShare,
+    required this.onDelete,
   });
 
   final ArPreview preview;
   final bool comparing;
   final bool selected;
   final VoidCallback onTap;
+  final VoidCallback onShare;
+  final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -240,18 +252,52 @@ class _PreviewCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.fromLTRB(8, 6, 0, 6),
+              child: Row(
                 children: [
-                  Text(preview.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
-                          fontSize: 13, fontWeight: FontWeight.w600)),
-                  Text(Formatters.shortDateTime(preview.createdAt),
-                      style: GoogleFonts.poppins(
-                          fontSize: 11, color: AppColors.textHint)),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(preview.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.poppins(
+                                fontSize: 13, fontWeight: FontWeight.w600)),
+                        Text(Formatters.shortDateTime(preview.createdAt),
+                            style: GoogleFonts.poppins(
+                                fontSize: 11, color: AppColors.textHint)),
+                      ],
+                    ),
+                  ),
+                  if (!comparing)
+                    PopupMenuButton<String>(
+                      key: Key('ar-preview-menu-${preview.id}'),
+                      tooltip: 'Photo options',
+                      icon: Icon(Icons.more_vert,
+                          size: 20, color: AppColors.textSecondary),
+                      onSelected: (v) => v == 'delete' ? onDelete() : onShare(),
+                      itemBuilder: (_) => [
+                        const PopupMenuItem(
+                          value: 'share',
+                          child: ListTile(
+                            leading: Icon(Icons.share_outlined),
+                            title: Text('Share'),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: ListTile(
+                            leading: Icon(Icons.delete_outline,
+                                color: AppColors.error),
+                            title: Text('Delete',
+                                style: TextStyle(color: AppColors.error)),
+                            contentPadding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -287,18 +333,6 @@ class _PreviewDetail extends StatelessWidget {
                 children: [
                   const FloatingBackButton(),
                   const Spacer(),
-                  IconButton(
-                    key: const Key('ar-preview-share'),
-                    tooltip: 'Share preview',
-                    icon: const Icon(Icons.share_outlined),
-                    onPressed: onShare,
-                  ),
-                  IconButton(
-                    key: const Key('ar-preview-delete'),
-                    tooltip: 'Delete preview',
-                    icon: const Icon(Icons.delete_outline, color: AppColors.error),
-                    onPressed: onDelete,
-                  ),
                 ],
               ),
             ),
@@ -323,12 +357,31 @@ class _PreviewDetail extends StatelessWidget {
                       style: GoogleFonts.poppins(
                           fontSize: 13, color: AppColors.textSecondary)),
                   const SizedBox(height: 12),
-                  FilledButton.icon(
-                    style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.accent),
-                    onPressed: onShare,
-                    icon: const Icon(Icons.share_outlined),
-                    label: const Text('Share preview'),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: FilledButton.icon(
+                          key: const Key('ar-preview-share'),
+                          style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.accent),
+                          onPressed: onShare,
+                          icon: const Icon(Icons.share_outlined),
+                          label: const Text('Share'),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          key: const Key('ar-preview-delete'),
+                          style: OutlinedButton.styleFrom(
+                              foregroundColor: AppColors.error,
+                              side: BorderSide(color: AppColors.error)),
+                          onPressed: onDelete,
+                          icon: const Icon(Icons.delete_outline),
+                          label: const Text('Delete'),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -442,7 +495,7 @@ Future<bool> showConfirmDialogLocal(BuildContext context, String label) async {
     context: context,
     builder: (ctx) => AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: const Text('Delete this preview?'),
+      title: const Text('Delete this photo?'),
       content: Text('"$label" will be removed from this device.'),
       actions: [
         TextButton(

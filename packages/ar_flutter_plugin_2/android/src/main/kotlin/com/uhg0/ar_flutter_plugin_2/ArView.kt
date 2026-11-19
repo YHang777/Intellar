@@ -237,11 +237,49 @@ class ArView(
         var confidence: Float,
     ) : ModelNode(modelInstance)
 
+    // ── Background-read brake ──────────────────────────────────────────────
+    // probeFloorY and getDepthPoints are optional helpers the scan ticker
+    // polls every second, and both wait inside ARCore (acquirePointCloud /
+    // acquireDepthImage) on the main thread. When the camera starves (dim
+    // light, heat) ARCore can hold them for seconds — on device a 2.4 s
+    // depth read was followed by a total freeze. So: skip them when the
+    // latest frame is not fresh, and after a slow one back off (longer
+    // after very slow ones). Scanning carries on from ARCore's planes;
+    // tap-time refinePlane is not braked.
+    private var backgroundReadPausedUntil = 0L
+    private var backgroundReadStrikes = 0
+
+    private fun isBackgroundRead(method: String) =
+        method == "probeFloorY" || method == "getDepthPoints"
+
+    private fun backgroundReadSkip(method: String, result: MethodChannel.Result): Boolean {
+        val now = SystemClock.elapsedRealtime()
+        val frameAge = now - lastFrameAtMs
+        if (now >= backgroundReadPausedUntil && latestFrame != null && frameAge <= 200) return false
+        if (method == "getDepthPoints") result.success(emptyList<Double>()) else result.success(null)
+        return true
+    }
+
+    private fun noteBackgroundRead(method: String, ms: Long) {
+        val now = SystemClock.elapsedRealtime()
+        if (ms > 150) {
+            backgroundReadStrikes = (backgroundReadStrikes + 1).coerceAtMost(4)
+            val pauseMs = (if (ms > 1000) 15_000L else 4_000L) * backgroundReadStrikes
+            backgroundReadPausedUntil = now + pauseMs
+            NativeTrace.log(viewContext, "arview: brake $method ${ms}ms -> pause ${pauseMs}ms")
+        } else if (ms < 50 && backgroundReadStrikes > 0) {
+            backgroundReadStrikes -= 1
+        }
+    }
+
     private val onSessionMethodCall =
         MethodChannel.MethodCallHandler { call, result ->
+            val background = isBackgroundRead(call.method)
+            if (background && backgroundReadSkip(call.method, result)) return@MethodCallHandler
             val callStart = SystemClock.elapsedRealtime()
             handleSessionCall(call, result)
             val callMs = SystemClock.elapsedRealtime() - callStart
+            if (background) noteBackgroundRead(call.method, callMs)
             if (callMs > 20) {
                 NativeTrace.log(viewContext, "arview: slow call ${call.method} ${callMs}ms")
             }

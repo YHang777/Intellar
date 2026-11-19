@@ -2653,26 +2653,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                             ),
                     ),
                   ),
-                  if (widget.design != null)
-                    IconButton(
-                      icon: const Icon(Icons.crop_free, color: Colors.white),
-                      tooltip: 'Use room shape',
-                      onPressed: _useRoomShape,
-                    ),
-                  IconButton(
-                    key: const Key('ar-save-preview'),
-                    icon: const Icon(Icons.add_a_photo_outlined,
-                        color: Colors.white),
-                    tooltip: 'Save preview',
-                    onPressed: _savePreview,
-                  ),
-                  IconButton(
-                    key: const Key('ar-open-previews'),
-                    icon: const Icon(Icons.collections_outlined,
-                        color: Colors.white),
-                    tooltip: 'Saved previews',
-                    onPressed: () => context.push('/ar-previews'),
-                  ),
                   Semantics(
                     button: true,
                     label: _placed.isEmpty
@@ -2705,20 +2685,8 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                       ),
                     ),
                   ),
-                  if (_scanCoachHelpAvailable)
-                    IconButton(
-                      icon:
-                          const Icon(Icons.help_outline, color: Colors.white),
-                      tooltip: 'Scanning help',
-                      onPressed: () =>
-                          setState(() => _scanCoachDismissed = false),
-                    ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_sweep_outlined,
-                        color: Colors.white),
-                    tooltip: 'Clear all',
-                    onPressed: _placed.isEmpty ? null : _clearAll,
-                  ),
+                  const SizedBox(width: 6),
+                  _MoreButton(onTap: _openArMenu),
                 ],
               ),
             ),
@@ -3426,6 +3394,68 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
   }
 
   // ── Saved previews (FR14): keep this exact AR view to share or compare. ──
+  // Every AR action in one labelled list — the old row of bare icons was
+  // unreadable, and squeezed the title on narrow phones.
+  Future<void> _openArMenu() async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheet) {
+        Widget item(String key, IconData icon, String title, String subtitle,
+                {bool danger = false}) =>
+            ListTile(
+              key: Key('ar-menu-$key'),
+              leading: Icon(icon,
+                  color: danger ? AppColors.error : AppColors.accent),
+              title: Text(title,
+                  style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: danger ? AppColors.error : AppColors.textPrimary)),
+              subtitle: Text(subtitle,
+                  style: GoogleFonts.poppins(
+                      fontSize: 12, color: AppColors.textSecondary)),
+              onTap: () => Navigator.of(sheet).pop(key),
+            );
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              item('photo', Icons.add_a_photo_outlined, 'Save photo',
+                  'Keep a picture of this view'),
+              item('photos', Icons.collections_outlined, 'My AR photos',
+                  'See, share or delete your saved pictures'),
+              if (widget.design != null)
+                item('shape', Icons.crop_free, 'Use room shape',
+                    'Send the scanned walls to the room planner'),
+              if (_scanCoachHelpAvailable)
+                item('tips', Icons.help_outline, 'Scanning tips',
+                    'Show the scan guide again'),
+              if (_placed.isNotEmpty)
+                item('clear', Icons.delete_sweep_outlined, 'Remove all items',
+                    'Take every placed piece out of the view',
+                    danger: true),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+    if (!mounted || action == null) return;
+    switch (action) {
+      case 'photo':
+        await _savePreview();
+      case 'photos':
+        context.push('/ar-previews');
+      case 'shape':
+        _useRoomShape();
+      case 'tips':
+        setState(() => _scanCoachDismissed = false);
+      case 'clear':
+        await _clearAll();
+    }
+  }
+
   Future<void> _savePreview() async {
     final session = _session;
     if (session == null || _savingPreview) return;
@@ -3802,6 +3832,45 @@ class _SourceBadge extends StatelessWidget {
             fontSize: 11,
             fontWeight: FontWeight.w700,
             color: Colors.white),
+      ),
+    );
+  }
+}
+
+class _MoreButton extends StatelessWidget {
+  const _MoreButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'More AR options',
+      child: InkWell(
+        key: const Key('ar-more'),
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(18),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: Colors.white24),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.more_horiz, size: 18, color: Colors.white),
+              const SizedBox(width: 4),
+              Text('More',
+                  style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white)),
+            ],
+          ),
+        ),
       ),
     );
   }

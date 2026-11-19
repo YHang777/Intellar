@@ -142,6 +142,43 @@ void main() {
       expect(find.text('Compare'), findsOneWidget);
     });
 
+    testWidgets('a photo can be deleted straight from its card menu',
+        (tester) async {
+      final store = FakeStore([preview('a', 'Oak floor'), preview('b', 'Tile')]);
+      await tester.pumpWidget(screen(store));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.byKey(const Key('ar-preview-menu-a')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Delete').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Delete this photo?'), findsOneWidget);
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(store.deleted, ['a']);
+      expect(find.text('Oak floor'), findsNothing);
+      expect(find.text('Tile'), findsOneWidget);
+    });
+
+    testWidgets('deleting from the photo view closes it', (tester) async {
+      final store = FakeStore([preview('a', 'Oak floor'), preview('b', 'Tile')]);
+      await tester.pumpWidget(screen(store));
+      await tester.pump(const Duration(milliseconds: 300));
+
+      await tester.tap(find.byKey(const Key('ar-preview-a')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('ar-preview-delete')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+      await tester.pumpAndSettle();
+
+      expect(store.deleted, ['a']);
+      expect(find.byKey(const Key('ar-preview-delete')), findsNothing,
+          reason: 'back on the list, not a page for a deleted photo');
+      expect(find.text('Tile'), findsOneWidget);
+    });
+
     testWidgets('tapping a preview in compare mode selects it, not opens it',
         (tester) async {
       final store = FakeStore([
