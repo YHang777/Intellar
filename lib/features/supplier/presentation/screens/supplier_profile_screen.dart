@@ -271,7 +271,13 @@ class _SupplierProfileScreenState
         ? 'none'
         : resolveVerificationStatus(user.verificationStatus, application);
 
-    return Scaffold(
+    // While editing, back cancels the edit instead of leaving the page.
+    return PopScope(
+      canPop: !_editing,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _editing) _cancelEditing();
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: user == null || supplier == null
@@ -529,7 +535,7 @@ class _SupplierProfileScreenState
               ),
             ),
       ),
-    );
+    ));
   }
 
   static String _initials(String name) {

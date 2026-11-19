@@ -109,7 +109,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = ref.watch(currentUserProvider);
     if (user?.isGuest ?? false) return _guestProfile(context);
 
-    return Scaffold(
+    // While editing, back cancels the edit instead of leaving the page.
+    return PopScope(
+      canPop: !_editing,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && _editing) _cancelEditing();
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: ListView(
@@ -429,7 +435,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ],
         ),
       ),
-    );
+    ));
   }
 
   Widget _guestProfile(BuildContext context) {
