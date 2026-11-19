@@ -837,7 +837,14 @@ final supplierOrdersProvider =
     StreamProvider.family<List<Order>, String>((ref, supplierId) {
   final repo = ref.watch(marketplaceRepositoryProvider);
   if (supplierId.isEmpty) return Stream.value(const []);
-  return repo.watchSupplierOrders(supplierId);
+  // Sellers only see orders that were actually paid (refunded ones stay so
+  // cancellations show). An unpaid order is a buyer still at, or abandoned
+  // at, the payment step — not an order to prepare.
+  return repo.watchSupplierOrders(supplierId).map((orders) => orders
+      .where((o) =>
+          o.paymentStatus == PaymentStatus.paid ||
+          o.paymentStatus == PaymentStatus.refunded)
+      .toList());
 });
 
 // ─── Bulk quote requests (customer asks → supplier contacts off-app) ─────────
