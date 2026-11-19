@@ -484,6 +484,28 @@ void main() {
       expect(p.polygon, isEmpty);
     });
 
+    test('a noisy wall gets its angle from all its points, not three', () {
+      // A real wall rotated 20°, with ±4 cm depth noise like a sparse
+      // white-wall cloud: three-point RANSAC alone can be several degrees
+      // off; the least-squares re-fit must land within 1.5°.
+      final rnd = math.Random(3);
+      const yaw = 20 * math.pi / 180;
+      final nx = math.sin(yaw), nz = math.cos(yaw);
+      final hx = math.cos(yaw), hz = -math.sin(yaw);
+      final pts = <List<double>>[];
+      for (var i = 0; i < 45; i++) {
+        final h = rnd.nextDouble() * 1.8;
+        final y = 0.3 + rnd.nextDouble() * 1.4;
+        final d = (rnd.nextDouble() - 0.5) * 0.10;
+        pts.add([h * hx + d * nx, y, 2.0 + h * hz + d * nz]);
+      }
+      final planes = fitWallPlanes(points: _flat(pts), refY: 0);
+      expect(planes, hasLength(1));
+      var err = (planes.single.yaw - yaw).abs() % math.pi;
+      if (err > math.pi / 2) err = math.pi - err;
+      expect(err * 180 / math.pi, lessThan(1.5));
+    });
+
     test('a sub-m² vertical fit is rejected by the area gate alone', () {
       // Dyadic grid: 8 xs (width 0.875) × 5 ys (height 1.0) = 0.875 m².
       // That clears the old 0.7×0.5 = 0.35 m² admission gate, so ONLY the

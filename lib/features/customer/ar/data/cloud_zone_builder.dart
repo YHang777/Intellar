@@ -471,7 +471,62 @@ _Fit? _ransacWall(List<Vector3> pool, int Function(int) next) {
       height: height,
     );
   }
-  return best;
+  return best == null ? null : _refineWallFit(pool, best);
+}
+
+// The RANSAC winner's direction comes from just three points, which on a
+// sparse white-wall cloud can be several degrees off — the painted wall
+// then looks tilted against the real one. Re-fit the direction from ALL
+// inliers (principal axis of their XZ footprint, i.e. least squares), then
+// re-derive centre and width along it.
+_Fit _refineWallFit(List<Vector3> pool, _Fit fit) {
+  final pts = [for (final i in fit.inliers) pool[i]];
+  if (pts.length < 3) return fit;
+  var mx = 0.0, mz = 0.0;
+  for (final p in pts) {
+    mx += p.x;
+    mz += p.z;
+  }
+  mx /= pts.length;
+  mz /= pts.length;
+  var sxx = 0.0, sxz = 0.0, szz = 0.0;
+  for (final p in pts) {
+    final dx = p.x - mx, dz = p.z - mz;
+    sxx += dx * dx;
+    sxz += dx * dz;
+    szz += dz * dz;
+  }
+  // Principal direction of the 2x2 covariance = the wall's run.
+  final theta = 0.5 * math.atan2(2 * sxz, sxx - szz);
+  final hx = math.cos(theta), hz = math.sin(theta);
+  // Normal is perpendicular; same canonical hemisphere as the RANSAC fit.
+  var nx = -hz, nz = hx;
+  // Tolerant of float dust (nz ≈ -1e-17 for a wall facing exactly ±X).
+  if (nz < -1e-9 || (nz.abs() <= 1e-9 && nx < 0)) {
+    nx = -nx;
+    nz = -nz;
+  }
+  // Too elongated along the normal ⇒ not a wall-like spread; keep RANSAC's.
+  final along = sxx * hx * hx + 2 * sxz * hx * hz + szz * hz * hz;
+  final across = sxx * nx * nx + 2 * sxz * nx * nz + szz * nz * nz;
+  if (along <= across * 4) return fit;
+  var minH = double.infinity, maxH = double.negativeInfinity;
+  for (final p in pts) {
+    final h = (p.x - mx) * hx + (p.z - mz) * hz;
+    if (h < minH) minH = h;
+    if (h > maxH) maxH = h;
+  }
+  final mid = (minH + maxH) / 2;
+  if (nz.abs() <= 1e-9) nz = 0;
+  return _Fit(
+    yaw: math.atan2(nx, nz),
+    inliers: fit.inliers,
+    cx: mx + hx * mid,
+    cy: fit.cy,
+    cz: mz + hz * mid,
+    width: maxH - minH,
+    height: fit.height,
+  );
 }
 
 class _Fit {

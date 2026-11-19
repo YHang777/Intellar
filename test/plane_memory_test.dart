@@ -30,6 +30,18 @@ ARPlaneInfo plane({
 
 void main() {
   group('PlaneMemory floor establishment', () {
+    test('glossy-tile probe noise (8 cm low) never moves an established floor',
+        () {
+      // Device recording 2026-11-20: ARCore floor -0.98, probe -1.06 for
+      // 10+ readings in a row — the old 5 cm band "corrected" to it.
+      final m = PlaneMemory();
+      m.ingest([plane(id: 1, type: 1, cy: -0.98, ex: 3.3, ez: 3.3)]);
+      for (var i = 0; i < 20; i++) {
+        m.noteFloorYCandidate(-1.06);
+      }
+      expect(m.floorY, closeTo(-0.98, 1e-6));
+    });
+
     test('a small glossy-floor ghost below the real floor cannot drag floorY down',
         () {
       // Device recording 2026-11-20: an 11 m² floor at -0.95 plus a 1.1 m²

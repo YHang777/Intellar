@@ -368,7 +368,13 @@ class PlaneMemory {
     _lastProbeY = y;
     _lastProbeAt = now ?? DateTime.now();
     final fy = _floorY!;
-    const deadbandM = 0.05;
+    // Only a big gap is evidence of a wrong floor (furniture tops sit 0.3 m+
+    // up, phantoms further): on glossy tiles reflections put depth points
+    // 5-10 cm UNDER the real floor, and a 5 cm deadband let that noise
+    // drag floorY (and wall bases) down (device recording 2026-11-20).
+    // Once a genuine correction has started, let it finish converging with
+    // the fine 5 cm band (the first 0.85 jump leaves a residual).
+    final deadbandM = _probeCorrected ? 0.05 : 0.15;
     if (y >= fy - deadbandM) {
       _probeStreak = 0;
       _probeStreakY = null;
