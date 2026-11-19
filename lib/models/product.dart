@@ -157,6 +157,9 @@ class ProductVision {
 
   final String model;
 
+  // An admin marked the flag resolved on the Photo flags page.
+  final bool reviewResolved;
+
   const ProductVision({
     this.status = 'failed',
     this.labels = const [],
@@ -167,9 +170,13 @@ class ProductVision {
     this.mismatchReason = '',
     this.analyzedAt,
     this.model = '',
+    this.reviewResolved = false,
   });
 
   bool get isOk => status == 'ok';
+
+  // Show buyers and the seller a notice until an admin resolves it.
+  bool get photoFlagOpen => mismatchFlagged && !reviewResolved;
 
   factory ProductVision.fromJson(Map<String, dynamic> json) {
     final mismatch = json['mismatch'];
@@ -189,6 +196,8 @@ class ProductVision {
           mismatch is Map ? mismatch['reason']?.toString() ?? '' : '',
       analyzedAt: _parseDate(json['analyzedAt']),
       model: json['model']?.toString() ?? '',
+      reviewResolved: json['review'] is Map &&
+          (json['review'] as Map)['status'] == 'resolved',
     );
   }
 

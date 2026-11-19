@@ -281,6 +281,10 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                         const SizedBox(height: 14),
                         const Divider(),
                         const SizedBox(height: 10),
+                        if (product.vision?.photoFlagOpen ?? false) ...[
+                          _photoFlagNotice(),
+                          const SizedBox(height: 12),
+                        ],
                         _buildQuantityRow(product),
                         const SizedBox(height: 4),
                       ],
@@ -632,6 +636,38 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  // Shown while our photo check says the picture may not be what the
+  // listing describes (until an admin resolves it).
+  Widget _photoFlagNotice() {
+    return Container(
+      key: const Key('photo-flag-notice'),
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.5)),
+      ),
+      child: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.report_gmailerrorred_outlined,
+              size: 20, color: AppColors.warning),
+          SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'The photo may not match this listing. Our check has asked the '
+              'seller to review it — confirm the details with them before '
+              'buying.',
+              style: TextStyle(
+                  fontSize: 13, height: 1.4, color: AppColors.textPrimary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

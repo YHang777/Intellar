@@ -690,6 +690,7 @@ class _ProductTile extends StatelessWidget {
                             ],
                           ),
                           _arStatusRow(product),
+                          _photoFlagRow(product),
                         ],
                       ),
                     ),
@@ -763,6 +764,46 @@ class _ProductTile extends StatelessWidget {
               ),
               const SizedBox(width: 4),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // The upload-time photo check flagged this listing: tell the seller why
+  // and what to do (buyers see a notice on the product page meanwhile).
+  Widget _photoFlagRow(Product p) {
+    final v = p.vision;
+    if (v == null || !v.photoFlagOpen) return const SizedBox.shrink();
+    return Container(
+      key: Key('photo-flag-${p.id}'),
+      margin: const EdgeInsets.only(top: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.report_gmailerrorred_outlined,
+                  size: 14, color: AppColors.warning),
+              const SizedBox(width: 4),
+              Text('Photo flagged',
+                  style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.warning)),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            '${v.mismatchReason.isEmpty ? 'The photo may not match this listing.' : v.mismatchReason} '
+            'Buyers see a notice until it is fixed — edit the photo or details.',
+            style: GoogleFonts.poppins(
+                fontSize: 11, height: 1.35, color: AppColors.textSecondary),
           ),
         ],
       ),

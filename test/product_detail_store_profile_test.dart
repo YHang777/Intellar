@@ -158,4 +158,22 @@ void main() {
     expect(find.byKey(const Key('store-about')), findsNothing);
     expect(find.textContaining('Open '), findsNothing);
   });
+
+  testWidgets('a flagged photo shows buyers a notice above Quantity', (tester) async {
+    final flagged = _product(const StoreProfile()).copyWith(
+        vision: const ProductVision(
+            status: 'ok',
+            mismatchFlagged: true,
+            mismatchReason: 'The photo shows a sofa, not paint.'));
+    await _pump(tester, flagged);
+    expect(find.byKey(const Key('photo-flag-notice')), findsOneWidget);
+  });
+
+  testWidgets('no notice once an admin resolves the flag', (tester) async {
+    final resolved = _product(const StoreProfile()).copyWith(
+        vision: const ProductVision(
+            status: 'ok', mismatchFlagged: true, reviewResolved: true));
+    await _pump(tester, resolved);
+    expect(find.byKey(const Key('photo-flag-notice')), findsNothing);
+  });
 }
