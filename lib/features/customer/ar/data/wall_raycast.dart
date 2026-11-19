@@ -72,6 +72,42 @@ WallRayHit? raycastWalls({
   return best;
 }
 
+class FloorRayHit {
+  const FloorRayHit(this.point, this.distance, this.floor);
+
+  final Vector3 point;
+  final double distance;
+  final PlaneQuad floor;
+}
+
+// The painted (merged, gap-filled) floor is wider than ARCore's raw plane
+// patches, so a native hit-test can miss where the user sees green. This
+// intersects the screen ray with the floor height and accepts it only
+// inside a painted floor quad.
+FloorRayHit? raycastFloor({
+  required Vector3 origin,
+  required Vector3 dir,
+  required List<PlaneQuad> floors,
+  required double floorY,
+  double edgeMarginM = 0.05,
+}) {
+  if (dir.y > -1e-6) return null; // looking level or up: never hits floor
+  final t = (floorY - origin.y) / dir.y;
+  if (t <= 0) return null;
+  final p = origin + dir * t;
+  final q = Offset(p.x, p.z);
+  for (final f in floors) {
+    if (f.vertical) continue;
+    final corners = planeQuadCorners(f);
+    if (corners.length < 3) continue;
+    final poly = [for (final c in corners) Offset(c.x, c.z)];
+    if (_inside(poly, q) || _nearEdge(poly, q, edgeMarginM)) {
+      return FloorRayHit(Vector3(p.x, floorY, p.z), t, f);
+    }
+  }
+  return null;
+}
+
 bool _inside(List<Offset> poly, Offset p) {
   var c = false;
   for (var i = 0, j = poly.length - 1; i < poly.length; j = i++) {

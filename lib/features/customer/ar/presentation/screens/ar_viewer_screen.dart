@@ -194,6 +194,10 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
 
   final List<_PlacedItem> _placed = [];
   String? _selectedNodeName;
+  // The detection overlay is painted above the camera image, models
+  // included, so it tints placed furniture. It fades once something is
+  // placed; the More menu can show it fully again (or hide it).
+  bool? _overlayShown;
   String? _arError;
   bool _planesFound = false;
   bool _busy = false;
@@ -1188,6 +1192,32 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     );
   }
 
+  // Floor twin of _paintedWallHitAtTap: aiming at painted green floor counts
+  // as a floor hit (at the floor height) even where ARCore's raw patch has a
+  // gap — so the ring and taps agree with what the user sees.
+  ARHitTestResult? _paintedFloorHitAt(Offset? px) {
+    final size = _arViewSize;
+    final vp = _overlayVp.value ?? _overlay.value?.vp;
+    final floorY = _currentLiveFloorY;
+    if (px == null || size == null || vp == null || floorY == null) return null;
+    final ray = screenRay(vp, px, size);
+    if (ray == null) return null;
+    final h = raycastFloor(
+        origin: ray.origin,
+        dir: ray.dir,
+        floors: _floorZoneQuads,
+        floorY: floorY);
+    if (h == null) return null;
+    return ARHitTestResult(
+      ARHitTestResultType.plane,
+      h.distance,
+      Matrix4.translationValues(h.point.x, h.point.y, h.point.z),
+      planeType: 1,
+      planeExtentX: h.floor.extentX,
+      planeExtentZ: h.floor.extentZ,
+    );
+  }
+
   List<PlaneQuad> _snapWalls(List<PlaneQuad> walls) {
     final hadAxis = _roomAxis.axis != null;
     _roomAxis.observe(walls);
@@ -1327,8 +1357,16 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
         await _session!.hitTest(size.width / 2 * dpr, size.height / 2 * dpr);
     if (!mounted) return;
     final intent = _reticleIntent;
+    final viewSize = _arViewSize;
+    final paintedFloor = intent == PlacementType.wall || viewSize == null
+        ? null
+        : _paintedFloorHitAt(
+            Offset(viewSize.width / 2, viewSize.height / 2));
     final next = ReticleAdvisor.evaluate(
-      hits: _memoryFiltered(hits, intent),
+      hits: [
+        ..._memoryFiltered(hits, intent),
+        if (paintedFloor != null) paintedFloor,
+      ],
       intent: intent,
       liveFloorY: _currentLiveFloorY,
       vouchedFloor: _vouchedFloor,
@@ -1383,7 +1421,9 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
 
   Future<void> _onPlaneOrPointTap(List<ARHitTestResult> hits) async {
     if (_busy) return;
-    if (hits.isEmpty && _reticleIntent != PlacementType.wall) {
+    if (hits.isEmpty &&
+        _reticleIntent != PlacementType.wall &&
+        _paintedFloorHitAt(_lastTapPx) == null) {
       // An empty tap used to return in silence — the user just saw their
       // tap do nothing. Say why (the hint text depends on the intent).
       BootTrace.log('ar-screen: tap 0 plane hits intent=$_reticleIntent');
@@ -1539,9 +1579,13 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     final painted = requiredPlacement == PlacementType.floor
         ? null
         : _paintedWallHitAtTap();
+    final paintedFloor = requiredPlacement == PlacementType.wall
+        ? null
+        : _paintedFloorHitAt(_lastTapPx);
     final candidates = [
       ..._memoryFiltered(hits, requiredPlacement),
       if (painted != null) painted,
+      if (paintedFloor != null) paintedFloor,
     ];
     switch (requiredPlacement) {
       case PlacementType.floor:
@@ -2589,17 +2633,26 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                 (snap.quads.isEmpty && snap.synthetic == null)) {
               return const SizedBox.shrink();
             }
+            final opacity = switch (_overlayShown) {
+              true => 1.0,
+              false => 0.0,
+              null => _placed.isEmpty ? 1.0 : 0.25,
+            };
             return Positioned.fill(
-              // Inner listenable: matrix-only updates reproject the same
-              // quads (cheap paint) instead of waiting for the next plane
-              // event's rebuild — that gap was the camera swim.
-              child: ValueListenableBuilder<Matrix4?>(
-                valueListenable: _overlayVp,
-                builder: (context, vp, _) => PlaneOverlay(
-                  viewProjection: vp ?? snap.vp,
-                  quads: snap.renderQuads,
-                  masks: snap.masks,
-                  zoneCache: snap.zoneCache,
+              child: AnimatedOpacity(
+                opacity: opacity,
+                duration: const Duration(milliseconds: 300),
+                // Inner listenable: matrix-only updates reproject the same
+                // quads (cheap paint) instead of waiting for the next plane
+                // event's rebuild — that gap was the camera swim.
+                child: ValueListenableBuilder<Matrix4?>(
+                  valueListenable: _overlayVp,
+                  builder: (context, vp, _) => PlaneOverlay(
+                    viewProjection: vp ?? snap.vp,
+                    quads: snap.renderQuads,
+                    masks: snap.masks,
+                    zoneCache: snap.zoneCache,
+                  ),
                 ),
               ),
             );
@@ -3432,6 +3485,12 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
               if (_scanCoachHelpAvailable)
                 item('tips', Icons.help_outline, 'Scanning tips',
                     'Show the scan guide again'),
+              _overlayShown == false
+                  ? item('areas', Icons.layers_outlined, 'Show detected areas',
+                      'Green floor and blue walls the camera has found')
+                  : item('areas', Icons.layers_clear_outlined,
+                      'Hide detected areas',
+                      'See your room and furniture without the tint'),
               if (_placed.isNotEmpty)
                 item('clear', Icons.delete_sweep_outlined, 'Remove all items',
                     'Take every placed piece out of the view',
@@ -3452,6 +3511,8 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
         _useRoomShape();
       case 'tips':
         setState(() => _scanCoachDismissed = false);
+      case 'areas':
+        setState(() => _overlayShown = _overlayShown == false ? true : false);
       case 'clear':
         await _clearAll();
     }
