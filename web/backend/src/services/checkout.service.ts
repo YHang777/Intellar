@@ -542,7 +542,9 @@ export async function abandonOrder(
 async function releaseUnpaidOrder(
   db: Firestore,
   ref: DocumentReference,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
+  cancelIntent: (id: string) => Promise<unknown> = (id) =>
+    stripe().paymentIntents.cancel(id)
 ): Promise<void> {
   const paymentIntentId = asString(data.paymentIntentId);
   await db.runTransaction(async (txn) => {
@@ -555,9 +557,7 @@ async function releaseUnpaidOrder(
   });
   // Best effort: kill the intent so a stray sheet retry cannot charge later.
   if (paymentIntentId) {
-    await stripe()
-      .paymentIntents.cancel(paymentIntentId)
-      .catch(() => undefined);
+    await cancelIntent(paymentIntentId).catch(() => undefined);
   }
 }
 
@@ -804,32 +804,91 @@ async function markRefunded(db: Firestore, orderId: string, amount: number): Pro
   );
 }
 
-// ── stale sweep (app killed mid-payment) ────────────────────────────────────
+// ── payment window (unpaid orders expire after 15 minutes) ─────────────────
 
-const STALE_UNPAID_MS = 15 * 60 * 1000;
+/** How long a buyer has to finish paying before the reservation is released. */
+export const PAYMENT_WINDOW_MS = 15 * 60 * 1000;
+/** A payment Stripe is still processing (e.g. a bank step) gets this long. */
+const PROCESSING_GIVE_UP_MS = 60 * 60 * 1000;
 
-async function sweepStaleUnpaidOrders(db: Firestore, uid: string): Promise<void> {
-  const snap = await db.collection('orders').where('customerId', '==', uid).get();
-  const cutoff = Date.now() - STALE_UNPAID_MS;
-  for (const doc of snap.docs) {
+type IntentState = { state: 'paid' | 'failed' | 'pending'; paymentMethod: string };
+
+export interface PaymentWindowDeps {
+  intentState?: (paymentIntentId: string) => Promise<IntentState>;
+  cancelIntent?: (paymentIntentId: string) => Promise<unknown>;
+  now?: () => number;
+}
+
+export interface ExpireResult {
+  released: number;
+  paid: number;
+}
+
+async function expireUnpaidDocs(
+  db: Firestore,
+  docs: { id: string; ref: DocumentReference; data: () => unknown }[],
+  deps: PaymentWindowDeps
+): Promise<ExpireResult> {
+  const intentState = deps.intentState ?? paymentIntentState;
+  const cancelIntent = deps.cancelIntent ?? ((id: string) => stripe().paymentIntents.cancel(id));
+  const now = deps.now ? deps.now() : Date.now();
+  const result: ExpireResult = { released: 0, paid: 0 };
+  for (const doc of docs) {
     const data = asRecord(doc.data());
     if (asString(data.paymentStatus) !== 'unpaid') continue;
     if (asString(data.status) !== 'pending') continue;
     const createdAt = Date.parse(asString(data.createdAt));
-    if (!Number.isFinite(createdAt) || createdAt > cutoff) continue;
+    if (!Number.isFinite(createdAt)) continue;
+    const age = now - createdAt;
+    if (age < PAYMENT_WINDOW_MS) continue;
 
     const paymentIntentId = asString(data.paymentIntentId);
     if (paymentIntentId) {
       // Stripe decides: a payment that just landed must keep its order.
-      const intent = await paymentIntentState(paymentIntentId).catch(() => null);
-      if (intent?.state === 'paid') {
+      const intent = await intentState(paymentIntentId).catch(() => null);
+      if (!intent) continue;
+      if (intent.state === 'paid') {
         await markOrderPaid(db, doc.id, paymentIntentId, intent.paymentMethod);
+        result.paid += 1;
         continue;
       }
-      if (intent?.state === 'pending') continue;
+      if (intent.state === 'pending') {
+        // Still processing: leave it, unless it is very old AND Stripe agrees
+        // to cancel it (a processing payment cannot be cancelled).
+        if (age < PROCESSING_GIVE_UP_MS) continue;
+        const cancelled = await cancelIntent(paymentIntentId).then(
+          () => true,
+          () => false
+        );
+        if (!cancelled) continue;
+        await releaseUnpaidOrder(db, doc.ref, data, async () => undefined);
+        result.released += 1;
+        continue;
+      }
     }
-    await releaseUnpaidOrder(db, doc.ref, data);
+    await releaseUnpaidOrder(db, doc.ref, data, cancelIntent);
+    result.released += 1;
   }
+  return result;
+}
+
+/** One buyer's expired checkouts — run before they start a new one. */
+async function sweepStaleUnpaidOrders(db: Firestore, uid: string): Promise<void> {
+  const snap = await db.collection('orders').where('customerId', '==', uid).get();
+  await expireUnpaidDocs(db, snap.docs, {});
+}
+
+/**
+ * Every expired checkout on the platform: cancels the Stripe payment and puts
+ * the reserved stock back. Runs on a timer from index.ts.
+ */
+export async function expireUnpaidOrders(
+  dbOverride?: Firestore,
+  deps: PaymentWindowDeps = {}
+): Promise<ExpireResult> {
+  const db = dbOverride ?? fbDb();
+  const snap = await db.collection('orders').where('paymentStatus', '==', 'unpaid').get();
+  return expireUnpaidDocs(db, snap.docs, deps);
 }
 
 // ── webhook ─────────────────────────────────────────────────────────────────

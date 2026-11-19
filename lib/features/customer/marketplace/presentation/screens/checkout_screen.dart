@@ -438,8 +438,9 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                             const SizedBox(height: 6),
                             Text(
                               'Pay by credit / debit card or FPX online '
-                              'banking. Your items are reserved while you '
-                              'pay.',
+                              'banking. Your items are held for 15 minutes '
+                              'while you pay; after that the order is '
+                              'cancelled and nothing is charged.',
                               style: TextStyle(
                                 fontSize: 12,
                                 height: 1.4,

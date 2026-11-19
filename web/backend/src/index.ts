@@ -5,6 +5,7 @@ import { env } from './config/env';
 import { firebaseConfigured } from './config/firebase';
 import { verificationEmailConfigured } from './services/verification-email.service';
 import { purgeDueDeletions } from './services/deletion.service';
+import { expireUnpaidOrders, stripeConfigured } from './services/checkout.service';
 
 const app = createApp();
 
@@ -48,3 +49,25 @@ app.listen(env.port, '0.0.0.0', () => {
 // Server is up — start purging due deletions now, then every 15 minutes.
 runDeletionSweep();
 setInterval(runDeletionSweep, 15 * 60 * 1000).unref?.();
+
+// Checkouts not paid within 15 minutes are cancelled and their stock returned.
+// Checked every minute while the host is awake (and again on each checkout).
+let expiring = false;
+const runPaymentExpiry = (): void => {
+  if (expiring || !firebaseConfigured() || !stripeConfigured()) return;
+  expiring = true;
+  void expireUnpaidOrders()
+    .then((r) => {
+      if (r.released > 0 || r.paid > 0) {
+        console.log(`[payment expiry] released=${r.released} paid=${r.paid}`);
+      }
+    })
+    .catch((err: unknown) => {
+      console.log(`[payment expiry] skipped: ${err instanceof Error ? err.message : String(err)}`);
+    })
+    .finally(() => {
+      expiring = false;
+    });
+};
+runPaymentExpiry();
+setInterval(runPaymentExpiry, 60 * 1000).unref?.();
