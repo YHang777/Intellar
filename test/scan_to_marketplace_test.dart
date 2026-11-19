@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -130,8 +131,10 @@ void main() {
     // The scan button exercises the camera path — in tests there is no
     // camera, so this must land on the graceful "not available" branch
     // instead of throwing.
-    expect(find.byTooltip('Scan Room'), findsOneWidget);
-    await tester.tap(find.byTooltip('Scan Room'));
+    await tester.tap(find.byKey(const ValueKey('planner-more')));
+    await _settle(tester);
+    expect(find.text('Scan room'), findsOneWidget);
+    await tester.tap(find.text('Scan room'));
     await _settle(tester);
     expect(tester.takeException(), isNull);
     expect(find.text('Camera not available'), findsOneWidget);

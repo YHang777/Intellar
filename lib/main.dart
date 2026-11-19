@@ -19,6 +19,8 @@ const _bootWorkDelay = Duration(seconds: 3);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The app is designed for portrait only — never rotate.
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   await BootTrace.start('main()');
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(

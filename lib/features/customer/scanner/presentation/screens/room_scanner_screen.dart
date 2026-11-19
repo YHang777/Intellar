@@ -1487,6 +1487,37 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     setState(() => _roomType = picked);
   }
 
+  Future<void> _onPlannerMenu(String action) async {
+    switch (action) {
+      case 'scan':
+        await _openScanner();
+      case 'ar':
+        // Same round-trip as Walk Through: capture a scanned outline in AR
+        // and adopt it back here.
+        final updated = await context.push<RoomDesign>(
+          '/ar-viewer',
+          extra: ArViewerArgs(
+            items: ArFurnitureLibrary.fromIconNames(
+                _furniture.map((f) => f.iconName).toList()),
+            design: _snapshotDesign(),
+          ),
+        );
+        if (!mounted) return;
+        if (updated != null) _adoptDesign(updated);
+        _rebuildSceneWhenSettled();
+      case 'walk':
+        final saved = await context.push<RoomDesign>(
+          '/walkthrough',
+          extra: _snapshotDesign(),
+        );
+        if (!mounted) return;
+        if (saved != null) _adoptDesign(saved);
+        _rebuildSceneWhenSettled();
+      case 'share':
+        await _shareLink();
+    }
+  }
+
   // The scanner is a full-screen tool: hide the tab bar while it is open.
   void _syncTabBar() {
     final hide = _stage != _Stage.plan;
@@ -1551,6 +1582,8 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                               ? 'Edit: ${_designName ?? 'Design'}'
                               : 'Room Planner',
                         },
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: isDark
                             ? GoogleFonts.poppins(
                                 color: fgColor,
@@ -1566,55 +1599,69 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                               ),
                       ),
                     ),
+                    // One labelled Save plus a labelled menu: five bare icons
+                    // squeezed the title onto two lines and were unclear.
                     if (_stage == _Stage.plan) ...[
-                      IconButton(
-                        icon: Icon(Icons.camera_alt, color: fgColor),
-                        tooltip: 'Scan Room',
-                        onPressed: _openScanner,
+                      Tooltip(
+                        message: 'Save Design',
+                        child: TextButton.icon(
+                          key: const Key('planner-save'),
+                          onPressed: _saveDesign,
+                          icon: Icon(Icons.save_outlined,
+                              size: 18, color: fgColor),
+                          label: Text('Save',
+                              style: GoogleFonts.poppins(
+                                  color: fgColor,
+                                  fontWeight: FontWeight.w600)),
+                          style: TextButton.styleFrom(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 8)),
+                        ),
                       ),
-                      IconButton(
-                        icon: Icon(Icons.view_in_ar, color: fgColor),
-                        tooltip: 'View in AR',
-                        onPressed: () async {
-                          // Same round-trip as Walk Through: capture a
-                          // scanned outline in AR and adopt it back here.
-                          final updated =
-                              await context.push<RoomDesign>(
-                            '/ar-viewer',
-                            extra: ArViewerArgs(
-                              items: ArFurnitureLibrary.fromIconNames(
-                                  _furniture.map((f) => f.iconName).toList()),
-                              design: _snapshotDesign(),
+                      PopupMenuButton<String>(
+                        key: const Key('planner-more'),
+                        tooltip: 'More options',
+                        icon: Icon(Icons.more_vert, color: fgColor),
+                        onSelected: _onPlannerMenu,
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(
+                            value: 'scan',
+                            child: ListTile(
+                              leading: Icon(Icons.camera_alt_outlined),
+                              title: Text('Scan room'),
+                              subtitle: Text('Read floor, walls and furniture'),
+                              contentPadding: EdgeInsets.zero,
                             ),
-                          );
-                          if (!mounted) return;
-                          if (updated != null) _adoptDesign(updated);
-                          _rebuildSceneWhenSettled();
-                        },
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.directions_walk, color: fgColor),
-                        tooltip: 'Walk Through',
-                        onPressed: () async {
-                          final saved = await context.push<RoomDesign>(
-                            '/walkthrough',
-                            extra: _snapshotDesign(),
-                          );
-                          if (!mounted) return;
-                          if (saved != null) _adoptDesign(saved);
-                          _rebuildSceneWhenSettled();
-                        },
-                      ),
-                      IconButton(
-                        key: const Key('planner-share'),
-                        icon: Icon(Icons.share, color: fgColor),
-                        tooltip: 'Share as link',
-                        onPressed: _shareLink,
-                      ),
-                      IconButton(
-                        icon: Icon(Icons.save, color: fgColor),
-                        tooltip: 'Save Design',
-                        onPressed: _saveDesign,
+                          ),
+                          PopupMenuItem(
+                            value: 'ar',
+                            child: ListTile(
+                              leading: Icon(Icons.view_in_ar_outlined),
+                              title: Text('View in AR'),
+                              subtitle: Text('See it in your real room'),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'walk',
+                            child: ListTile(
+                              leading: Icon(Icons.directions_walk),
+                              title: Text('Walk through'),
+                              subtitle: Text('Explore it in first person'),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'share',
+                            child: ListTile(
+                              key: Key('planner-share'),
+                              leading: Icon(Icons.share_outlined),
+                              title: Text('Share link'),
+                              subtitle: Text('Anyone can view it in 3D'),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ],
@@ -2600,6 +2647,8 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
 
   // Live marketplace products with a ready 3D model sit first under "All" and
   // in their own tab; they place at the seller's size with their own GLB.
+  static const double _tileImageH = 72;
+
   Widget _catalogPanel() {
     final market = ref.watch(marketplace3dProductsProvider);
     final categories = <String>[
@@ -2634,7 +2683,8 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
             onSelected: (c) => setState(() => _catalogCategory = c),
           ),
           SizedBox(
-            height: 80,
+            // Fixed picture box + up to two name lines + price line.
+            height: _tileImageH + 50,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.only(right: 16),
@@ -2657,7 +2707,8 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
+            SizedBox(
+              height: _tileImageH,
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   color: AppColors.background,
@@ -2674,6 +2725,8 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
             Text(
               cat.name,
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: GoogleFonts.poppins(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -2695,26 +2748,27 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(
+            SizedBox(
+              height: _tileImageH,
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.background,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(color: AppColors.accent),
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12),
-                      // Seller photos vary in shape: fit the whole product
-                      // inside the tile instead of cropping it.
+                      // Same near-square box as the catalogue tiles, so the
+                      // photo fills it with only a slight trim.
                       child: p.image.isEmpty
                           ? Icon(_iconFor(iconNameForProduct(p)),
                               color: AppColors.accent)
                           : Image.network(
                               p.image,
-                              fit: BoxFit.contain,
+                              fit: BoxFit.cover,
                               errorBuilder: (_, __, ___) => Icon(
                                   _iconFor(iconNameForProduct(p)),
                                   color: AppColors.accent),
