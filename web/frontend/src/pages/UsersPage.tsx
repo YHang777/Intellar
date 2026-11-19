@@ -1,3 +1,4 @@
+import { EmailLink } from '../components/EmailLink';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usersApi } from '../api/api';
 import { ApiError } from '../api/client';
@@ -152,7 +153,7 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
         key: 'email',
         header: 'Email',
         sortValue: (u) => u.email.toLowerCase(),
-        render: (u) => <span className="mono">{u.email}</span>,
+        render: (u) => <EmailLink email={u.email} />,
       },
       {
         key: 'role',

@@ -2642,3 +2642,7 @@ code,
   .revenue-amount { font-size: 10px; }
   .revenue-note { padding: 0 16px 14px; }
 }
+
+.email-link { cursor: pointer; border-radius: 4px; }
+.email-link:hover { color: var(--accent-text); text-decoration: underline dotted; }
+.email-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
