@@ -11,6 +11,9 @@ import '../datasources/verification_email_datasource.dart';
 import '../../../../models/store_profile.dart';
 import '../models/app_user.dart';
 
+// Two-step sign-in is required for sellers and optional for homeowners.
+bool needsTwoFactor(AppUser user) => user.twoFactorEnabled || user.isSupplier;
+
 class AuthRepositoryImpl implements IAuthRepository {
   final FirebaseAuthDatasource _authDatasource;
   final FirestoreUserDatasource _firestoreDatasource;
@@ -49,9 +52,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         final user = await _buildAppUser(fbUser)
             .timeout(const Duration(seconds: 25));
         await BootTrace.log('authState: profile OK');
-        // Seller accounts always use two-step sign-in on a new device.
-        if ((user.twoFactorEnabled || user.isSupplier) &&
-            !await _deviceStore.isVerified(user.uid)) {
+        if (needsTwoFactor(user) && !await _deviceStore.isVerified(user.uid)) {
           return user.copyWith(twoFactorPending: true);
         }
         return user;
@@ -92,7 +93,9 @@ class AuthRepositoryImpl implements IAuthRepository {
       final user = await _buildAppUser(fbUser)
           .timeout(const Duration(seconds: 25));
       await BootTrace.log('login: profile OK role=${user.role.name}');
-      if (user.twoFactorEnabled) {
+      // A fresh sign-in always asks for the code when two-step applies,
+      // sellers included (this path used to let sellers skip it).
+      if (needsTwoFactor(user)) {
         await _deviceStore.clear(user.uid);
         return user.copyWith(twoFactorPending: true);
       }
