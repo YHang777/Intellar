@@ -35,7 +35,7 @@ class CodeInputField extends StatelessWidget {
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       onSubmitted: onSubmitted,
       style: GoogleFonts.poppins(
-        fontSize: 26,
+        fontSize: 22,
         fontWeight: FontWeight.w700,
         letterSpacing: 10,
         color: AppColors.textPrimary,
@@ -44,7 +44,7 @@ class CodeInputField extends StatelessWidget {
         counterText: '',
         hintText: '000000',
         hintStyle: GoogleFonts.poppins(
-          fontSize: 26,
+          fontSize: 22,
           letterSpacing: 10,
           color: AppColors.textHint.withValues(alpha: 0.5),
         ),

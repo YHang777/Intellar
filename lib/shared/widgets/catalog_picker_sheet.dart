@@ -207,7 +207,7 @@ class _PickerCard extends StatelessWidget {
                 Text(sublabel!,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.poppins(
-                        fontSize: 10,
+                        fontSize: 11,
                         fontWeight: FontWeight.w500,
                         color: AppColors.textSecondary)),
               ],

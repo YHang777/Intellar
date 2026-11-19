@@ -63,7 +63,7 @@ class VerifiedSellerLine extends StatelessWidget {
               name,
               style: nameStyle ??
                   GoogleFonts.poppins(
-                    fontSize: 10,
+                    fontSize: 11,
                     fontWeight: FontWeight.w500,
                     color: AppColors.textHint,
                     height: 1.2,

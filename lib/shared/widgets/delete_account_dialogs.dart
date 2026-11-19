@@ -38,7 +38,7 @@ Future<bool> showDeleteAccountFlow(
         'Delete your account?',
         textAlign: TextAlign.center,
         style: GoogleFonts.poppins(
-          fontSize: 17,
+          fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
@@ -51,7 +51,7 @@ Future<bool> showDeleteAccountFlow(
             'deleted. Your order history is kept, but made anonymous.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              fontSize: 13.5,
+              fontSize: 14,
               color: AppColors.textSecondary,
               height: 1.4,
             ),
@@ -63,7 +63,7 @@ Future<bool> showDeleteAccountFlow(
             'your account.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              fontSize: 13.5,
+              fontSize: 14,
               color: AppColors.textSecondary,
               height: 1.4,
             ),
@@ -135,7 +135,7 @@ class _TypeToConfirmDialogState extends State<_TypeToConfirmDialog> {
         'Confirm deletion',
         textAlign: TextAlign.center,
         style: GoogleFonts.poppins(
-          fontSize: 17,
+          fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
@@ -147,7 +147,7 @@ class _TypeToConfirmDialogState extends State<_TypeToConfirmDialog> {
             'Type the phrase below to continue.',
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              fontSize: 13.5,
+              fontSize: 14,
               color: AppColors.textSecondary,
               height: 1.4,
             ),
@@ -157,7 +157,7 @@ class _TypeToConfirmDialogState extends State<_TypeToConfirmDialog> {
             kDeleteAccountPhrase,
             textAlign: TextAlign.center,
             style: GoogleFonts.poppins(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w700,
               letterSpacing: 1,
               color: AppColors.error,

@@ -190,7 +190,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
               Text(
                 'Items (${order.items.length})',
                 style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: AppColors.textPrimary,
                 ),
@@ -268,7 +268,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
               value,
               textAlign: TextAlign.right,
               style: const TextStyle(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
@@ -291,7 +291,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
                 Text(
                   item.name,
                   style: const TextStyle(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
@@ -300,7 +300,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
                 Text(
                   '${item.quantity} × ${Formatters.myr(item.unitPrice)}',
                   style: TextStyle(
-                      fontSize: 11.5, color: AppColors.textHint),
+                      fontSize: 12, color: AppColors.textHint),
                 ),
               ],
             ),
@@ -309,7 +309,7 @@ class _OrderReceiptScreenState extends ConsumerState<OrderReceiptScreen> {
           Text(
             Formatters.myr(item.lineTotal),
             style: const TextStyle(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),

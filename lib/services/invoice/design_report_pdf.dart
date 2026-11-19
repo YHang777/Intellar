@@ -48,7 +48,7 @@ class DesignReportPdf {
 const List<int> _itemFlex = [6, 2, 2];
 
 final pw.TextStyle _cell =
-    const pw.TextStyle(fontSize: 10, color: PdfColors.grey900);
+    const pw.TextStyle(fontSize: 11, color: PdfColors.grey900);
 
 List<pw.Widget> _body(DesignReportData report) => [
       _header(report),
@@ -81,7 +81,7 @@ pw.Widget _header(DesignReportData report) {
             pw.Text(
               'DESIGN REPORT',
               style: pw.TextStyle(
-                fontSize: 28,
+                fontSize: 22,
                 fontWeight: pw.FontWeight.bold,
                 letterSpacing: 1.5,
               ),
@@ -154,7 +154,7 @@ pw.Widget _overviewRow(String label, String value) {
         pw.Text(
           value,
           textAlign: pw.TextAlign.right,
-          style: pw.TextStyle(fontSize: 10.5, color: PdfColors.grey900),
+          style: pw.TextStyle(fontSize: 11, color: PdfColors.grey900),
         ),
       ],
     ),
@@ -208,7 +208,7 @@ pw.Widget _itemsTable(DesignReportData report) {
           'Furniture subtotal  ·  '
           '${report.expenses.hasData ? Formatters.myr(report.expenses.furniture) : '-'}',
           style: pw.TextStyle(
-            fontSize: 10.5,
+            fontSize: 11,
             fontWeight: pw.FontWeight.bold,
             color: PdfColors.grey900,
           ),
@@ -259,7 +259,7 @@ pw.Widget _expenses(DesignReportData report) {
 pw.Widget _totalLine(String label, String value, {bool strong = false}) {
   final style = strong
       ? pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)
-      : const pw.TextStyle(fontSize: 10.5);
+      : const pw.TextStyle(fontSize: 11);
   return pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 2),
     child: pw.Row(
@@ -284,7 +284,7 @@ pw.Widget _sectionTitle(String text) {
   return pw.Text(
     text.toUpperCase(),
     style: pw.TextStyle(
-      fontSize: 9,
+      fontSize: 11,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey600,
       letterSpacing: 0.8,
@@ -297,7 +297,7 @@ pw.Widget _label(String text, {pw.TextAlign align = pw.TextAlign.left}) {
     text.toUpperCase(),
     textAlign: align,
     style: pw.TextStyle(
-      fontSize: 8.5,
+      fontSize: 11,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey600,
       letterSpacing: 0.8,

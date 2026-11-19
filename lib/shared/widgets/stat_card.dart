@@ -68,7 +68,7 @@ class _StatCardState extends State<StatCard> {
                 maxLines: 1,
                 style: GoogleFonts.poppins(
                   color: Colors.white,
-                  fontSize: 20,
+                  fontSize: 18,
                   fontWeight: FontWeight.bold,
                   letterSpacing: -0.3,
                   height: 1.2,

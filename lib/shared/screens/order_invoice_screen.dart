@@ -201,7 +201,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
               ? Text(
                   'No items on this invoice.',
                   style: GoogleFonts.poppins(
-                      fontSize: 12.5, color: AppColors.textHint),
+                      fontSize: 13, color: AppColors.textHint),
                 )
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -253,7 +253,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
                     Text(
                       'PAID ${Formatters.shortDate(invoice.paidAt!)}',
                       style: GoogleFonts.poppins(
-                        fontSize: 11.5,
+                        fontSize: 12,
                         fontWeight: FontWeight.w700,
                         letterSpacing: 0.6,
                         color: AppColors.success,
@@ -270,7 +270,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
           'Order ${invoice.orderNumber} · ${invoice.orderId}',
           textAlign: TextAlign.center,
           style: GoogleFonts.poppins(
-            fontSize: 10.5,
+            fontSize: 11,
             color: AppColors.textHint,
           ),
         ),
@@ -302,7 +302,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
           Text(
             title,
             style: GoogleFonts.poppins(
-              fontSize: 15,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
@@ -323,7 +323,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
       return Text(
         'Not recorded',
         style: GoogleFonts.poppins(
-            fontSize: 12.5, color: AppColors.textHint),
+            fontSize: 13, color: AppColors.textHint),
       );
     }
     return Column(
@@ -346,7 +346,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
             child: Text(
               line,
               style: GoogleFonts.poppins(
-                fontSize: 12.5,
+                fontSize: 13,
                 height: 1.4,
                 color: AppColors.textSecondary,
               ),
@@ -365,7 +365,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
           Text(
             label,
             style: GoogleFonts.poppins(
-                fontSize: 12.5, color: AppColors.textSecondary),
+                fontSize: 13, color: AppColors.textSecondary),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -373,7 +373,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
               value,
               textAlign: TextAlign.right,
               style: GoogleFonts.poppins(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w500,
                 color: AppColors.textPrimary,
               ),
@@ -397,7 +397,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
                 Text(
                   item.name,
                   style: GoogleFonts.poppins(
-                    fontSize: 12.5,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.textPrimary,
                   ),
@@ -406,7 +406,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
                 Text(
                   '${item.quantity} × ${Formatters.myr(item.unitPrice)}',
                   style: GoogleFonts.poppins(
-                      fontSize: 11.5, color: AppColors.textHint),
+                      fontSize: 12, color: AppColors.textHint),
                 ),
               ],
             ),
@@ -415,7 +415,7 @@ class _OrderInvoiceScreenState extends ConsumerState<OrderInvoiceScreen> {
           Text(
             Formatters.myr(item.lineTotal),
             style: GoogleFonts.poppins(
-              fontSize: 12.5,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.textPrimary,
             ),

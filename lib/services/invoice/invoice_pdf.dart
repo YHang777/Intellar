@@ -48,7 +48,7 @@ class InvoicePdf {
 const List<int> _itemFlex = [6, 1, 2, 2];
 
 final pw.TextStyle _cell =
-    const pw.TextStyle(fontSize: 10, color: PdfColors.grey900);
+    const pw.TextStyle(fontSize: 11, color: PdfColors.grey900);
 
 List<pw.Widget> _body(OrderInvoice invoice) => [
       _header(invoice),
@@ -74,7 +74,7 @@ pw.Widget _header(OrderInvoice invoice) {
         child: pw.Text(
           'INVOICE',
           style: pw.TextStyle(
-            fontSize: 30,
+            fontSize: 22,
             fontWeight: pw.FontWeight.bold,
             letterSpacing: 1.5,
           ),
@@ -164,7 +164,7 @@ pw.Widget _referenceStrip(OrderInvoice invoice) {
     ),
     child: pw.Text(
       parts.join('  ·  '),
-      style: pw.TextStyle(fontSize: 9.5, color: PdfColors.grey800),
+      style: pw.TextStyle(fontSize: 11, color: PdfColors.grey800),
     ),
   );
 }
@@ -257,7 +257,7 @@ pw.Widget _totals(OrderInvoice invoice) {
               child: pw.Text(
                 'PAID ${Formatters.shortDate(invoice.paidAt!)}',
                 style: pw.TextStyle(
-                  fontSize: 10,
+                  fontSize: 11,
                   fontWeight: pw.FontWeight.bold,
                   color: PdfColors.green800,
                   letterSpacing: 0.6,
@@ -274,7 +274,7 @@ pw.Widget _totals(OrderInvoice invoice) {
 pw.Widget _totalLine(String label, String value, {bool strong = false}) {
   final style = strong
       ? pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)
-      : const pw.TextStyle(fontSize: 10.5);
+      : const pw.TextStyle(fontSize: 11);
   return pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 2),
     child: pw.Row(
@@ -304,7 +304,7 @@ pw.Widget _label(String text, {pw.TextAlign align = pw.TextAlign.left}) {
     text.toUpperCase(),
     textAlign: align,
     style: pw.TextStyle(
-      fontSize: 8.5,
+      fontSize: 11,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey600,
       letterSpacing: 0.8,

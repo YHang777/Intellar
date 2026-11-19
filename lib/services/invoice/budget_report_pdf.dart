@@ -125,7 +125,7 @@ pw.Widget _header(String room, DateTime generatedAt) {
             pw.Text(
               'BUDGET REPORT',
               style: pw.TextStyle(
-                fontSize: 28,
+                fontSize: 22,
                 fontWeight: pw.FontWeight.bold,
                 letterSpacing: 1.5,
               ),
@@ -164,7 +164,7 @@ pw.Widget _overviewRow(String label, String value) {
         pw.Text(
           value,
           textAlign: pw.TextAlign.right,
-          style: pw.TextStyle(fontSize: 10.5, color: PdfColors.grey900),
+          style: pw.TextStyle(fontSize: 11, color: PdfColors.grey900),
         ),
       ],
     ),
@@ -245,7 +245,7 @@ pw.Widget _sectionTitle(String text) {
   return pw.Text(
     text.toUpperCase(),
     style: pw.TextStyle(
-      fontSize: 9,
+      fontSize: 11,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey600,
       letterSpacing: 0.8,
@@ -258,7 +258,7 @@ pw.Widget _label(String text, {pw.TextAlign align = pw.TextAlign.left}) {
     text.toUpperCase(),
     textAlign: align,
     style: pw.TextStyle(
-      fontSize: 8.5,
+      fontSize: 11,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey600,
       letterSpacing: 0.8,
@@ -267,7 +267,7 @@ pw.Widget _label(String text, {pw.TextAlign align = pw.TextAlign.left}) {
 }
 
 final pw.TextStyle _cell =
-    const pw.TextStyle(fontSize: 10, color: PdfColors.grey900);
+    const pw.TextStyle(fontSize: 11, color: PdfColors.grey900);
 
 pw.TextStyle _muted(double size) =>
     pw.TextStyle(fontSize: size, color: PdfColors.grey600);

@@ -57,7 +57,7 @@ class _GraceCard extends StatelessWidget {
           Text(
             'Account scheduled for deletion',
             style: GoogleFonts.poppins(
-              fontSize: 14.5,
+              fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary,
             ),
@@ -92,7 +92,7 @@ class _GraceCard extends StatelessWidget {
             child: Text(
               'Recover account',
               style: GoogleFonts.poppins(
-                fontSize: 13.5,
+                fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -130,7 +130,7 @@ class _PendingEmailRow extends StatelessWidget {
             child: Text(
               'Deletion requested — check your email to confirm.',
               style: GoogleFonts.poppins(
-                fontSize: 12.5,
+                fontSize: 13,
                 color: AppColors.textSecondary,
                 height: 1.3,
               ),
@@ -146,7 +146,7 @@ class _PendingEmailRow extends StatelessWidget {
             child: Text(
               'Cancel request',
               style: GoogleFonts.poppins(
-                fontSize: 12.5,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.secondaryAccent,
               ),

@@ -37,7 +37,7 @@ class PageHeading extends StatelessWidget {
                   maxLines: 1,
                   style: titleStyle ??
                       GoogleFonts.poppins(
-                        fontSize: 24,
+                        fontSize: 22,
                         fontWeight: FontWeight.w700,
                         color: AppColors.textPrimary,
                         letterSpacing: -0.3,

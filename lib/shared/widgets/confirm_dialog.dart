@@ -26,7 +26,7 @@ Future<bool> showConfirmDialog(
         title,
         textAlign: TextAlign.center,
         style: GoogleFonts.poppins(
-          fontSize: 17,
+          fontSize: 18,
           fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
@@ -35,7 +35,7 @@ Future<bool> showConfirmDialog(
         message,
         textAlign: TextAlign.center,
         style: GoogleFonts.poppins(
-          fontSize: 13.5,
+          fontSize: 14,
           color: AppColors.textSecondary,
           height: 1.4,
         ),

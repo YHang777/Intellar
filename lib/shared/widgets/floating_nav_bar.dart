@@ -55,7 +55,7 @@ class FloatingNavBar extends StatelessWidget {
             labelTextStyle: WidgetStateProperty.resolveWith((states) {
               final isSelected = states.contains(WidgetState.selected);
               return GoogleFonts.poppins(
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
                 color: isSelected ? AppColors.accent : AppColors.textHint,
               );

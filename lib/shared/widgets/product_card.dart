@@ -152,7 +152,7 @@ class ProductCard extends StatelessWidget {
                           child: Text('Only ${product.stock} left',
                               style: const TextStyle(
                                   color: Colors.white,
-                                  fontSize: 9,
+                                  fontSize: 11,
                                   fontWeight: FontWeight.w600)),
                         ),
                       ),
@@ -260,7 +260,7 @@ class ProductCard extends StatelessWidget {
                             ),
                             child: Text('New',
                                 style: GoogleFonts.poppins(
-                                    fontSize: 9,
+                                    fontSize: 11,
                                     fontWeight: FontWeight.w600,
                                     color: AppColors.accent)),
                           ),
@@ -345,7 +345,7 @@ class _Badge extends StatelessWidget {
           Text(text,
               style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 9,
+                  fontSize: 11,
                   fontWeight: FontWeight.w700)),
         ],
       ),

@@ -48,7 +48,7 @@ class ReceiptPdf {
 const List<int> _itemFlex = [6, 1, 2, 2];
 
 final pw.TextStyle _cell =
-    const pw.TextStyle(fontSize: 10, color: PdfColors.grey900);
+    const pw.TextStyle(fontSize: 11, color: PdfColors.grey900);
 
 List<pw.Widget> _body(Order order) => [
       _header(order),
@@ -74,7 +74,7 @@ pw.Widget _header(Order order) {
         child: pw.Text(
           'PAYMENT RECEIPT',
           style: pw.TextStyle(
-            fontSize: 26,
+            fontSize: 22,
             fontWeight: pw.FontWeight.bold,
             letterSpacing: 1.2,
           ),
@@ -117,7 +117,7 @@ pw.Widget _paidStrip(Order order) {
     child: pw.Text(
       'PAID  ·  ${parts.join('  ·  ')}',
       style: pw.TextStyle(
-        fontSize: 10.5,
+        fontSize: 11,
         fontWeight: pw.FontWeight.bold,
         color: PdfColors.green800,
       ),
@@ -251,7 +251,7 @@ pw.Widget _totals(Order order) {
 pw.Widget _totalLine(String label, String value, {bool strong = false}) {
   final style = strong
       ? pw.TextStyle(fontSize: 13, fontWeight: pw.FontWeight.bold)
-      : const pw.TextStyle(fontSize: 10.5);
+      : const pw.TextStyle(fontSize: 11);
   return pw.Padding(
     padding: const pw.EdgeInsets.symmetric(vertical: 2),
     child: pw.Row(
@@ -277,7 +277,7 @@ pw.Widget _label(String text, {pw.TextAlign align = pw.TextAlign.left}) {
     text.toUpperCase(),
     textAlign: align,
     style: pw.TextStyle(
-      fontSize: 8.5,
+      fontSize: 11,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey600,
       letterSpacing: 0.8,

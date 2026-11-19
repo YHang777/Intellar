@@ -127,7 +127,7 @@ const List<int> _flex2 = [3, 1];
 const List<int> _flex3 = [4, 1, 2];
 
 final pw.TextStyle _cell =
-    const pw.TextStyle(fontSize: 10, color: PdfColors.grey900);
+    const pw.TextStyle(fontSize: 11, color: PdfColors.grey900);
 
 pw.TextStyle _muted(double size) =>
     pw.TextStyle(fontSize: size, color: PdfColors.grey600);
@@ -137,7 +137,7 @@ pw.Widget _label(String text, {pw.TextAlign align = pw.TextAlign.left}) {
     text.toUpperCase(),
     textAlign: align,
     style: pw.TextStyle(
-      fontSize: 8.5,
+      fontSize: 11,
       fontWeight: pw.FontWeight.bold,
       color: PdfColors.grey600,
       letterSpacing: 0.8,
@@ -224,7 +224,7 @@ pw.Widget _header(SalesReportData data) {
             pw.Text(
               'SALES REPORT',
               style: pw.TextStyle(
-                fontSize: 30,
+                fontSize: 22,
                 fontWeight: pw.FontWeight.bold,
                 letterSpacing: 1.5,
               ),

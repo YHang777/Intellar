@@ -50,3 +50,6 @@ server/secrets/
 # Local env files
 .env
 *.env
+
+# Gradle caches inside local plugin packages
+**/android/.gradle/

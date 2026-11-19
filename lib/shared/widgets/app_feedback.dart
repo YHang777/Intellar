@@ -76,7 +76,7 @@ void showAppSnackbarOn(
               child: Text(
                 text,
                 style: GoogleFonts.poppins(
-                  fontSize: 12.5,
+                  fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: Colors.white,
                 ),
