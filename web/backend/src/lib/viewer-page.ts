@@ -106,8 +106,21 @@ function fail(title, text) {
 
 if (/Android/i.test(navigator.userAgent) && token) {
   const a = document.getElementById('openApp');
-  a.href = 'intent://open/d/' + token + '#Intent;scheme=intellar;package=' + window.__ANDROID_PACKAGE__ + ';end';
+  // Without the app, Chrome would open the Play Store (the app is not
+  // published there); the fallback brings people back here with a note.
+  const back = location.origin + location.pathname + '?app=missing';
+  a.href = 'intent://open/d/' + token + '#Intent;scheme=intellar;package=' + window.__ANDROID_PACKAGE__ +
+    ';S.browser_fallback_url=' + encodeURIComponent(back) + ';end';
   a.style.display = 'inline-block';
+}
+
+if (new URLSearchParams(location.search).get('app') === 'missing') {
+  const h = document.getElementById('hint');
+  h.textContent = 'The Intellar app is not installed on this phone. You can still look around here.';
+  h.style.whiteSpace = 'normal';
+  h.style.textAlign = 'center';
+  h.style.width = 'calc(100% - 32px)';
+  document.getElementById('openApp').style.display = 'none';
 }
 
 let data;
@@ -133,12 +146,19 @@ document.getElementById('subtitle').textContent = n === 1 ? '1 piece of furnitur
 // ── renderer ──
 const stage = document.getElementById('stage');
 const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.0;
 renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.type = THREE.PCFShadowMap;
+// The room never moves: shadows are drawn once per change, not every frame.
+renderer.shadowMap.autoUpdate = false;
+let dirty = true;
+function invalidate(shadows) {
+  dirty = true;
+  if (shadows) renderer.shadowMap.needsUpdate = true;
+}
 stage.append(renderer.domElement);
 
 const dark = matchMedia('(prefers-color-scheme: dark)').matches;
@@ -150,7 +170,7 @@ scene.environment = pmrem.fromScene(new RoomEnvironment(renderer), 0.04).texture
 scene.add(new THREE.HemisphereLight(0xfff6ea, 0x8a8178, 0.55));
 const sun = new THREE.DirectionalLight(0xfff1dc, 1.6);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.set(1024, 1024);
 sun.shadow.bias = -0.0004;
 scene.add(sun, sun.target);
 
@@ -195,7 +215,7 @@ function addWall(a, b, outer) {
   const mid = new THREE.Vector3((a[0] + b[0]) / 2, WALL_H / 2, (a[1] + b[1]) / 2);
   mesh.position.copy(mid);
   mesh.rotation.y = -Math.atan2(dz, dx);
-  mesh.castShadow = true; mesh.receiveShadow = true;
+  mesh.receiveShadow = true;
   scene.add(mesh);
   let normal = null;
   if (outer) {
@@ -260,6 +280,7 @@ function place(item, model) {
   }
   pivot.rotation.y = THREE.MathUtils.degToRad(yaw);
   scene.add(pivot);
+  invalidate(true);
 }
 
 for (const item of scene3.items || []) {
@@ -292,6 +313,7 @@ function frameSun() {
   s.left = -r; s.right = r; s.top = r; s.bottom = -r; s.near = 0.5; s.far = span * 6; s.updateProjectionMatrix();
 }
 frameSun();
+renderer.shadowMap.needsUpdate = true;
 
 // Intro: ease from a high wide shot down to the home view.
 let intro = { t: 0, from: new THREE.Vector3(centre.x + span * 2.2, span * 2.6, centre.z + span * 2.4), to: home.clone() };
@@ -320,9 +342,12 @@ function updateCutaway() {
   for (const w of walls) {
     const hide = w.normal ? w.normal.dot(toCam) > 0.25 : blocksView(w.a, w.b);
     const target = hide ? 0.08 : 1;
-    w.mesh.material.opacity += (target - w.mesh.material.opacity) * 0.2;
-    w.mesh.castShadow = !hide;
-    w.mesh.material.depthWrite = w.mesh.material.opacity > 0.5;
+    const m = w.mesh.material;
+    if (Math.abs(target - m.opacity) < 0.005) continue;
+    m.opacity += (target - m.opacity) * 0.2;
+    if (Math.abs(target - m.opacity) < 0.005) m.opacity = target;
+    m.depthWrite = m.opacity > 0.5;
+    dirty = true;
   }
 }
 
@@ -333,11 +358,16 @@ function tick() {
     intro.t = Math.min(1, intro.t + dt / 1.6);
     const e = 1 - Math.pow(1 - intro.t, 3);
     camera.position.lerpVectors(intro.from, intro.to, e);
+    dirty = true;
     if (intro.t >= 1) intro = null;
   }
-  controls.update();
+  if (controls.update()) dirty = true;
   updateCutaway();
-  renderer.render(scene, camera);
+  // Only draw when something changed: a still view costs nothing.
+  if (dirty) {
+    dirty = false;
+    renderer.render(scene, camera);
+  }
   requestAnimationFrame(tick);
 }
 statusEl.style.display = 'none';
@@ -347,6 +377,7 @@ addEventListener('resize', () => {
   camera.aspect = window.innerWidth / window.innerHeight;
   camera.updateProjectionMatrix();
   renderer.setSize(window.innerWidth, window.innerHeight);
+  invalidate();
 });
 </script>
 </body>
