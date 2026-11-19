@@ -30,10 +30,29 @@ ChatSession _session({
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  final store = ChatHistoryStore();
+  final store = ChatHistoryStore(ownerId: 'u1');
 
   setUp(() {
     SharedPreferences.setMockInitialValues({});
+  });
+
+  test('each account only sees its own chats; old shared chats are dropped',
+      () async {
+    SharedPreferences.setMockInitialValues({
+      ChatHistoryStore.prefsKey: '[{"legacy":true}]',
+    });
+    final mine = ChatHistoryStore(ownerId: 'alice');
+    final guest = ChatHistoryStore(ownerId: 'anon-123');
+    await mine.save([_session(id: 'a1', updatedAt: DateTime(2026, 10, 2))],
+        activeSessionId: 'a1');
+
+    expect((await mine.load()).map((s) => s.id), ['a1']);
+    expect(await guest.load(), isEmpty);
+    expect(await guest.loadActiveSessionId(), isNull);
+    final prefs = await SharedPreferences.getInstance();
+    expect(prefs.containsKey(ChatHistoryStore.prefsKey), isFalse);
+    expect(await ChatHistoryStore().load(), isEmpty,
+        reason: 'signed out: nothing to show');
   });
 
   test('load returns an empty list when nothing was saved', () async {

@@ -170,7 +170,7 @@ Future<void> _send(WidgetTester tester, String text) async {
 
 Future<List<Map<String, dynamic>>> _savedMessages() async {
   final prefs = await SharedPreferences.getInstance();
-  final raw = prefs.getString(ChatHistoryStore.prefsKey);
+  final raw = prefs.getString('${ChatHistoryStore.prefsKey}_u1');
   expect(raw, isNotNull);
   final sessions = jsonDecode(raw!) as List;
   final session = sessions.first as Map<String, dynamic>;
@@ -262,7 +262,7 @@ void main() {
   testWidgets('sending ships the transcript and chip context to the proxy',
       (tester) async {
     final capture = _ChatCapture();
-    await _pumpScreen(tester, capture);
+    await _pumpScreen(tester, capture, signedIn: true);
 
     await _openQuickSelect(tester);
     await tester.tap(_chip('Modern'));
@@ -511,14 +511,14 @@ void main() {
     expect(find.text('No saved chats'), findsOneWidget);
 
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(ChatHistoryStore.prefsKey) ?? '[]';
+    final raw = prefs.getString('${ChatHistoryStore.prefsKey}_u1') ?? '[]';
     expect(jsonDecode(raw) as List, isEmpty);
   });
 
   testWidgets('a failed reply lands as a friendly error bubble',
       (tester) async {
     final capture = _ChatCapture();
-    await _pumpScreen(tester, capture, fail: true);
+    await _pumpScreen(tester, capture, fail: true, signedIn: true);
 
     await _send(tester, 'Hello?');
 

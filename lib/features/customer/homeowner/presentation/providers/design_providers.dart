@@ -26,7 +26,7 @@ final chatDatasourceProvider = Provider<ChatDatasource>((ref) {
 // ─── Chat history (saved conversations, on-device) ───────────────────────────
 
 final chatHistoryStoreProvider = Provider<ChatHistoryStore>((ref) {
-  return ChatHistoryStore();
+  return ChatHistoryStore(ownerId: ref.watch(currentUserProvider)?.uid);
 });
 
 class ChatHistoryState {

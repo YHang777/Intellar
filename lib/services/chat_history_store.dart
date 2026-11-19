@@ -4,16 +4,34 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/chat_session.dart';
 
+// Conversations are kept per account on the phone: a guest (or the next
+// person to sign in) must never see someone else's chats.
 class ChatHistoryStore {
+  ChatHistoryStore({this.ownerId});
+
+  final String? ownerId;
+
   static const String prefsKey = 'ai_chat_history';
   static const String activeIdKey = 'ai_chat_active_session_id';
+
+  String get _historyKey => ownerId == null ? prefsKey : '${prefsKey}_$ownerId';
+  String get _activeKey => ownerId == null ? activeIdKey : '${activeIdKey}_$ownerId';
+
+  // Before chats were per account they shared one key; whose they were is
+  // unknown, so they are removed rather than shown to anyone.
+  static Future<void> _dropLegacy(SharedPreferences prefs) async {
+    if (prefs.containsKey(prefsKey)) await prefs.remove(prefsKey);
+    if (prefs.containsKey(activeIdKey)) await prefs.remove(activeIdKey);
+  }
   static const int maxSessions = 15;
   static const int maxMessagesPerSession = 40;
   static const int maxMessageChars = 2000;
 
   Future<List<ChatSession>> load() async {
     final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(prefsKey);
+    if (ownerId == null) return const [];
+    await _dropLegacy(prefs);
+    final raw = prefs.getString(_historyKey);
     if (raw == null || raw.isEmpty) return const [];
     try {
       final decoded = jsonDecode(raw);
@@ -29,7 +47,8 @@ class ChatHistoryStore {
 
   Future<String?> loadActiveSessionId() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(activeIdKey);
+    if (ownerId == null) return null;
+    return prefs.getString(_activeKey);
   }
 
   Future<void> save(
@@ -37,15 +56,16 @@ class ChatHistoryStore {
     String? activeSessionId,
   }) async {
     final prefs = await SharedPreferences.getInstance();
+    if (ownerId == null) return;
     final capped = _cap(sessions);
     await prefs.setString(
-      prefsKey,
+      _historyKey,
       jsonEncode([for (final s in capped) s.toJson()]),
     );
     if (activeSessionId == null) {
-      await prefs.remove(activeIdKey);
+      await prefs.remove(_activeKey);
     } else {
-      await prefs.setString(activeIdKey, activeSessionId);
+      await prefs.setString(_activeKey, activeSessionId);
     }
   }
 

@@ -7,6 +7,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/formatters.dart';
 import '../../../../../core/utils/user_errors.dart';
+import '../../../../auth/presentation/providers/auth_providers.dart';
 import '../../../../../shared/widgets/app_feedback.dart';
 import '../../../../../shared/widgets/empty_state.dart';
 import '../../../../../shared/widgets/float_button.dart';
@@ -14,7 +15,8 @@ import '../../../../../shared/widgets/page_heading.dart';
 import '../../data/ar_previews.dart';
 
 final arPreviewStoreProvider =
-    Provider<ArPreviewStore>((ref) => ArPreviewStore());
+    Provider<ArPreviewStore>((ref) =>
+        ArPreviewStore(ownerId: ref.watch(currentUserProvider)?.uid));
 
 final arPreviewsProvider = FutureProvider<List<ArPreview>>((ref) async {
   return ref.watch(arPreviewStoreProvider).list();

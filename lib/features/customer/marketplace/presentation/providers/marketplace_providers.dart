@@ -342,7 +342,7 @@ final filteredProductsProvider = Provider<List<Product>>((ref) {
 // ─── Recent searches (device-persisted) ───────────────────────────────────────
 
 final recentSearchesStoreProvider = Provider<RecentSearchesStore>((ref) {
-  return RecentSearchesStore();
+  return RecentSearchesStore(ownerId: ref.watch(currentUserProvider)?.uid);
 });
 
 class RecentSearchesNotifier extends Notifier<List<String>> {

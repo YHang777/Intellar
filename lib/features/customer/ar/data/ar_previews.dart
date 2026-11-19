@@ -40,9 +40,12 @@ class ArPreview {
 }
 
 class ArPreviewStore {
-  ArPreviewStore({Directory? root}) : _root = root;
+  ArPreviewStore({Directory? root, this.ownerId}) : _root = root;
 
   final Directory? _root;
+  // Photos live in a folder per account, so a guest or the next user never
+  // sees someone else's pictures.
+  final String? ownerId;
 
   static const _dirName = 'ar_previews';
   static const _indexFile = 'index.json';
@@ -54,7 +57,18 @@ class ArPreviewStore {
       return override;
     }
     final docs = await getApplicationDocumentsDirectory();
-    final dir = Directory('${docs.path}/$_dirName');
+    final shared = Directory('${docs.path}/$_dirName');
+    // Photos saved before they were per account have no known owner.
+    final legacyIndex = File('${shared.path}/$_indexFile');
+    if (legacyIndex.existsSync()) {
+      try {
+        for (final f in shared.listSync().whereType<File>()) {
+          f.deleteSync();
+        }
+      } catch (_) {}
+    }
+    final owner = (ownerId == null || ownerId!.isEmpty) ? '_nobody' : ownerId!;
+    final dir = Directory('${shared.path}/$owner');
     if (!dir.existsSync()) dir.createSync(recursive: true);
     return dir;
   }

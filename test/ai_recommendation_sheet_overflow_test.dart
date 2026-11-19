@@ -13,7 +13,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void _seedSession({required String title}) {
   SharedPreferences.setMockInitialValues({
-    ChatHistoryStore.prefsKey: jsonEncode([
+    '${ChatHistoryStore.prefsKey}_u1': jsonEncode([
       {
         'id': 's1',
         'title': title,
@@ -45,6 +45,7 @@ Future<void> _pumpScreen(WidgetTester tester, Size size) async {
         ),
         marketplaceProductsProvider.overrideWith((ref) => Stream.value(const [])),
         currentUserProvider.overrideWithValue(null),
+        chatHistoryStoreProvider.overrideWithValue(ChatHistoryStore(ownerId: 'u1')),
       ],
       child: const MaterialApp(home: AiRecommendationScreen()),
     ),

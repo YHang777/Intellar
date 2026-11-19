@@ -18,6 +18,8 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vector_math/vector_math_64.dart' hide Colors;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'ar_previews_screen.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/boot_trace.dart';
 import '../../../../../core/utils/native_scene_guard.dart';
@@ -3466,7 +3468,9 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           ? (widget.title.trim().isEmpty ? 'AR preview' : widget.title.trim())
           : '${widget.title.trim()} · ${_placed.length} '
               '${_placed.length == 1 ? 'item' : 'items'}';
-      await ArPreviewStore().save(bytes, label: label);
+      await ProviderScope.containerOf(context, listen: false)
+          .read(arPreviewStoreProvider)
+          .save(bytes, label: label);
       if (!mounted) return;
       showAppSnackbar(context, 'Preview saved',
           actionLabel: 'View',

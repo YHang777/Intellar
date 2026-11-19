@@ -7,6 +7,9 @@ import 'package:interior_design_recommendation/services/chat_history_store.dart'
 class _FakeChatHistoryStore implements ChatHistoryStore {
   _FakeChatHistoryStore({this.sessions = const [], this.activeId});
 
+  @override
+  String? get ownerId => 'u1';
+
   List<ChatSession> sessions;
   String? activeId;
   int saveCalls = 0;

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:interior_design_recommendation/services/chat_history_store.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:interior_design_recommendation/features/auth/presentation/providers/auth_providers.dart';
@@ -81,6 +82,7 @@ Future<void> _pumpHost(
         marketplaceProductsProvider
             .overrideWith((ref) => Stream.value([product])),
         currentUserProvider.overrideWithValue(null),
+        chatHistoryStoreProvider.overrideWithValue(ChatHistoryStore(ownerId: 'u1')),
         if (cart.isNotEmpty) cartProvider.overrideWith(() => _StaticCart(cart)),
         if (budget != null)
           budgetPlanProvider.overrideWith((ref) => Stream.value(budget)),
@@ -323,7 +325,7 @@ void main() {
   testWidgets('the buyer saved household design rides along with the request',
       (tester) async {
     SharedPreferences.setMockInitialValues({
-      'ai_chat_history': jsonEncode([
+      'ai_chat_history_u1': jsonEncode([
         {
           'id': 'sess-1',
           'title': 'Living room ideas',
@@ -334,7 +336,7 @@ void main() {
           'updatedAt': '2026-01-01T00:00:00.000Z',
         },
       ]),
-      'ai_chat_active_session_id': 'sess-1',
+      'ai_chat_active_session_id_u1': 'sess-1',
     });
     final capture = _ChatCapture();
     await _pumpHost(tester, capture);
