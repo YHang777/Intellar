@@ -414,7 +414,7 @@ void main() {
       (tester) async {
     await pumpPlanner(tester);
 
-    await tester.tap(find.text('Walls'));
+    await tester.tap(find.text('Add walls'));
     await tester.pump();
 
     await tapFloor(tester, const Offset(30, 30));
@@ -437,7 +437,7 @@ void main() {
   testWidgets('Finish wall starts a separate wall on the next tap',
       (tester) async {
     await pumpPlanner(tester);
-    await tester.tap(find.text('Walls'));
+    await tester.tap(find.text('Add walls'));
     await tester.pump();
 
     await tapFloor(tester, const Offset(100, 100));
@@ -460,7 +460,7 @@ void main() {
       Offset(350, 450),
       Offset(50, 450),
     ]);
-    await tester.tap(find.text('Walls'));
+    await tester.tap(find.text('Add walls'));
     await tester.pump();
 
     final handle = find.byKey(const ValueKey('wall-handle-0'));
@@ -494,7 +494,7 @@ void main() {
       Offset(350, 450),
       Offset(50, 450),
     ]);
-    await tester.tap(find.text('Walls'));
+    await tester.tap(find.text('Add walls'));
     await tester.pump();
     await tapFloor(tester, const Offset(100, 200));
     await tapFloor(tester, const Offset(300, 200));

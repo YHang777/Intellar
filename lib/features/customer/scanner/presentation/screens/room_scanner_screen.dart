@@ -2323,80 +2323,109 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                 ),
               ],
               const SizedBox(height: 8),
-              // Wrap keeps every label whole: a squeeze-Row truncated the
-              // button text ("+Add furnitur…") on narrow planner panels.
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              // One row on every phone: a wrapping layout pushed Clear onto a
+              // second line on narrow screens and squeezed the catalogue.
+              // Labels scale down instead of being cut off.
+              Row(
                 children: [
-                  FilledButton.icon(
-                    onPressed: _openFurniturePicker,
-                    icon: const Icon(Icons.add, size: 18),
-                    label: Text(
-                      _furniture.isEmpty
-                          ? 'Add furniture'
-                          : 'Add · ${_furniture.length} placed',
-                      maxLines: 1,
-                    ),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.accent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
+                  Expanded(
+                    flex: 5,
+                    child: FilledButton.icon(
+                      onPressed: _openFurniturePicker,
+                      icon: const Icon(Icons.add, size: 18),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          _furniture.isEmpty
+                              ? 'Add furniture'
+                              : 'Add · ${_furniture.length} placed',
+                          maxLines: 1,
+                        ),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.accent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 12),
+                        minimumSize: Size.zero,
+                      ),
                     ),
                   ),
-                  GestureDetector(
-                    onLongPress:
-                        _interior.isEmpty ? null : _clearInteriorWalls,
-                    child: OutlinedButton.icon(
-                      key: const ValueKey('planner-walls-toggle'),
-                      onPressed: () {
-                        if (_wallMode) _finishInteriorWall();
-                        setState(() => _wallMode = !_wallMode);
-                      },
-                      icon: Icon(
-                        _wallMode ? Icons.check : Icons.polyline_outlined,
-                        size: 18,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 4,
+                    child: GestureDetector(
+                      onLongPress:
+                          _interior.isEmpty ? null : _clearInteriorWalls,
+                      child: OutlinedButton.icon(
+                        key: const ValueKey('planner-walls-toggle'),
+                        onPressed: () {
+                          if (_wallMode) _finishInteriorWall();
+                          setState(() => _wallMode = !_wallMode);
+                        },
+                        icon: Icon(
+                          _wallMode ? Icons.check : Icons.polyline_outlined,
+                          size: 18,
+                        ),
+                        label: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(_wallMode ? 'Done' : 'Add walls',
+                              maxLines: 1),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 12),
+                          minimumSize: Size.zero,
+                          foregroundColor: _wallMode
+                              ? AppColors.accent
+                              : AppColors.textPrimary,
+                          side: BorderSide(
+                              color: _wallMode
+                                  ? AppColors.accent
+                                  : AppColors.border),
+                        ),
                       ),
-                      label: Text(_wallMode ? 'Done' : 'Walls'),
+                    ),
+                  ),
+                  if (_wallMode && _chainOpen) ...[
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 4,
+                      child: FilledButton.tonalIcon(
+                        key: const ValueKey('planner-finish-wall'),
+                        onPressed: _finishInteriorWall,
+                        icon: const Icon(Icons.done_all, size: 18),
+                        label: const FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text('Finish wall', maxLines: 1),
+                        ),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 12),
+                          minimumSize: Size.zero,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 8),
+                  Expanded(
+                    flex: 3,
+                    child: OutlinedButton.icon(
+                      onPressed: (_furniture.isEmpty &&
+                              _walls.isEmpty &&
+                              _interior.isEmpty)
+                          ? null
+                          : _confirmClearAll,
+                      icon: const Icon(Icons.clear_all, size: 18),
+                      label: const FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text('Clear', maxLines: 1),
+                      ),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 12),
-                        minimumSize: Size.zero,
-                        foregroundColor: _wallMode
-                            ? AppColors.accent
-                            : AppColors.textPrimary,
-                        side: BorderSide(
-                            color: _wallMode
-                                ? AppColors.accent
-                                : AppColors.border),
-                      ),
-                    ),
-                  ),
-                  if (_wallMode && _chainOpen)
-                    FilledButton.tonalIcon(
-                      key: const ValueKey('planner-finish-wall'),
-                      onPressed: _finishInteriorWall,
-                      icon: const Icon(Icons.done_all, size: 18),
-                      label: const Text('Finish wall'),
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 12),
+                            horizontal: 8, vertical: 12),
                         minimumSize: Size.zero,
                       ),
-                    ),
-                  OutlinedButton.icon(
-                    onPressed: (_furniture.isEmpty &&
-                            _walls.isEmpty &&
-                            _interior.isEmpty)
-                        ? null
-                        : _confirmClearAll,
-                    icon: const Icon(Icons.clear_all, size: 18),
-                    label: const Text('Clear'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 12),
-                      minimumSize: Size.zero,
                     ),
                   ),
                 ],

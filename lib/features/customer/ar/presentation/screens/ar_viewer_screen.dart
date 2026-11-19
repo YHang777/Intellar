@@ -2634,13 +2634,23 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                     onTap: () => Navigator.of(context).pop(),
                   ),
                   const SizedBox(width: 4),
+                  // The toolbar can leave the title only a sliver on narrow
+                  // phones; show it on one line, or not at all, never wrapped
+                  // letter by letter.
                   Expanded(
-                    child: Text(
-                      widget.title,
-                      style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white),
+                    child: LayoutBuilder(
+                      builder: (context, box) => box.maxWidth < 96
+                          ? const SizedBox.shrink()
+                          : Text(
+                              widget.title,
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white),
+                            ),
                     ),
                   ),
                   if (widget.design != null)
