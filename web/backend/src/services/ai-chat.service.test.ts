@@ -304,3 +304,13 @@ test('state block carries like/dislike feedback for the assistant', () => {
     state: { feedback: { dislikedProducts: ['Glass Table'] } },
   }), /never re-suggest what they disliked/);
 });
+
+test('state block carries the filters the customer set (FR16)', () => {
+  const block = formatStateBlock({
+    filters: { style: 'Modern', maxPrice: 500, ecoOnly: true, popularOnly: true },
+  });
+  assert.match(block, /- Active filters: Modern style; up to RM 500; eco-friendly only; popular/);
+  assert.doesNotMatch(formatStateBlock({ filters: {} }), /Active filters/);
+  const prompt = buildSystemPrompt({ messages: [{ role: 'user', text: 'hi' }] });
+  assert.match(prompt, /never recommend outside them/);
+});

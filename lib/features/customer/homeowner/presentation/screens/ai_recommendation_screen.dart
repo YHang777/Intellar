@@ -18,6 +18,7 @@ import '../widgets/chat_card_actions.dart';
 import '../widgets/chat_data_card.dart';
 import '../widgets/chat_quick_select_sheet.dart';
 import '../widgets/chat_suggestion_card.dart';
+import '../widgets/chat_filters_bar.dart';
 import '../widgets/chat_typing_bubble.dart';
 
 class AiRecommendationScreen extends ConsumerStatefulWidget {
@@ -150,6 +151,7 @@ class _AiRecommendationScreenState
             room: _chipRoom,
             products: productsToChatContext(
               ref.read(marketplaceProductsProvider).valueOrNull ?? const [],
+              filters: ref.read(chatFiltersProvider),
             ),
             state: ref.read(chatStatePayloadProvider),
           );
@@ -266,6 +268,8 @@ class _AiRecommendationScreenState
                   ),
           ),
 
+          // FR16: filters narrow what the assistant can recommend.
+          const ChatFiltersBar(),
           _buildComposer(context),
         ],
       ),

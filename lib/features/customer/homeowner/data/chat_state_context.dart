@@ -9,6 +9,7 @@ import '../../budget/data/budget_providers.dart';
 import '../../marketplace/presentation/providers/marketplace_providers.dart';
 import '../../../notifications/data/product_feedback.dart';
 import '../../../auth/presentation/providers/auth_providers.dart';
+import 'chat_product_mapper.dart';
 import '../presentation/providers/design_providers.dart';
 
 const kChatStateCartLines = 8;
@@ -47,6 +48,7 @@ Map<String, Object?>? buildChatStateJson({
   Map<String, Object?>? preferences,
   List<String> likedProducts = const [],
   List<String> dislikedProducts = const [],
+  Map<String, Object>? filters,
 }) {
   final sections = <String, Object?>{};
 
@@ -132,8 +134,16 @@ Map<String, Object?>? buildChatStateJson({
     };
   }
 
+  // FR16: the filters the buyer set on recommendations; the catalogue the
+  // assistant sees is already narrowed to them.
+  if (filters != null && filters.isNotEmpty) sections['filters'] = filters;
+
   return sections.isEmpty ? null : sections;
 }
+
+/// Filters set on the AI recommendations screen (FR16).
+final chatFiltersProvider =
+    StateProvider<ChatFilters>((ref) => const ChatFilters());
 
 final chatStatePayloadProvider = Provider<Map<String, Object?>?>((ref) {
   final budget = ref.watch(budgetPlanProvider).valueOrNull;
@@ -176,5 +186,6 @@ final chatStatePayloadProvider = Provider<Map<String, Object?>?>((ref) {
         personalised ? user?.designPreferences.toChatJson() : null,
     likedProducts: feedback.liked,
     dislikedProducts: feedback.disliked,
+    filters: ref.watch(chatFiltersProvider).toChatJson(),
   );
 });

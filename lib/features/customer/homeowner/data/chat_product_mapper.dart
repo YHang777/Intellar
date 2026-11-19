@@ -55,11 +55,74 @@ ChatProduct productToChatProduct(Product product) {
   );
 }
 
+// FR16: filters the buyer sets on AI recommendations. They narrow the
+// catalogue the assistant sees, so suggestions can only come from matches.
+class ChatFilters {
+  const ChatFilters({
+    this.style,
+    this.maxPrice,
+    this.ecoOnly = false,
+    this.popularOnly = false,
+  });
+
+  final String? style;
+  final int? maxPrice;
+  final bool ecoOnly;
+  final bool popularOnly;
+
+  bool get isEmpty =>
+      style == null && maxPrice == null && !ecoOnly && !popularOnly;
+
+  int get activeCount =>
+      (style != null ? 1 : 0) +
+      (maxPrice != null ? 1 : 0) +
+      (ecoOnly ? 1 : 0) +
+      (popularOnly ? 1 : 0);
+
+  ChatFilters copyWith({
+    String? style,
+    bool clearStyle = false,
+    int? maxPrice,
+    bool clearMaxPrice = false,
+    bool? ecoOnly,
+    bool? popularOnly,
+  }) =>
+      ChatFilters(
+        style: clearStyle ? null : (style ?? this.style),
+        maxPrice: clearMaxPrice ? null : (maxPrice ?? this.maxPrice),
+        ecoOnly: ecoOnly ?? this.ecoOnly,
+        popularOnly: popularOnly ?? this.popularOnly,
+      );
+
+  bool matches(Product p) =>
+      (style == null || p.designStyle.toLowerCase() == style!.toLowerCase()) &&
+      (maxPrice == null || p.price <= maxPrice!) &&
+      (!ecoOnly || p.isEcoFriendly) &&
+      (!popularOnly || p.soldCount > 0);
+
+  /// For the assistant's state block; null when no filter is set.
+  Map<String, Object>? toChatJson() => isEmpty
+      ? null
+      : {
+          if (style != null) 'style': style!,
+          if (maxPrice != null) 'maxPrice': maxPrice!,
+          if (ecoOnly) 'ecoOnly': true,
+          if (popularOnly) 'popularOnly': true,
+        };
+}
+
 List<ChatProduct> productsToChatContext(
   Iterable<Product> products, {
   int limit = kChatProductLimit,
+  ChatFilters filters = const ChatFilters(),
 }) {
-  final active = products.where((p) => p.isActive).toList();
+  final active =
+      products.where((p) => p.isActive && filters.matches(p)).toList();
+  if (filters.popularOnly) {
+    // Best sellers first when the buyer asked for popular pieces.
+    active.sort((a, b) => b.soldCount.compareTo(a.soldCount));
+    return active.take(limit).map(productToChatProduct).toList();
+  }
   active.sort((a, b) {
     final at = a.createdAt;
     final bt = b.createdAt;

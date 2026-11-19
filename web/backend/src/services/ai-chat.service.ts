@@ -94,9 +94,18 @@ export interface ChatStateFeedback {
   dislikedProducts?: string[];
 }
 
+/** Filters the customer set on recommendations; the catalogue is pre-filtered. */
+export interface ChatStateFilters {
+  style?: string;
+  maxPrice?: number;
+  ecoOnly?: boolean;
+  popularOnly?: boolean;
+}
+
 export interface ChatState {
   preferences?: ChatStatePreferences;
   feedback?: ChatStateFeedback;
+  filters?: ChatStateFilters;
   cart?: { items: ChatStateCartLine[]; itemCount: number; subtotal: number };
   plan?: ChatStatePlan;
   budget?: ChatStateBudget;
@@ -194,6 +203,7 @@ Live app state:
 - Keep state answers short — one or two sentences and the key number. Do not read long lists back; the app shows a detail card beside your reply.
 - Design preferences in that block are the taste the customer saved on their profile. Use them as the default when they have not said otherwise in the chat (what they say in the chat always wins), and say briefly when a suggestion matches them.
 - "Liked / disliked products" in that block is feedback the customer gave on past recommendations: suggest more of what they liked, and never re-suggest what they disliked unless they ask. Never ignore it, and never invent feedback that is not there.
+- "Active filters" in that block are filters the customer set on purpose; the catalogue below already contains only matching items. Respect them, mention them briefly when relevant, and if nothing in the catalogue fits, say so and suggest relaxing a filter — never recommend outside them.
 - Saved design preferences exist ONLY as a "Design preferences" line in that block. When there is no such line, the customer has not shared any (they may have none, or turned personalisation off): if asked, say plainly that you cannot see saved preferences and offer to work from what they tell you in the chat. Never guess a saved style, colour or material, and never claim to have checked their profile.
 - Budget figures: "cap" is what the customer set; "estimate" is a median-price estimate from the catalogue, not money spent. Never describe an estimate as spending.
 
@@ -511,6 +521,16 @@ export function formatStateBlock(state: ChatState): string {
 
   if (state.wishlistCount != null && state.wishlistCount > 0) {
     lines.push(`- Wishlist: ${state.wishlistCount} saved item(s).`);
+  }
+
+  const f = state.filters;
+  if (f) {
+    const bits: string[] = [];
+    if (f.style) bits.push(`${f.style} style`);
+    if (typeof f.maxPrice === 'number') bits.push(`up to RM ${f.maxPrice}`);
+    if (f.ecoOnly) bits.push('eco-friendly only');
+    if (f.popularOnly) bits.push('popular (already bought by others) only');
+    if (bits.length > 0) lines.push(`- Active filters: ${bits.join('; ')}.`);
   }
 
   const fb = state.feedback;

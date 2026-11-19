@@ -107,6 +107,14 @@ const chatStateSchema = z.object({
       dislikedProducts: z.array(prefTag).max(8).optional(),
     })
     .optional(),
+  filters: z
+    .object({
+      style: z.string().trim().max(60).optional(),
+      maxPrice: z.number().int().positive().max(10_000_000).optional(),
+      ecoOnly: z.boolean().optional(),
+      popularOnly: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 const chatBodySchema = z.object({
