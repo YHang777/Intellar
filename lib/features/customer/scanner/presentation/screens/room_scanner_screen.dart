@@ -2151,9 +2151,11 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                         ),
                       ),
                     ),
+                    // Top-left: the right-hand control column can grow to the
+                    // top on shorter screens and used to cover this button.
                     Positioned(
-                      top: 0,
-                      right: 0,
+                      top: 6,
+                      left: 6,
                       child: _cameraResetButton(),
                     ),
                     Positioned(
