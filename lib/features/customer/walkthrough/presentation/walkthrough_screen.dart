@@ -162,32 +162,75 @@ class _WalkthroughScreenState extends ConsumerState<WalkthroughScreen> {
         backgroundColor: AppColors.surface,
         foregroundColor: AppColors.textPrimary,
         elevation: 0,
+        titleSpacing: 0,
         title: Text(
           _inGallery
               ? 'Showroom'
               : _showroomDesign?.name ?? 'Walkthrough',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
           style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.w600,
               color: AppColors.textPrimary),
         ),
+        // One labelled main action plus a labelled menu: four bare icons
+        // pushed the title off narrow phones and nobody knew what they did.
         actions: [
           if (!_inGallery) ...[
-            const LightingButton(),
-            IconButton(
-              icon: const Icon(Icons.view_carousel),
-              tooltip: 'Rooms',
-              onPressed: _leaveToGallery,
-            ),
-            IconButton(
-              icon: const Icon(Icons.add_circle_outline),
-              tooltip: 'Add furniture',
+            TextButton.icon(
+              key: const Key('walk-add'),
               onPressed: _openFurniturePicker,
+              icon: const Icon(Icons.add, size: 18),
+              label: const Text('Add'),
+              style: TextButton.styleFrom(
+                foregroundColor: AppColors.accent,
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+              ),
             ),
-            IconButton(
-              icon: const Icon(Icons.save_outlined),
-              tooltip: 'Save Design',
-              onPressed: _saveDesign,
+            PopupMenuButton<String>(
+              key: const Key('walk-more'),
+              tooltip: 'More options',
+              icon: const Icon(Icons.more_vert),
+              onSelected: (v) {
+                switch (v) {
+                  case 'light':
+                    showLightingSheet(context, ref);
+                  case 'rooms':
+                    _leaveToGallery();
+                  case 'save':
+                    _saveDesign();
+                }
+              },
+              itemBuilder: (_) => const [
+                PopupMenuItem(
+                  value: 'light',
+                  child: ListTile(
+                    leading: Icon(Icons.wb_sunny_outlined),
+                    title: Text('Lighting'),
+                    subtitle: Text('Daylight, lamps, evening, night'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'rooms',
+                  child: ListTile(
+                    leading: Icon(Icons.view_carousel_outlined),
+                    title: Text('Other rooms'),
+                    subtitle: Text('Browse the showroom'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+                PopupMenuItem(
+                  value: 'save',
+                  child: ListTile(
+                    leading: Icon(Icons.save_outlined),
+                    title: Text('Save design'),
+                    subtitle: Text('Keep this room in Saved designs'),
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
             ),
           ],
         ],

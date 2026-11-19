@@ -393,7 +393,7 @@ void main() {
     testWidgets('the placement ghost tracks the walker', (tester) async {
       await pumpWalk(tester, overrides: standardOverrides());
 
-      await tester.tap(find.byTooltip('Add furniture'));
+      await tester.tap(find.byKey(const Key('walk-add')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sofa'));
       await tester.pumpAndSettle();
@@ -440,7 +440,7 @@ void main() {
     testWidgets('pick a piece, then place it at the walker', (tester) async {
       await pumpWalk(tester, overrides: standardOverrides());
 
-      await tester.tap(find.byTooltip('Add furniture'));
+      await tester.tap(find.byKey(const Key('walk-add')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sofa'));
       await tester.pumpAndSettle();
@@ -476,14 +476,16 @@ void main() {
         overrides: standardOverrides(ds: ds),
       );
 
-      await tester.tap(find.byTooltip('Add furniture'));
+      await tester.tap(find.byKey(const Key('walk-add')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sofa'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Place'));
       await tester.pump();
 
-      await tester.tap(find.byTooltip('Save Design'));
+      await tester.tap(find.byKey(const Key('walk-more')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save design'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.widgetWithText(ElevatedButton, 'Save'));
@@ -516,7 +518,9 @@ void main() {
         overrides: standardOverrides(ds: ds),
       );
 
-      await tester.tap(find.byTooltip('Save Design'));
+      await tester.tap(find.byKey(const Key('walk-more')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save design'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
       await tester.tap(find.widgetWithText(ElevatedButton, 'Save'));
@@ -539,7 +543,9 @@ void main() {
         ],
       );
 
-      await tester.tap(find.byTooltip('Save Design'));
+      await tester.tap(find.byKey(const Key('walk-more')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Save design'));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
 
@@ -553,7 +559,7 @@ void main() {
         overrides: standardOverrides(),
       );
 
-      await tester.tap(find.byTooltip('Add furniture'));
+      await tester.tap(find.byKey(const Key('walk-add')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sofa'));
       await tester.pumpAndSettle();
@@ -598,7 +604,7 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Add furniture'));
+      await tester.tap(find.byKey(const Key('walk-add')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sofa'));
       await tester.pumpAndSettle();
@@ -622,8 +628,8 @@ void main() {
       expect(walkState(tester).debugInGallery as bool, isTrue);
       expect(find.text('Modern Living Room'), findsOneWidget);
       expect(find.text('Walk this room'), findsOneWidget);
-      expect(find.byTooltip('Add furniture'), findsNothing);
-      expect(find.byTooltip('Rooms'), findsNothing);
+      expect(find.byKey(const Key('walk-add')), findsNothing);
+      expect(find.byKey(const Key('walk-more')), findsNothing);
     });
 
     testWidgets('arrow keys flip between showroom rooms', (tester) async {
@@ -737,7 +743,7 @@ void main() {
       await tester.tap(find.text('Open'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Add furniture'));
+      await tester.tap(find.byKey(const Key('walk-add')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sofa'));
       await tester.pumpAndSettle();
@@ -748,7 +754,9 @@ void main() {
       await tester.pump(const Duration(seconds: 6));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Rooms'));
+      await tester.tap(find.byKey(const Key('walk-more')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Other rooms'));
       await tester.pumpAndSettle();
       expect(walkState(tester).debugInGallery as bool, isTrue);
       expect(find.text('Back to my design'), findsOneWidget);
@@ -769,7 +777,7 @@ void main() {
         overrides: standardOverrides(),
       );
 
-      await tester.tap(find.byTooltip('Add furniture'));
+      await tester.tap(find.byKey(const Key('walk-add')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Sofa'));
       await tester.pumpAndSettle();
@@ -778,7 +786,9 @@ void main() {
       await tester.pump(const Duration(seconds: 6));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byTooltip('Rooms'));
+      await tester.tap(find.byKey(const Key('walk-more')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Other rooms'));
       await tester.pumpAndSettle();
       expect(walkState(tester).debugInGallery as bool, isTrue);
 

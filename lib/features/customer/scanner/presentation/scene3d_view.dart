@@ -45,12 +45,38 @@ class Scene3DView extends StatefulWidget {
   State<Scene3DView> createState() => _Scene3DViewState();
 }
 
-class _Scene3DViewState extends State<Scene3DView> {
+class _Scene3DViewState extends State<Scene3DView>
+    with WidgetsBindingObserver {
   late final Map<Type, GestureRecognizerFactory> _gestures;
+  // When the app is hidden (share sheet, home button) Android tears down the
+  // view's renderer. Reusing it on return showed a black scene, and loading a
+  // model into it crashed natively (libgltfio null deref). So after a real
+  // background trip the platform view is recreated; the controller re-pushes
+  // the whole scene when it binds to the new view.
+  int _viewGen = 0;
+  bool _wasHidden = false;
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.hidden ||
+        state == AppLifecycleState.paused) {
+      _wasHidden = true;
+    } else if (state == AppLifecycleState.resumed && _wasHidden) {
+      _wasHidden = false;
+      if (mounted) setState(() => _viewGen++);
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _gestures = <Type, GestureRecognizerFactory>{
       _SceneCanvasRecognizer: GestureRecognizerFactoryWithHandlers<
           _SceneCanvasRecognizer>(
@@ -91,6 +117,7 @@ class _Scene3DViewState extends State<Scene3DView> {
       behavior: HitTestBehavior.opaque,
       gestures: _gestures,
       child: AndroidView(
+        key: ValueKey('scene3d-view-$_viewGen'),
         viewType: 'ar_flutter_plugin_2/scene',
         creationParams: const <String, Object?>{},
         creationParamsCodec: const StandardMessageCodec(),

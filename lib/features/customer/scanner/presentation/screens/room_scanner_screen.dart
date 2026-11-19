@@ -641,7 +641,10 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
       } catch (_) {}
     }
     if (jpeg == null || jpeg.isEmpty || !mounted) return;
-    await _runMaterialScan(jpeg);
+    // The camera is free from here: the AI reading can take a while on a
+    // sleeping server, and a new scan must not wait for it (it used to, so
+    // the Scan button looked dead after the first scan).
+    unawaited(_runMaterialScan(jpeg));
   }
 
   Future<void> _runMaterialScan(Uint8List jpeg) async {

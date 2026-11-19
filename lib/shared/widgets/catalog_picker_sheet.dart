@@ -110,6 +110,10 @@ class _CatalogPickerSheetState<T> extends State<_CatalogPickerSheet<T>> {
             FilterChipBar<String>(
               options: [_allLabel, ...categories],
               selected: _category ?? _allLabel,
+              // Catalogue categories are stored lower-case ('seating');
+              // show them capitalised like the planner's own chips.
+              labelBuilder: (c) =>
+                  c.isEmpty ? c : '${c[0].toUpperCase()}${c.substring(1)}',
               onSelected: (c) =>
                   setState(() => _category = c == _allLabel ? null : c),
             ),
