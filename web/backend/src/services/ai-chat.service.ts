@@ -62,6 +62,9 @@ export interface ChatStatePlan {
   heightCm?: number;
   placed?: ChatStatePlaced[];
   pendingPlacements?: number;
+  floor?: string;
+  walls?: string;
+  existingItems?: string[];
 }
 
 export interface ChatStateBudget {
@@ -205,6 +208,7 @@ Live app state:
 - "Liked / disliked products" in that block is feedback the customer gave on past recommendations: suggest more of what they liked, and never re-suggest what they disliked unless they ask. Never ignore it, and never invent feedback that is not there.
 - "Active filters" in that block are filters the customer set on purpose; the catalogue below already contains only matching items. Respect them, mention them briefly when relevant, and if nothing in the catalogue fits, say so and suggest relaxing a filter — never recommend outside them.
 - Saved design preferences exist ONLY as a "Design preferences" line in that block. When there is no such line, the customer has not shared any (they may have none, or turned personalisation off): if asked, say plainly that you cannot see saved preferences and offer to work from what they tell you in the chat. Never guess a saved style, colour or material, and never claim to have checked their profile.
+- "existing floor", "existing walls" and "already in the room" in the room plan come from the customer's room scan. When suggesting pieces or finishes, match them to that scenario and say why (for example lighter walls or a light rug to balance a dark wood floor, or a side table that suits the sofa already there). Never invent finishes or items that are not listed.
 - Budget figures: "cap" is what the customer set; "estimate" is a median-price estimate from the catalogue, not money spent. Never describe an estimate as spending.
 
 Hard limits:
@@ -479,6 +483,11 @@ export function formatStateBlock(state: ChatState): string {
     }
     if (plan.pendingPlacements != null && plan.pendingPlacements > 0) {
       parts.push(`${plan.pendingPlacements} chat item(s) waiting to be placed`);
+    }
+    if (plan.floor) parts.push(`existing floor: ${plan.floor}`);
+    if (plan.walls) parts.push(`existing walls: ${plan.walls}`);
+    if (Array.isArray(plan.existingItems) && plan.existingItems.length > 0) {
+      parts.push(`already in the room: ${plan.existingItems.join(', ')}`);
     }
     if (head || parts.length > 0) {
       lines.push(

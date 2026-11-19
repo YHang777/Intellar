@@ -4,6 +4,8 @@ import '../../../../models/order.dart';
 import '../../../../models/product.dart';
 import '../../../../models/room_design.dart';
 import '../../budget/data/budget_estimates.dart';
+import '../../ar/data/glb_generator.dart' show FloorFinishType, WallFinishType;
+import '../../ar/data/room_finishes.dart';
 import '../../budget/data/budget_plan.dart';
 import '../../budget/data/budget_providers.dart';
 import '../../marketplace/presentation/providers/marketplace_providers.dart';
@@ -82,6 +84,13 @@ Map<String, Object?>? buildChatStateJson({
               'wCm': item.width.round(),
               'hCm': item.height.round(),
             },
+        ],
+      if (scannedFloorOf(plan) case final floor?) 'floor': floor,
+      if (scannedWallsOf(plan) case final walls?) 'walls': walls,
+      if (plan.detectedItems.isNotEmpty)
+        'existingItems': [
+          for (final label in plan.detectedItems.take(8))
+            _clip(label, kChatStateNameClip),
         ],
       if (pendingPlacements > 0) 'pendingPlacements': pendingPlacements,
     };
@@ -189,3 +198,26 @@ final chatStatePayloadProvider = Provider<Map<String, Object?>?>((ref) {
     filters: ref.watch(chatFiltersProvider).toChatJson(),
   );
 });
+
+// What the room scan found (or the user picked): "Walnut Wood planks".
+String? scannedFloorOf(RoomDesign plan) {
+  final type = FloorFinishType.values.asNameMap()[plan.floorFinishType];
+  if (type == null) return null;
+  final label = RoomFinishCatalog.floorLabel(type);
+  final argb = plan.floorFinishColor;
+  if (argb == null) return label;
+  final colour =
+      RoomFinishCatalog.colorName(argb, RoomFinishCatalog.colorsForFloor(type));
+  return colour == 'Custom' ? label : '$colour $label';
+}
+
+String? scannedWallsOf(RoomDesign plan) {
+  final type = WallFinishType.values.asNameMap()[plan.wallFinishType];
+  if (type == null) return null;
+  final label = RoomFinishCatalog.wallLabel(type);
+  final argb = plan.wallFinishColor;
+  if (argb == null) return label;
+  final colour =
+      RoomFinishCatalog.colorName(argb, RoomFinishCatalog.colorsForWall(type));
+  return colour == 'Custom' ? label : '$colour $label';
+}

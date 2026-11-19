@@ -1,3 +1,4 @@
+import '../../../../../core/utils/input_formatters.dart';
 import '../lighting_picker.dart';
 import 'dart:async';
 import 'dart:math';
@@ -37,6 +38,18 @@ import '../../data/room_fit.dart';
 import '../../data/room_shell.dart'
     show ShellGeometry, cutawaySignature, shellRing;
 import '../scene3d_view.dart';
+
+const int kMinRoomSideCm = 100;
+const int kMaxRoomSideCm = 3000;
+
+String? roomSideError(String text) {
+  final v = double.tryParse(text.trim());
+  if (v == null) return 'Enter a size';
+  if (v < kMinRoomSideCm || v > kMaxRoomSideCm) {
+    return '$kMinRoomSideCm–$kMaxRoomSideCm cm';
+  }
+  return null;
+}
 
 class RoomScannerScreen extends ConsumerStatefulWidget {
   const RoomScannerScreen({
@@ -1295,11 +1308,18 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
   }
 
   void _finishDimensionEdit() {
-    final w = double.tryParse(_widthCtrl.text.trim());
-    final h = double.tryParse(_heightCtrl.text.trim());
+    if (roomSideError(_widthCtrl.text) != null ||
+        roomSideError(_heightCtrl.text) != null) {
+      showAppSnackbar(context,
+          'Room sides must be $kMinRoomSideCm–$kMaxRoomSideCm cm.',
+          isError: true);
+      return;
+    }
+    final w = double.parse(_widthCtrl.text.trim());
+    final h = double.parse(_heightCtrl.text.trim());
     setState(() {
-      if (w != null && w > 50) _roomW = w;
-      if (h != null && h > 50) _roomH = h;
+      _roomW = w;
+      _roomH = h;
       _isEditingDimensions = false;
     });
     _warnUnfit();
@@ -2233,10 +2253,13 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                   children: [
                     Expanded(
                       child: TextField(
+                        key: const Key('room-width'),
                         controller: _widthCtrl,
                         keyboardType: TextInputType.number,
+                        inputFormatters: AppFormatters.wholeNumber(4),
                         decoration: InputDecoration(
                           labelText: 'Width (cm)',
+                          errorText: roomSideError(_widthCtrl.text),
                           border: OutlineInputBorder(
                               borderRadius:
                                   BorderRadius.circular(8)),
@@ -2244,19 +2267,24 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                         ),
                         onChanged: (v) {
                           final parsed = double.tryParse(v);
-                          if (parsed != null && parsed > 50) {
-                            setState(() => _roomW = parsed);
-                          }
+                          setState(() {
+                            if (parsed != null && roomSideError(v) == null) {
+                              _roomW = parsed;
+                            }
+                          });
                         },
                       ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: TextField(
+                        key: const Key('room-length'),
                         controller: _heightCtrl,
                         keyboardType: TextInputType.number,
+                        inputFormatters: AppFormatters.wholeNumber(4),
                         decoration: InputDecoration(
-                          labelText: 'Height (cm)',
+                          labelText: 'Length (cm)',
+                          errorText: roomSideError(_heightCtrl.text),
                           border: OutlineInputBorder(
                               borderRadius:
                                   BorderRadius.circular(8)),
@@ -2264,9 +2292,11 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                         ),
                         onChanged: (v) {
                           final parsed = double.tryParse(v);
-                          if (parsed != null && parsed > 50) {
-                            setState(() => _roomH = parsed);
-                          }
+                          setState(() {
+                            if (parsed != null && roomSideError(v) == null) {
+                              _roomH = parsed;
+                            }
+                          });
                         },
                       ),
                     ),
@@ -2832,7 +2862,9 @@ class _SizeDialogState extends State<_SizeDialog> {
           children: [
             TextField(
               controller: _wCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: AppFormatters.centimetres,
               decoration: InputDecoration(
                 labelText: 'Width (cm)',
                 border: OutlineInputBorder(
@@ -2843,9 +2875,12 @@ class _SizeDialogState extends State<_SizeDialog> {
             const SizedBox(height: 10),
             TextField(
               controller: _hCtrl,
-              keyboardType: TextInputType.number,
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: AppFormatters.centimetres,
               decoration: InputDecoration(
-                labelText: 'Height (cm)',
+                labelText: 'Depth (cm)',
+                helperText: 'Front to back, on the floor',
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8)),
                 isDense: true,

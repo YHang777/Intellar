@@ -1,3 +1,4 @@
+import '../../../../../core/utils/input_formatters.dart';
 import '../../../../../services/notify/notify_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1213,6 +1214,7 @@ class _BulkQuoteDialogState extends State<_BulkQuoteDialog> {
               TextFormField(
                 controller: _phoneCtrl,
                 keyboardType: TextInputType.phone,
+                inputFormatters: AppFormatters.phone,
                 decoration: const InputDecoration(labelText: 'Phone'),
                 validator: _phoneValidator,
               ),
@@ -1220,6 +1222,7 @@ class _BulkQuoteDialogState extends State<_BulkQuoteDialog> {
               TextFormField(
                 controller: _noteCtrl,
                 maxLines: 3,
+                maxLength: 500,
                 decoration: const InputDecoration(
                   labelText: 'Note',
                   hintText:

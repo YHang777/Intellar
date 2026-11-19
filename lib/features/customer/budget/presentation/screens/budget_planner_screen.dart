@@ -1,3 +1,4 @@
+import '../../../../../core/utils/input_formatters.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -20,6 +21,11 @@ import '../../../marketplace/presentation/providers/marketplace_providers.dart';
 import '../../data/budget_estimates.dart';
 import '../../data/budget_plan.dart';
 import '../../data/budget_providers.dart';
+
+// Budgets are whole ringgit. Stripping a typed "." used to turn 1500.50
+// into RM 150,050; now cents are rounded instead.
+int parseBudgetRm(String text) =>
+    (double.tryParse(text.replaceAll(',', '').trim()) ?? 0).round();
 
 class BudgetPlannerScreen extends ConsumerStatefulWidget {
   const BudgetPlannerScreen({super.key});
@@ -48,8 +54,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
     super.dispose();
   }
 
-  int get _budget =>
-      int.tryParse(_budgetCtrl.text.replaceAll(RegExp('[^0-9]'), '')) ?? 0;
+  int get _budget => parseBudgetRm(_budgetCtrl.text);
 
   void _persist() {
     final uid = ref.read(currentUserProvider)?.uid;
@@ -305,7 +310,9 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
             _SectionCard(title: 'Preferences', children: [
               TextFormField(
                 controller: _budgetCtrl,
-                keyboardType: TextInputType.number,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: AppFormatters.money,
                 decoration: const InputDecoration(
                   labelText: 'Budget (RM)',
                   prefixIcon: Icon(Icons.monetization_on),

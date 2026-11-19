@@ -61,6 +61,9 @@ const statePlan = z.object({
   heightCm: z.number().finite().nonnegative().max(100000).optional(),
   placed: z.array(statePlaced).max(10).optional(),
   pendingPlacements: z.number().int().nonnegative().max(99).optional(),
+  floor: z.string().trim().max(60).optional(),
+  walls: z.string().trim().max(60).optional(),
+  existingItems: z.array(z.string().trim().max(60)).max(8).optional(),
 });
 
 const stateBudget = z.object({

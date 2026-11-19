@@ -1,3 +1,4 @@
+import '../../../../core/utils/input_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -178,7 +179,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   controller: _phoneCtrl,
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.next,
-                  validator: (v) => Validators.required(v, 'Business phone'),
+                  inputFormatters: AppFormatters.phone,
+                  validator: (v) =>
+                      Validators.required(v, 'Business phone') ??
+                      Validators.phone(v),
                   decoration: const InputDecoration(
                       labelText: 'Business Phone',
                       prefixIcon: Icon(Icons.phone_outlined)),

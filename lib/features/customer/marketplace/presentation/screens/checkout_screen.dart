@@ -1,3 +1,4 @@
+import '../../../../../core/utils/input_formatters.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
@@ -380,6 +381,7 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
                               TextFormField(
                                 controller: _phoneCtrl,
                                 keyboardType: TextInputType.phone,
+                                inputFormatters: AppFormatters.phone,
                                 textInputAction: TextInputAction.done,
                                 decoration: const InputDecoration(
                                   labelText: 'Phone number',

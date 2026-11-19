@@ -314,3 +314,21 @@ test('state block carries the filters the customer set (FR16)', () => {
   const prompt = buildSystemPrompt({ messages: [{ role: 'user', text: 'hi' }] });
   assert.match(prompt, /never recommend outside them/);
 });
+
+test('the room scan reaches the assistant: existing floor, walls and items', () => {
+  const block = formatStateBlock({
+    plan: {
+      roomType: 'living_room',
+      widthCm: 400,
+      heightCm: 500,
+      floor: 'Walnut Wood planks',
+      walls: 'Warm White Paint',
+      existingItems: ['Couch', 'Television'],
+    },
+  });
+  assert.ok(block.includes('existing floor: Walnut Wood planks'));
+  assert.ok(block.includes('existing walls: Warm White Paint'));
+  assert.ok(block.includes('already in the room: Couch, Television'));
+  const prompt = buildSystemPrompt({ messages: [{ role: 'user', content: 'hi' }] } as never);
+  assert.ok(prompt.includes('come from the customer\'s room scan'));
+});
