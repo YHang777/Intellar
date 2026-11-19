@@ -277,7 +277,7 @@ class _SupplierDashboardScreenState
             Expanded(
               child: _StatCard(
                 icon: Icons.payments_outlined,
-                label: 'Revenue',
+                label: 'This month',
                 value: Formatters.myr(monthRevenue),
                 gradientColors: const [AppColors.accent, AppColors.gradientGreen],
               ),
