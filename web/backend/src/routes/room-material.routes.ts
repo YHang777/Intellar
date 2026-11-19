@@ -26,6 +26,8 @@ const analyzeBodySchema = z.object({
   mimeType: z
     .enum(['image/jpeg', 'image/png', 'image/webp'])
     .optional(),
+  /** The app's furniture names the model may pick from (optional). */
+  catalog: z.array(z.string().trim().min(1).max(40)).max(60).optional(),
 });
 
 export function createRoomMaterialRouter(deps: RoomMaterialDeps): Router {
@@ -44,14 +46,14 @@ export function createRoomMaterialRouter(deps: RoomMaterialDeps): Router {
         );
       }
 
-      const { imageBase64, mimeType } = analyzeBodySchema.parse(req.body ?? {});
+      const { imageBase64, mimeType, catalog } = analyzeBodySchema.parse(req.body ?? {});
       // Authenticated principal required — the analyzer runs on the caller's
       // own frame, so there is nothing else to authorize.
       requireUser(req);
 
       let result;
       try {
-        result = await deps.analyze(imageBase64, mimeType ?? 'image/jpeg');
+        result = await deps.analyze(imageBase64, mimeType ?? 'image/jpeg', catalog ?? []);
       } catch (err) {
         if (err instanceof ApiError) throw err;
         deps.log?.(`[room-material] analyze threw: ${(err as Error).message}`);

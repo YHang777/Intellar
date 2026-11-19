@@ -73,3 +73,20 @@ test('normalizeHex accepts 3 and 6 digit hex and rejects the rest', () => {
   assert.equal(normalizeHex('#12345'), undefined);
   assert.equal(normalizeHex(''), undefined);
 });
+
+test('furniture items: only names from the app catalogue, canonical, no repeats', async () => {
+  const { normalizeItems } = await import('./room-material.service');
+  const catalog = ['Sofa', 'Armchair', 'Coffee Table'];
+  assert.deepEqual(
+    normalizeItems(['sofa', 'Sofa', 'Unicorn', 'coffee table', 42], catalog),
+    ['Sofa', 'Coffee Table']
+  );
+  assert.deepEqual(normalizeItems(['Sofa'], []), [], 'no catalogue sent → no items');
+  assert.deepEqual(normalizeItems('Sofa', catalog), []);
+});
+
+test('the prompt lists the catalogue only when one is sent', async () => {
+  const { buildRoomMaterialPrompt } = await import('./room-material.service');
+  assert.match(buildRoomMaterialPrompt(['Sofa', 'Rug']), /"Sofa", "Rug"/);
+  assert.match(buildRoomMaterialPrompt(), /items: always \[\]/);
+});

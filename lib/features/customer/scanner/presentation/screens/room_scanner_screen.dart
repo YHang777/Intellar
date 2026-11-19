@@ -3,14 +3,12 @@ import '../../../../../core/utils/input_formatters.dart';
 import '../lighting_picker.dart';
 import 'dart:async';
 import 'dart:math';
-import 'dart:typed_data';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:google_mlkit_image_labeling/google_mlkit_image_labeling.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/utils/native_scene_guard.dart';
 import '../../../../../core/utils/user_errors.dart';
@@ -73,13 +71,16 @@ typedef _Cat = RoomCatalogItem;
 class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
   CameraController? _cam;
   List<CameraDescription>? _cameras;
-  final ImageLabeler _labeler =
-      ImageLabeler(options: ImageLabelerOptions(confidenceThreshold: 0.5));
   final List<_Found> _found = [];
   _Stage _stage = _Stage.init;
-  int _elapsed = 0;
-  int _frames = 0;
-  Timer? _timer;
+  // ── Room scan session (photo → AI reading → review → apply) ──
+  Uint8List? _scanShot;
+  bool _scanReading = false;
+  String? _scanError;
+  RoomMaterialScan? _scanFinish;
+  final List<String> _scanItems = [];
+  final Set<String> _scanPicked = {};
+  int _scanViews = 0;
   String _roomType = 'living_room';
   // Design identity — separate from widget.existingDesign so a walkthrough
   // round-trip can adopt a plan that was saved while walking (the widget
@@ -103,7 +104,6 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
   int? _floorFinishColor;
   String? _wallFinishType;
   int? _wallFinishColor;
-  Future<void>? _captureInFlight;
 
   late final MaterialScanService _materialScan =
       widget.materialScanService ?? MaterialScanService();
@@ -122,6 +122,25 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
 
   @visibleForTesting
   void debugAdoptDesign(RoomDesign d) => _adoptDesign(d);
+
+  // Puts the scanner in its review state with [scan] as if one photo had
+  // been read — the camera itself can't run in widget tests.
+  @visibleForTesting
+  void debugShowScanResult(RoomMaterialScan scan) {
+    setState(() {
+      _stage = _Stage.scanning;
+      _scanReading = false;
+      _scanError = null;
+      _scanViews = 1;
+      _scanFinish = scan;
+      _scanItems
+        ..clear()
+        ..addAll(scan.items);
+      _scanPicked
+        ..clear()
+        ..addAll(scan.items);
+    });
+  }
 
   @visibleForTesting
   String? get debugDesignId => _designId;
@@ -235,24 +254,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     return WallFinish(type: sel.wallType, colorArgb: sel.wallColorArgb);
   }
 
-  DateTime? _lastProcessedAt;
-  bool _processingFrame = false;
-  DateTime? _scanDeadline;
-  final int _scanDurationSec = 15;
 
-  static const _labels = {
-    'sofa', 'couch', 'loveseat', 'sectional', 'settee',
-    'chair', 'armchair', 'recliner', 'ottoman', 'stool', 'bench',
-    'table', 'coffee table', 'dining table', 'desk',
-    'bed', 'bed frame', 'mattress', 'bunk bed',
-    'cabinet', 'wardrobe', 'closet', 'dresser', 'nightstand',
-    'sideboard', 'cupboard', 'bookshelf', 'shelf', 'bookcase',
-    'lamp', 'floor lamp', 'table lamp', 'light', 'chandelier',
-    'rug', 'carpet', 'curtain', 'plant', 'flower', 'vase', 'painting',
-    'picture frame', 'wall art', 'mirror', 'television', 'tv', 'monitor',
-    'refrigerator', 'oven', 'microwave', 'pillow', 'cushion',
-    'floor', 'wood', 'hardwood', 'tile',
-  };
 
   // ML Kit names that have no exact catalog entry — mapped to the
   // closest catalog item before matching.
@@ -398,9 +400,6 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
   }
 
   Future<void> _setupCam() async {
-    // A scan-end capture owns the previous controller until it settles;
-    // opening a second one over it fails on Android.
-    await _captureInFlight;
     await _releaseCam();
     CameraController? cam;
     try {
@@ -447,232 +446,129 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     return _camOpening ??= _setupCam().whenComplete(() => _camOpening = null);
   }
 
-  void _startScan() async {
-    if (_cam == null || !_cam!.value.isInitialized) return;
+  // Opens the camera for a fresh scan session.
+  Future<void> _openScanner() async {
+    await _ensureCam();
+    if (!mounted) return;
+    if (_cam == null || !_cam!.value.isInitialized) {
+      showAppSnackbar(context, 'Camera not available', isError: true);
+      return;
+    }
+    setState(() {
+      _stage = _Stage.init;
+      _scanShot = null;
+      _scanReading = false;
+      _scanError = null;
+      _scanFinish = null;
+      _scanItems.clear();
+      _scanPicked.clear();
+      _scanViews = 0;
+    });
+  }
+
+  // One photo → the server's vision model reads floor, walls and the
+  // catalogue furniture it can clearly see. Several views can be combined.
+  Future<void> _captureAndRead() async {
+    final cam = _cam;
+    if (cam == null || !cam.value.isInitialized || _scanReading) return;
+    Uint8List jpeg;
+    try {
+      final shot = await cam.takePicture();
+      jpeg = await shot.readAsBytes();
+    } catch (_) {
+      if (mounted) {
+        showAppSnackbar(context, 'Could not take the photo. Try again.',
+            isError: true);
+      }
+      return;
+    }
+    if (!mounted) return;
     setState(() {
       _stage = _Stage.scanning;
-      _found.clear();
-      _elapsed = 0;
-      _frames = 0;
-      _lastProcessedAt = null;
-      _scanDeadline =
-          DateTime.now().add(Duration(seconds: _scanDurationSec));
+      _scanShot = jpeg;
+      _scanReading = true;
+      _scanError = null;
     });
     try {
-      await _cam!.startImageStream(_onCameraFrame);
-    } catch (_) {
-      if (mounted) setState(() => _stage = _Stage.plan);
-      return;
-    }
-    _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      final scan = await _materialScan.analyzeFrame(
+        jpeg,
+        catalog: [for (final c in _catalog) c.name],
+      );
       if (!mounted) return;
-      setState(() => _elapsed++);
-      final deadline = _scanDeadline;
-      if (deadline != null && _stage == _Stage.scanning) {
-        if (DateTime.now().isAfter(deadline)) {
-          _stopScan();
+      setState(() {
+        _scanReading = false;
+        if (scan == null || scan.isEmpty) {
+          _scanError =
+              'Nothing recognisable in this photo. Try again with the floor, '
+              'a wall and your furniture in view.';
+          return;
         }
-      }
-    });
-  }
-
-  void _onCameraFrame(CameraImage image) {
-    if (!mounted || _stage != _Stage.scanning || _processingFrame) return;
-    final now = DateTime.now();
-    final last = _lastProcessedAt;
-    if (last != null &&
-        now.difference(last) < const Duration(milliseconds: 1000)) {
-      return;
-    }
-    _lastProcessedAt = now;
-    _processingFrame = true;
-    _processFrame(image).whenComplete(() => _processingFrame = false);
-  }
-
-  Future<void> _processFrame(CameraImage image) async {
-    try {
-      final input = _cameraImageToInputImage(image);
-      if (input == null) return;
-      final labels = await _labeler.processImage(input);
-      final newlyFound = <_Found>[];
-      for (final l in labels) {
-        final name = l.label.toLowerCase();
-        if (_labels.contains(name) && !_found.any((f) => f.label == name)) {
-          newlyFound.add(_Found(label: l.label, confidence: l.confidence));
-        }
-      }
-      if (mounted && _stage == _Stage.scanning) {
-        setState(() {
-          _frames++;
-          _found.addAll(newlyFound);
-        });
-      }
-    } catch (_) {}
-  }
-
-  InputImage? _cameraImageToInputImage(CameraImage image) {
-    try {
-      final planes = image.planes;
-      if (planes.length < 3) return null;
-      final width = image.width;
-      final height = image.height;
-      final builder = BytesBuilder();
-
-      // Pack Y tightly (drop per-row padding).
-      final y = planes[0];
-      if (y.bytesPerRow == width) {
-        builder.add(y.bytes.sublist(0, width * height));
-      } else {
-        for (var row = 0; row < height; row++) {
-          final start = row * y.bytesPerRow;
-          builder.add(y.bytes.sublist(start, start + width));
-        }
-      }
-
-      // nv21 needs chroma as interleaved [V,U,V,U,...] — the raw
-      // YUV_420_888 planes are separate U and V blocks (or a shared
-      // interleaved buffer starting at V when pixelStride is 2).
-      final u = planes[1];
-      final v = planes[2];
-      final cw = width ~/ 2;
-      final ch = height ~/ 2;
-      if (v.bytesPerPixel == 2) {
-        for (var row = 0; row < ch; row++) {
-          final start = row * v.bytesPerRow;
-          builder.add(v.bytes.sublist(start, start + cw * 2));
-        }
-      } else {
-        for (var row = 0; row < ch; row++) {
-          final vs = row * v.bytesPerRow;
-          final us = row * u.bytesPerRow;
-          final vRow = v.bytes.sublist(vs, vs + cw);
-          final uRow = u.bytes.sublist(us, us + cw);
-          for (var i = 0; i < cw; i++) {
-            builder.addByte(vRow[i]);
-            builder.addByte(uRow[i]);
+        _scanViews++;
+        final prev = _scanFinish;
+        _scanFinish = RoomMaterialScan(
+          floorType: scan.floorType ?? prev?.floorType,
+          floorColorArgb: scan.floorType != null
+              ? scan.floorColorArgb
+              : prev?.floorColorArgb,
+          wallType: scan.wallType ?? prev?.wallType,
+          wallColorArgb:
+              scan.wallType != null ? scan.wallColorArgb : prev?.wallColorArgb,
+        );
+        for (final name in scan.items) {
+          if (!_scanItems.contains(name)) {
+            _scanItems.add(name);
+            _scanPicked.add(name);
           }
         }
-      }
-
-      final sensorOrientation =
-          _cam?.description.sensorOrientation ?? 0;
-      final rotation = switch (sensorOrientation) {
-        90 => InputImageRotation.rotation90deg,
-        180 => InputImageRotation.rotation180deg,
-        270 => InputImageRotation.rotation270deg,
-        _ => InputImageRotation.rotation0deg,
-      };
-      return InputImage.fromBytes(
-        bytes: builder.takeBytes(),
-        metadata: InputImageMetadata(
-          size: Size(width.toDouble(), height.toDouble()),
-          rotation: rotation,
-          format: InputImageFormat.nv21,
-          bytesPerRow: width,
-        ),
-      );
-    } catch (_) {
-      return null;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _scanReading = false;
+        _scanError = userMessage(e,
+            fallback: 'Could not read the photo right now. Try again.');
+      });
     }
   }
 
-  void _extendScan() {
-    setState(() {
-      _scanDeadline =
-          DateTime.now().add(Duration(seconds: _scanDurationSec));
-    });
-  }
-
-  void _stopScan() {
-    if (_stage != _Stage.scanning) return;
-    _timer?.cancel();
-    final frames = _frames;
+  // Applies the reviewed result to the plan and closes the camera.
+  Future<void> _applyScan() async {
+    final finish = _scanFinish;
+    _found
+      ..clear()
+      ..addAll([
+        for (final n in _scanItems)
+          if (_scanPicked.contains(n)) _Found(label: n, confidence: 0.9),
+      ]);
     final added = _autoPlaceFound();
     final guessed = _designId == null ? _guessRoomType() : null;
-    if (guessed != null) _roomType = guessed;
+    await _releaseCam();
+    if (!mounted) return;
+    setState(() {
+      if (finish != null && !finish.isEmpty) _absorbMaterialScan(finish);
+      if (guessed != null) _roomType = guessed;
+      _stage = _Stage.plan;
+    });
+    _rebuildSceneWhenSettled();
+    final parts = [
+      if (added > 0) 'added $added item${added == 1 ? '' : 's'}',
+      if (finish?.floorType != null)
+        '${RoomFinishCatalog.floorLabel(finish!.floorType!).toLowerCase()} floor',
+      if (finish?.wallType != null)
+        '${RoomFinishCatalog.wallLabel(finish!.wallType!).toLowerCase()} walls',
+    ];
+    showAppSnackbar(
+      context,
+      parts.isEmpty
+          ? 'Nothing applied — add furniture from the catalogue.'
+          : 'Scan applied: ${parts.join(', ')}. Drag items to where they are.',
+      duration: const Duration(seconds: 4),
+    );
+  }
+
+  Future<void> _closeScanner() async {
+    await _releaseCam();
     if (mounted) setState(() => _stage = _Stage.plan);
-    if (mounted) {
-      if (frames == 0) {
-        showAppSnackbar(
-          context,
-          'The scan did not read the camera. Keep scanning a little longer.',
-          isError: true,
-          duration: const Duration(seconds: 4),
-        );
-      } else if (added > 0) {
-        showAppSnackbar(
-          context,
-          'Added $added item${added == 1 ? '' : 's'} from the scan — drag to adjust.',
-          duration: const Duration(seconds: 4),
-        );
-      } else {
-        showAppSnackbar(
-          context,
-          _found.isEmpty
-              ? 'No furniture recognized — add items from the catalog.'
-              : 'Detected items could not be placed — add from the catalog.',
-          duration: const Duration(seconds: 4),
-        );
-      }
-    }
-    // The still for the material scan must be taken while the camera is
-    // still alive — detach it and release only after the capture settles.
-    final cam = _cam;
-    _cam = null;
-    _captureInFlight = _captureStillThenRelease(cam);
-  }
-
-  // The AI material scan takes one still at scan end — the camera must
-  // survive the stage flip, so it is detached and released only after the
-  // capture settles. Every failure here is quiet; the plan is already up.
-  Future<void> _captureStillThenRelease(CameraController? cam) async {
-    Uint8List? jpeg;
-    if (cam != null) {
-      try {
-        await cam.stopImageStream();
-      } catch (_) {}
-      try {
-        final shot = await cam.takePicture();
-        jpeg = await shot.readAsBytes();
-      } catch (_) {}
-      try {
-        await cam.dispose();
-      } catch (_) {}
-    }
-    if (jpeg == null || jpeg.isEmpty || !mounted) return;
-    // The camera is free from here: the AI reading can take a while on a
-    // sleeping server, and a new scan must not wait for it (it used to, so
-    // the Scan button looked dead after the first scan).
-    unawaited(_runMaterialScan(jpeg));
-  }
-
-  Future<void> _runMaterialScan(Uint8List jpeg) async {
-    try {
-      final scan = await _materialScan.analyzeFrame(jpeg);
-      if (scan == null || scan.isEmpty || !mounted) return;
-      setState(() => _absorbMaterialScan(scan));
-      final parts = [
-        if (scan.floorType != null)
-          '${RoomFinishCatalog.floorLabel(scan.floorType!)} floor',
-        if (scan.wallType != null)
-          '${RoomFinishCatalog.wallLabel(scan.wallType!)} walls',
-      ];
-      showAppSnackbar(
-        context,
-        'Scan matched: ${parts.join(', ')}.',
-        duration: const Duration(seconds: 4),
-      );
-    } catch (e) {
-      if (mounted) {
-        showAppSnackbar(
-          context,
-          userMessage(e,
-              fallback: 'Could not read room materials right now.'),
-          duration: const Duration(seconds: 4),
-        );
-      }
-    }
   }
 
   void _absorbMaterialScan(RoomMaterialScan scan) {
@@ -1592,13 +1488,8 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
 
   @override
   void dispose() {
-    _timer?.cancel();
     _shellThrottle?.cancel();
     _furnitureThrottle?.cancel();
-    try {
-      _cam?.stopImageStream();
-    } catch (_) {}
-    _labeler.close();
     try {
       _cam?.dispose();
     } catch (_) {}
@@ -1638,7 +1529,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                     Expanded(
                       child: Text(
                         switch (_stage) {
-                          _Stage.init || _Stage.scanning => 'Room Scanner',
+                          _Stage.init || _Stage.scanning => 'Scan your room',
                           _Stage.plan => _designId != null
                               ? 'Edit: ${_designName ?? 'Design'}'
                               : 'Room Planner',
@@ -1662,16 +1553,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
                       IconButton(
                         icon: Icon(Icons.camera_alt, color: fgColor),
                         tooltip: 'Scan Room',
-                        onPressed: () async {
-                          await _ensureCam();
-                          if (!context.mounted) return;
-                          if (_cam != null && _cam!.value.isInitialized) {
-                            _startScan();
-                          } else {
-                            showAppSnackbar(context, 'Camera not available',
-                                isError: true);
-                          }
-                        },
+                        onPressed: _openScanner,
                       ),
                       IconButton(
                         icon: Icon(Icons.view_in_ar, color: fgColor),
@@ -1749,173 +1631,257 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     return CameraPreview(cam);
   }
 
+  // Camera view: one clear action, a tip, and a way back.
   Widget _initView() {
     final ready = _cam != null && _cam!.value.isInitialized;
     return Column(
       children: [
         Expanded(
-          child: ClipRRect(
-              borderRadius: BorderRadius.circular(16), child: _camPreview()),
-        ),
-        const SizedBox(height: 20),
-        Text('Point camera at the room',
-            style: GoogleFonts.poppins(fontSize: 18, color: Colors.white)),
-        const SizedBox(height: 6),
-        Text('We\'ll detect furniture and materials',
-            style: GoogleFonts.poppins(color: Colors.white54)),
-        const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: ready ? _startScan : null,
-          icon: const Icon(Icons.search, size: 24),
-          label: const Text('Start Scanning'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.accent,
-            foregroundColor: Colors.white,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: _camPreview()),
+              ),
+              Positioned(
+                left: 12,
+                right: 12,
+                top: 12,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Stand back and fit the floor, a wall and your furniture '
+                    'in the picture. Good light helps.',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                        fontSize: 13, color: Colors.white),
+                  ),
+                ),
+              ),
+              if (_scanViews > 0)
+                Positioned(
+                  right: 12,
+                  bottom: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                        color: AppColors.accent,
+                        borderRadius: BorderRadius.circular(20)),
+                    child: Text(
+                        '$_scanViews view${_scanViews == 1 ? '' : 's'} read',
+                        style: GoogleFonts.poppins(
+                            color: Colors.white, fontSize: 12)),
+                  ),
+                ),
+            ],
           ),
         ),
-        const SizedBox(height: 32),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  key: const Key('scan-cancel'),
+                  onPressed: _scanViews > 0
+                      ? () => setState(() => _stage = _Stage.scanning)
+                      : _closeScanner,
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white38),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: Text(_scanViews > 0 ? 'Review' : 'Cancel'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: ElevatedButton.icon(
+                  key: const Key('scan-capture'),
+                  onPressed: ready ? _captureAndRead : null,
+                  icon: const Icon(Icons.camera, size: 22),
+                  label: const Text('Scan this view'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
 
-  // ─── Scanning view ───
+  // Review: the photo, what was read, and what to do with it.
   Widget _scanView() {
-    final duration = _scanDurationSec;
-    final progress = (_elapsed / duration).clamp(0.0, 1.0);
-    final remaining = max(0, duration - _elapsed);
+    final shot = _scanShot;
+    final finish = _scanFinish;
+    final hasResult = _scanViews > 0;
+    final white = GoogleFonts.poppins(fontSize: 14, color: Colors.white);
+    final muted = GoogleFonts.poppins(fontSize: 12, color: Colors.white70);
+
+    Widget swatchRow(String label, String? value, int? argb) => Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Row(
+            children: [
+              Container(
+                width: 22,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: argb == null ? Colors.white12 : Color(argb),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: Colors.white38),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text('$label  ', style: muted),
+              Expanded(
+                child: Text(value ?? 'Not recognised',
+                    style: white, overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
+        );
+
     return Column(
       children: [
         Expanded(
           child: Stack(
+            fit: StackFit.expand,
             children: [
               ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: _camPreview()),
-              Positioned(
-                top: 12,
-                right: 12,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                      color: AppColors.accent,
-                      borderRadius: BorderRadius.circular(20)),
-                  child: Text('${_found.length} items found',
-                      style: GoogleFonts.poppins(
-                          color: Colors.white, fontSize: 12)),
-                ),
+                borderRadius: BorderRadius.circular(16),
+                child: shot == null
+                    ? const ColoredBox(color: Colors.black)
+                    : Image.memory(shot, fit: BoxFit.cover),
               ),
+              if (_scanReading)
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const CircularProgressIndicator(color: Colors.white),
+                      const SizedBox(height: 14),
+                      Text('Reading your room…', style: white),
+                      const SizedBox(height: 4),
+                      Text('The first scan can take up to a minute.',
+                          style: muted),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
-        const SizedBox(height: 10),
-
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Row(
-                children: [
-                  const SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(
-                          strokeWidth: 2, color: AppColors.accent)),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      'Scanning… $remaining s left — move slowly around the room',
-                      style: GoogleFonts.poppins(
-                          fontSize: 13, color: Colors.white),
-                    ),
+              if (_scanError != null) ...[
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.info_outline,
+                        color: Colors.orangeAccent, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(_scanError!, style: white)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (hasResult && !_scanReading) ...[
+                swatchRow(
+                    'Floor',
+                    finish?.floorType == null
+                        ? null
+                        : RoomFinishCatalog.floorLabel(finish!.floorType!),
+                    finish?.floorColorArgb),
+                swatchRow(
+                    'Walls',
+                    finish?.wallType == null
+                        ? null
+                        : RoomFinishCatalog.wallLabel(finish!.wallType!),
+                    finish?.wallColorArgb),
+                const SizedBox(height: 4),
+                Text(
+                    _scanItems.isEmpty
+                        ? 'No furniture recognised yet.'
+                        : 'Furniture found — untick anything you do not want:',
+                    style: muted),
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 6,
+                  children: [
+                    for (final name in _scanItems)
+                      FilterChip(
+                        key: Key('scan-item-$name'),
+                        label: Text(name),
+                        selected: _scanPicked.contains(name),
+                        onSelected: (v) => setState(() =>
+                            v ? _scanPicked.add(name) : _scanPicked.remove(name)),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+          child: Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  key: const Key('scan-again'),
+                  onPressed: _scanReading
+                      ? null
+                      : () => setState(() {
+                            _scanError = null;
+                            _stage = _Stage.init;
+                          }),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Colors.white38),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
-                  Text('$_frames frames',
-                      style: GoogleFonts.poppins(
-                          fontSize: 11, color: Colors.white54)),
-                ],
+                  child: Text(hasResult ? 'Scan another view' : 'Try again'),
+                ),
               ),
-              const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 6,
-                  backgroundColor: Colors.white12,
-                  color: AppColors.accent,
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  key: const Key('scan-apply'),
+                  onPressed: (_scanReading || !hasResult) ? null : _applyScan,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.accent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('Use in my room'),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 10),
-
-        SizedBox(
-          height: 40,
-          child: _found.isEmpty
-              ? Center(
-                  child: Text('Point the camera at furniture, walls and floor',
-                      style: GoogleFonts.poppins(
-                          fontSize: 12, color: Colors.white54)),
-                )
-              : ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: _found.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 8),
-                  itemBuilder: (_, i) => Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: AppColors.success
-                              .withValues(alpha: 0.5)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.check_circle,
-                            size: 14, color: AppColors.success),
-                        const SizedBox(width: 5),
-                        Text(_found[i].label,
-                            style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                color: Colors.white)),
-                      ],
-                    ),
-                  ),
-                ),
-        ),
-        const SizedBox(height: 8),
-
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            OutlinedButton.icon(
-              onPressed: _extendScan,
-              icon: const Icon(Icons.add_circle_outline, size: 18),
-              label: const Text('Keep Scanning'),
-              style: OutlinedButton.styleFrom(
-                  side: const BorderSide(color: Colors.white38)),
-            ),
-            const SizedBox(width: 12),
-            ElevatedButton.icon(
-              onPressed: _stopScan,
-              icon: const Icon(Icons.check, size: 18),
-              label: const Text('Done'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.accent,
-                foregroundColor: Colors.white,
-                minimumSize: Size.zero,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
       ],
     );
   }

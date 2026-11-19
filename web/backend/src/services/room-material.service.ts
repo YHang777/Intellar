@@ -32,12 +32,18 @@ export interface AnalyzeRoomMaterialResult {
   message?: string;
   floor?: RoomSurfaceGuess<FloorMaterial>;
   wall?: RoomSurfaceGuess<WallMaterial>;
+  /** Catalogue names clearly visible in the photo (only names the app sent). */
+  items?: string[];
 }
 
 /** Collaborators the route needs — injectable so tests never touch Gemini. */
 export interface RoomMaterialDeps {
   isConfigured: () => boolean;
-  analyze: (imageBase64: string, mimeType: string) => Promise<AnalyzeRoomMaterialResult>;
+  analyze: (
+    imageBase64: string,
+    mimeType: string,
+    catalog?: string[]
+  ) => Promise<AnalyzeRoomMaterialResult>;
   authorize: RequestHandler;
   log?: (message: string) => void;
 }
@@ -45,7 +51,8 @@ export interface RoomMaterialDeps {
 export function defaultRoomMaterialDeps(): RoomMaterialDeps {
   return {
     isConfigured: () => env.geminiApiKey.trim().length > 0,
-    analyze: (imageBase64, mimeType) => analyzeRoomMaterial(imageBase64, mimeType),
+    analyze: (imageBase64, mimeType, catalog) =>
+      analyzeRoomMaterial(imageBase64, mimeType, catalog ?? []),
     authorize: authenticateAllowGuest,
     log: (message) => console.log(message),
   };
@@ -57,13 +64,14 @@ const VISION_TIMEOUT_MS = 30_000;
 
 async function analyzeRoomMaterial(
   imageBase64: string,
-  mimeType: string
+  mimeType: string,
+  catalog: string[]
 ): Promise<AnalyzeRoomMaterialResult> {
   const model = visionModel();
 
   let parsed: MaterialJson | null = null;
   try {
-    parsed = await callVisionModel(model, imageBase64, mimeType);
+    parsed = await callVisionModel(model, imageBase64, mimeType, catalog);
   } catch (err) {
     // Google diagnostics are for the log, never the caller.
     log(`[room-material] upstream failed: ${(err as Error).message}`);
@@ -71,12 +79,13 @@ async function analyzeRoomMaterial(
 
   const floor = parsed ? normalizeFloor(parsed.floor) : undefined;
   const wall = parsed ? normalizeWall(parsed.wall) : undefined;
-  if (floor || wall) {
-    return { status: 'ok', floor, wall };
+  const items = parsed ? normalizeItems(parsed.items, catalog) : [];
+  if (floor || wall || items.length > 0) {
+    return { status: 'ok', floor, wall, ...(items.length > 0 ? { items } : {}) };
   }
   return {
     status: 'failed',
-    message: 'We could not read the floor and wall in this frame.',
+    message: 'We could not read this photo. Try again with more of the room in view and good light.',
   };
 }
 
@@ -86,33 +95,51 @@ function visionModel(): string {
 
 // ─── Model call ──────────────────────────────────────────────────────────────
 
-export function buildRoomMaterialPrompt(): string {
-  return `You are identifying room finishes in a photo taken inside a home, for an interior-design app that can restyle the floor and walls.
+export function buildRoomMaterialPrompt(catalog: string[] = []): string {
+  const names = catalog.length > 0 ? catalog.map((n) => `"${n}"`).join(', ') : '';
+  const itemsRule = names
+    ? `\n- items: furniture you can CLEARLY see in the photo, chosen ONLY from this list: [${names}]. Use the closest name from the list (e.g. a couch is "Sofa"). Do not guess hidden or partial objects; return [] when none are clear.`
+    : '\n- items: always [].';
+  return `You are reading a photo taken inside a home, for an interior-design app that can restyle the floor and walls and rebuild the room's furniture.
 Return ONLY a JSON object:
-{"floor":{"material":"woodPlanks|cement|ceramicTiles|parquet|unknown","hex":"#RRGGBB"},"wall":{"material":"paint|woodPanels|brick|unknown","hex":"#RRGGBB"}}
+{"floor":{"material":"woodPlanks|cement|ceramicTiles|parquet|unknown","hex":"#RRGGBB"},"wall":{"material":"paint|woodPanels|brick|unknown","hex":"#RRGGBB"},"items":["..."]}
 Rules:
 - floor.material: woodPlanks for plank boards, parquet for parquet blocks, ceramicTiles for tiles or stone tiles, cement for concrete or polished cement. Use "unknown" when the floor is not visible or none of these.
 - wall.material: paint for plain painted walls, woodPanels for wood paneling or cladding, brick for exposed brick. Use "unknown" when no wall is visible or none of these.
-- hex: the dominant colour of that surface as #RRGGBB.
-- Describe the SURFACES only — ignore furniture, rugs, curtains and decor.`;
+- hex: the dominant colour of that surface as #RRGGBB (describe the surface itself, not furniture on it).${itemsRule}`;
+}
+
+/** Keeps only names from the app's own catalogue, canonical spelling, no repeats. */
+export function normalizeItems(raw: unknown, catalog: string[]): string[] {
+  if (!Array.isArray(raw) || catalog.length === 0) return [];
+  const byLower = new Map(catalog.map((n) => [n.toLowerCase(), n]));
+  const out: string[] = [];
+  for (const v of raw) {
+    if (typeof v !== 'string') continue;
+    const name = byLower.get(v.trim().toLowerCase());
+    if (name && !out.includes(name)) out.push(name);
+    if (out.length >= 12) break;
+  }
+  return out;
 }
 
 async function callVisionModel(
   model: string,
   imageBase64: string,
-  mimeType: string
+  mimeType: string,
+  catalog: string[]
 ): Promise<MaterialJson | null> {
   const body = {
     contents: [
       {
         parts: [
-          { text: buildRoomMaterialPrompt() },
+          { text: buildRoomMaterialPrompt(catalog) },
           { inlineData: { mimeType, data: imageBase64 } },
         ],
       },
     ],
     generationConfig: {
-      maxOutputTokens: 300,
+      maxOutputTokens: 400,
       // The lite tier bills thinking as output; this is a label task.
       thinkingConfig: { thinkingBudget: 0 },
     },
@@ -166,6 +193,7 @@ function extractText(raw: string): string {
 export interface MaterialJson {
   floor: { material: string; hex: string } | null;
   wall: { material: string; hex: string } | null;
+  items?: unknown;
 }
 
 /**
@@ -191,6 +219,7 @@ export function parseMaterialJson(raw: string): MaterialJson | null {
   return {
     floor: surfaceOf(o.floor),
     wall: surfaceOf(o.wall),
+    ...(o.items !== undefined ? { items: o.items } : {}),
   };
 }
 

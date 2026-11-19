@@ -31,14 +31,17 @@ class RoomMaterialScan {
     this.floorColorArgb,
     this.wallType,
     this.wallColorArgb,
+    this.items = const [],
   });
 
   final FloorFinishType? floorType;
   final int? floorColorArgb;
   final WallFinishType? wallType;
   final int? wallColorArgb;
+  // Catalogue furniture names the photo clearly shows.
+  final List<String> items;
 
-  bool get isEmpty => floorType == null && wallType == null;
+  bool get isEmpty => floorType == null && wallType == null && items.isEmpty;
 }
 
 /// Maps the server verdict onto catalog finishes: material name → enum, and
@@ -76,12 +79,20 @@ RoomMaterialScan? parseMaterialScanJson(Map<String, dynamic> body) {
     }
   }
 
-  if (floorType == null && wallType == null) return null;
+  final itemsRaw = body['items'];
+  final items = <String>[
+    if (itemsRaw is List)
+      for (final v in itemsRaw)
+        if (v is String && v.trim().isNotEmpty) v.trim(),
+  ];
+
+  if (floorType == null && wallType == null && items.isEmpty) return null;
   return RoomMaterialScan(
     floorType: floorType,
     floorColorArgb: floorColor,
     wallType: wallType,
     wallColorArgb: wallColor,
+    items: items,
   );
 }
 
@@ -107,7 +118,7 @@ class MaterialScanService {
   final http.Client _client;
   final Future<String?> Function() _idTokenProvider;
 
-  static const Duration _timeout = Duration(seconds: 35);
+  static const Duration _timeout = Duration(seconds: 75);
 
   static Future<String?> _firebaseIdToken() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -121,6 +132,7 @@ class MaterialScanService {
   Future<RoomMaterialScan?> analyzeFrame(
     Uint8List jpegBytes, {
     String mimeType = 'image/jpeg',
+    List<String> catalog = const [],
   }) async {
     final base = AppConfig.chatApiUrl.trim();
     if (base.isEmpty) {
@@ -144,6 +156,7 @@ class MaterialScanService {
             body: jsonEncode({
               'imageBase64': base64Encode(jpegBytes),
               'mimeType': mimeType,
+              if (catalog.isNotEmpty) 'catalog': catalog,
             }),
           )
           .timeout(_timeout);
@@ -167,7 +180,7 @@ class MaterialScanService {
         if (decoded['status'] == 'failed') {
           throw MaterialScanException(
             decoded['message']?.toString() ??
-                'We could not read the floor and wall in this frame.',
+                'We could not read this photo. Try again with more of the room in view.',
           );
         }
         return parseMaterialScanJson(decoded);
