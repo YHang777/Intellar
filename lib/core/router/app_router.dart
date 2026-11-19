@@ -49,6 +49,7 @@ import '../../features/customer/marketplace/presentation/screens/buyer_order_det
 import '../../features/customer/marketplace/presentation/screens/wishlist_screen.dart';
 import '../../features/customer/scanner/presentation/screens/room_scanner_screen.dart';
 import '../../features/customer/scanner/presentation/screens/shared_design_screen.dart';
+import '../../shared/screens/account_required_screen.dart';
 import '../../features/customer/ar/data/furniture_model_library.dart';
 import '../../features/customer/ar/presentation/ar_viewer_args.dart';
 import '../../features/customer/ar/presentation/screens/ar_viewer_screen.dart';
@@ -68,6 +69,24 @@ const _sandboxRoute =
     kDebugMode ? String.fromEnvironment('SANDBOX_ROUTE') : '';
 const _sandboxRoutes = {'/walkthrough', '/design-editor', '/ar-viewer'};
 const _sandbox = _sandboxRoute != '';
+
+const _guestBlockedPrefixes = [
+  '/marketplace/cart',
+  '/marketplace/checkout',
+  '/marketplace/order-confirmation',
+  '/marketplace/orders',
+  '/marketplace/wishlist',
+  '/budget',
+  '/settings/security',
+  '/settings/notifications',
+  '/settings/preferences',
+  '/orders/',
+  '/design/report',
+  '/supplier',
+  '/store-profile',
+];
+
+bool _guestBlocked(String loc) => _guestBlockedPrefixes.any(loc.startsWith);
 
 // A share link opened while signed out survives the trip through sign-in.
 String? _pendingSharedLink;
@@ -111,6 +130,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         }
         _pendingSharedLink = null;
         return p;
+      }
+      // Guests explore freely but anything tied to an account needs sign-up.
+      if (isLoggedIn && user.isGuest && _guestBlocked(loc)) {
+        return '/account-required';
       }
       if (isLoggedIn && user.twoFactorPending) {
         return loc == '/two-factor' ? null : '/two-factor';
@@ -252,6 +275,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         pageBuilder: (_, state) => _buildPage(
           RoomScannerScreen(existingDesign: state.extra as dynamic),
         ),
+      ),
+
+      GoRoute(
+        path: '/account-required',
+        pageBuilder: (_, __) => _buildPage(const AccountRequiredScreen()),
       ),
 
       // ── Shared design link (/d/<token>) → opens in the 3D planner ──

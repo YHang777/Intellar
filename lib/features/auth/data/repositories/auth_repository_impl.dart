@@ -43,6 +43,7 @@ class AuthRepositoryImpl implements IAuthRepository {
         await BootTrace.log('authState: signed out');
         return null;
       }
+      if (fbUser.isAnonymous) return AppUser.guest(fbUser.uid);
       if (!fbUser.emailVerified) {
         await BootTrace.log('authState: user present but email unverified');
         return null;
@@ -67,6 +68,7 @@ class AuthRepositoryImpl implements IAuthRepository {
   Future<AppUser?> getCurrentUser() async {
     final fbUser = _authDatasource.currentUser;
     if (fbUser == null) return null;
+    if (fbUser.isAnonymous) return AppUser.guest(fbUser.uid);
     return _buildAppUser(fbUser);
   }
 
@@ -208,9 +210,34 @@ class AuthRepositoryImpl implements IAuthRepository {
 
   @override
   Future<void> logout() async {
-    final uid = _authDatasource.currentUser?.uid;
+    final current = _authDatasource.currentUser;
+    final uid = current?.uid;
     if (uid != null) await _deviceStore.clear(uid);
+    // A guest account holds nothing worth keeping: remove it instead of
+    // leaving an orphan anonymous user behind.
+    if (current != null && current.isAnonymous) {
+      try {
+        await current.delete();
+        return;
+      } catch (_) {}
+    }
     await _authDatasource.signOut();
+  }
+
+  @override
+  Future<AppUser> continueAsGuest() async {
+    try {
+      final cred = await _authDatasource.signInAnonymously()
+          .timeout(const Duration(seconds: 25));
+      return AppUser.guest(cred.user!.uid);
+    } on fb.FirebaseAuthException catch (e) {
+      if (e.code == 'operation-not-allowed' || e.code == 'admin-restricted-operation') {
+        throw const AuthException('Guest browsing is not available right now.');
+      }
+      throw const AuthException('Could not start guest browsing. Please try again.');
+    } on TimeoutException {
+      throw const AuthException('Connection timed out. Please try again.');
+    }
   }
 
   @override

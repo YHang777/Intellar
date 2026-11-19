@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../shared/widgets/guest_gate.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/utils/user_errors.dart';
@@ -8,8 +10,10 @@ import '../data/design_share.dart';
 
 bool _sharing = false;
 
-Future<void> shareDesignLink(BuildContext context, RoomDesign design,
+Future<void> shareDesignLink(BuildContext context, WidgetRef ref, RoomDesign design,
     {DesignShareClient? client}) async {
+  if (!await requireAccount(context, ref, 'share your design as a link')) return;
+  if (!context.mounted) return;
   if (_sharing) return;
   _sharing = true;
   showAppSnackbar(context, 'Creating a share link…');

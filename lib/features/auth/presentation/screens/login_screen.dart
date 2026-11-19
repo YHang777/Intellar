@@ -75,6 +75,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     }
   }
 
+  Future<void> _continueAsGuest() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
+    try {
+      await ref.read(authStateProvider.notifier).continueAsGuest();
+    } catch (e) {
+      if (!mounted) return;
+      _showError(userMessage(e,
+          fallback: 'Could not start guest browsing. Please try again.'));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
   void _showError(String message) {
     if (!mounted) return;
     showAppSnackbar(context, message, isError: true);
@@ -272,7 +286,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       ),
                     ],
                   ),
-                  const SizedBox(height: 32),
+                  TextButton.icon(
+                    key: const Key('continue-as-guest'),
+                    onPressed: loading ? null : _continueAsGuest,
+                    icon: Icon(Icons.explore_outlined,
+                        size: 18, color: AppColors.textSecondary),
+                    label: Text('Explore as a guest',
+                        style: GoogleFonts.poppins(
+                            color: AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14)),
+                  ),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

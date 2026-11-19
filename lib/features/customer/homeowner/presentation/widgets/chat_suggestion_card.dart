@@ -1,3 +1,4 @@
+import '../../../../../shared/widgets/guest_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -43,6 +44,10 @@ class ChatSuggestionCard extends ConsumerWidget {
     final verdict = (ref.watch(productFeedbackProvider).valueOrNull ??
         const <String, ProductFeedback>{})[s.productId];
     Future<void> toggle(FeedbackValue value) async {
+      if (!await requireAccount(
+          context, ref, 'teach the assistant what you like')) {
+        return;
+      }
       final uid = ref.read(currentUserProvider)?.uid;
       if (uid == null) return;
       final repo = ref.read(productFeedbackRepositoryProvider);

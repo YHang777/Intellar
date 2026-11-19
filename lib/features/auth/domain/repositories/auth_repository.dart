@@ -29,6 +29,8 @@ abstract class IAuthRepository {
 
   Future<void> logout();
 
+  Future<AppUser> continueAsGuest();
+
   Future<void> sendPasswordResetEmail(String email);
 
   Future<AppUser?> getCurrentUser();

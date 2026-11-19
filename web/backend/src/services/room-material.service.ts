@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { env } from '../config/env';
-import { authenticate } from '../middleware/authenticate';
+import { authenticateAllowGuest } from '../middleware/authenticate';
 
 /**
  * Room-finish recognition for the scanner (`POST /api/ai/analyze-room-material`).
@@ -46,7 +46,7 @@ export function defaultRoomMaterialDeps(): RoomMaterialDeps {
   return {
     isConfigured: () => env.geminiApiKey.trim().length > 0,
     analyze: (imageBase64, mimeType) => analyzeRoomMaterial(imageBase64, mimeType),
-    authorize: authenticate,
+    authorize: authenticateAllowGuest,
     log: (message) => console.log(message),
   };
 }

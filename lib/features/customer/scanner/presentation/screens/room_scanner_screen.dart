@@ -1,3 +1,4 @@
+import '../../../../../shared/widgets/guest_gate.dart';
 import '../../../../../core/utils/input_formatters.dart';
 import '../lighting_picker.dart';
 import 'dart:async';
@@ -1447,9 +1448,11 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     _pushCamera();
   }
 
-  Future<void> _shareLink() => shareDesignLink(context, _snapshotDesign());
+  Future<void> _shareLink() => shareDesignLink(context, ref, _snapshotDesign());
 
   Future<void> _saveDesign() async {
+    if (!await requireAccount(context, ref, 'save your designs')) return;
+    if (!mounted) return;
     final user = ref.read(currentUserProvider);
     if (user == null) {
       if (mounted) {

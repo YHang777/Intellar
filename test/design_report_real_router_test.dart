@@ -105,6 +105,9 @@ void main() {
 }
 
 class _HomeownerAuth implements IAuthRepository {
+  @override
+  Future<AppUser> continueAsGuest() async => throw UnimplementedError();
+
   static final AppUser _user = AppUser(
     uid: 'u-test',
     email: 'home@example.com',

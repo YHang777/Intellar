@@ -190,6 +190,8 @@ final savedDesignsProvider = StreamProvider<List<RoomDesign>>((ref) {
   final user = ref.watch(currentUserProvider);
   final userId = user?.uid;
   if (userId == null) return const Stream.empty();
+  // Guests cannot save designs, so there is nothing to load.
+  if (user!.isGuest) return Stream.value(const <RoomDesign>[]);
 
   final ds = ref.watch(roomDesignDatasourceProvider);
   return ds.watchDesigns(userId);

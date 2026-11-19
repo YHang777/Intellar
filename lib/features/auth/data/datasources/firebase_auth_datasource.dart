@@ -32,6 +32,8 @@ class FirebaseAuthDatasource {
 
   Future<void> signOut() => _auth.signOut();
 
+  Future<UserCredential> signInAnonymously() => _auth.signInAnonymously();
+
   Future<void> sendPasswordResetEmail(String email) =>
       _auth.sendPasswordResetEmail(email: email);
 

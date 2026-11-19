@@ -93,6 +93,20 @@ class AuthStateNotifier extends StateNotifier<AsyncValue<AppUser?>> {
     }
   }
 
+  Future<void> continueAsGuest() async {
+    _authStreamSuspended = true;
+    state = const AsyncValue<AppUser?>.loading().copyWithPrevious(state);
+    try {
+      final user = await _repository.continueAsGuest();
+      state = AsyncValue.data(user);
+      _authStreamSuspended = false;
+    } catch (e, st) {
+      _authStreamSuspended = false;
+      state = AsyncValue.error(e, st);
+      rethrow;
+    }
+  }
+
   Future<void> logout() async {
     _authStreamSuspended = false;
     await PushService.instance.unregister();

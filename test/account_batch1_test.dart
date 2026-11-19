@@ -415,6 +415,9 @@ class _FakeSettings extends AccountSettingsRepository {
 }
 
 class _FakeAuthRepository implements IAuthRepository {
+  @override
+  Future<AppUser> continueAsGuest() async => throw UnimplementedError();
+
   _FakeAuthRepository(this.user);
 
   final AppUser? user;

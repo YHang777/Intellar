@@ -34,6 +34,9 @@ class _RecordingRepo implements MarketplaceRepository {
 }
 
 class _RecordingAuth implements IAuthRepository {
+  @override
+  Future<AppUser> continueAsGuest() async => throw UnimplementedError();
+
   _RecordingAuth({this.initial = const StoreProfile()});
   final StoreProfile initial;
   StoreProfile? saved;

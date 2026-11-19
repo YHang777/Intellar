@@ -260,7 +260,7 @@ class SavedDesignsScreen extends ConsumerWidget {
                           design.furniture.map((f) => f.iconName).toList()),
                     );
                   } else if (value == 'share') {
-                    await shareDesignLink(context, design);
+                    await shareDesignLink(context, ref, design);
                   } else if (value == 'delete') {
                     final confirm = await showDialog<bool>(
                       context: context,

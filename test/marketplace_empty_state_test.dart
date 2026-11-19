@@ -29,6 +29,9 @@ Product _p(String id, {int soldCount = 0}) => Product(
 
 class _Auth implements IAuthRepository {
   @override
+  Future<AppUser> continueAsGuest() async => throw UnimplementedError();
+
+  @override
   Stream<AppUser?> authStateChanges() async* {
     final now = DateTime(2026);
     yield AppUser(

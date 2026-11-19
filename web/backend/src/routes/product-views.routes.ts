@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { Firestore } from 'firebase-admin/firestore';
 import { ApiError, asyncHandler } from '../lib/errors';
 import { validateBody } from '../middleware/validate';
-import { authenticate } from '../middleware/authenticate';
+import { authenticateAllowGuest } from '../middleware/authenticate';
 import { requireUser } from '../middleware/types';
 import { fbDb, FieldValue } from '../config/firebase';
 
@@ -19,7 +19,7 @@ export interface ProductViewsDeps {
 }
 
 export function defaultProductViewsDeps(): ProductViewsDeps {
-  return { authorize: authenticate, db: fbDb, now: () => new Date() };
+  return { authorize: authenticateAllowGuest, db: fbDb, now: () => new Date() };
 }
 
 const body = z.object({

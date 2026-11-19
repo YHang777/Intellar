@@ -1,3 +1,4 @@
+import '../../../../../shared/widgets/guest_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -85,7 +86,9 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     );
   }
 
-  void _addToCart(Product product) {
+  Future<void> _addToCart(Product product) async {
+    if (!await requireAccount(context, ref, 'add items to your cart')) return;
+    if (!mounted) return;
     ref.read(cartProvider.notifier).addItem(product);
     showAddedToCartSnack(
       context,
@@ -94,7 +97,9 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     );
   }
 
-  void _toggleWishlist(Product product) {
+  Future<void> _toggleWishlist(Product product) async {
+    if (!await requireAccount(context, ref, 'save items to your wishlist')) return;
+    if (!mounted) return;
     final notifier = ref.read(wishlistProvider.notifier);
     final wasWishlisted = notifier.contains(product.id);
     notifier.toggle(product.id);

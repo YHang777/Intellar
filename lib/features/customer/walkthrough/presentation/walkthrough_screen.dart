@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/guest_gate.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
@@ -809,6 +810,8 @@ class _WalkthroughScreenState extends ConsumerState<WalkthroughScreen> {
   }
 
   Future<void> _saveDesign() async {
+    if (!await requireAccount(context, ref, 'save your designs')) return;
+    if (!mounted) return;
     final user = ref.read(currentUserProvider);
     if (user == null) {
       showAppSnackbar(context, 'Please sign in to save designs',

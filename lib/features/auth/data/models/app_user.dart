@@ -35,6 +35,7 @@ class AppUser {
   final StoreProfile storeProfile;
 
   final bool twoFactorEnabled;
+  final bool isGuest;
   final bool twoFactorPending;
   final bool onboardingCompleted;
   final DesignPreferences designPreferences;
@@ -65,7 +66,24 @@ class AppUser {
     this.privacySettings = const PrivacySettings(),
     required this.createdAt,
     required this.updatedAt,
+    this.isGuest = false,
   });
+
+  // Browsing without an account (Firebase anonymous sign-in): a homeowner
+  // who can explore everything but must sign up to buy or save.
+  factory AppUser.guest(String uid) {
+    final now = DateTime.now();
+    return AppUser(
+      uid: uid,
+      email: '',
+      name: 'Guest',
+      role: UserRole.homeowner,
+      onboardingCompleted: true,
+      createdAt: now,
+      updatedAt: now,
+      isGuest: true,
+    );
+  }
 
   bool get isHomeowner => role == UserRole.homeowner;
   bool get isSupplier => role == UserRole.supplier;
@@ -161,6 +179,7 @@ class AppUser {
       privacySettings: privacySettings ?? this.privacySettings,
       createdAt: createdAt,
       updatedAt: DateTime.now(),
+      isGuest: isGuest,
     );
   }
 

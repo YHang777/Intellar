@@ -1,3 +1,4 @@
+import '../../../../../shared/widgets/guest_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -39,7 +40,9 @@ class ChatCardActions {
     return null;
   }
 
-  void addToCart(ChatSuggestionSnapshot suggestion) {
+  Future<void> addToCart(ChatSuggestionSnapshot suggestion) async {
+    if (!await requireAccount(context, ref, 'add items to your cart')) return;
+    if (!context.mounted) return;
     final product = _resolve(suggestion.productId);
     if (product == null || !product.isActive || product.isOutOfStock) {
       showAppSnackbar(context, 'That item is no longer available.');
@@ -71,7 +74,9 @@ class ChatCardActions {
     );
   }
 
-  void toggleWishlist(ChatSuggestionSnapshot suggestion) {
+  Future<void> toggleWishlist(ChatSuggestionSnapshot suggestion) async {
+    if (!await requireAccount(context, ref, 'save items to your wishlist')) return;
+    if (!context.mounted) return;
     final product = _resolve(suggestion.productId);
     final name = product?.name ?? suggestion.name;
     final added = !ref.read(wishlistProvider).contains(suggestion.productId);

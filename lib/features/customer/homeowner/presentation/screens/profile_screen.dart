@@ -1,3 +1,4 @@
+import '../../../../../shared/widgets/guest_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -106,6 +107,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
+    if (user?.isGuest ?? false) return _guestProfile(context);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -424,6 +426,44 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ),
             ],
             const SizedBox(height: 32),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _guestProfile(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: ListView(
+          padding: EdgeInsets.fromLTRB(
+              16, 16, 16, MediaQuery.paddingOf(context).bottom + 24),
+          children: [
+            const PageHeading(title: 'Profile'),
+            const SizedBox(height: 16),
+            Container(
+              key: const Key('guest-profile-card'),
+              padding: const EdgeInsets.only(top: 20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.border),
+              ),
+              child: const GuestSignUpSheet(
+                  action: 'save designs, buy from local suppliers and keep your '
+                      'preferences'),
+            ),
+            const SizedBox(height: 20),
+            _SectionCard(
+              title: 'Settings',
+              children: [
+                _LinkRow(Icons.accessibility_new, 'Accessibility',
+                    () => pushOnce(context, '/settings/accessibility')),
+                _LinkRow(Icons.tour_outlined, 'App Tour',
+                    () => pushOnce(context, '/onboarding')),
+              ],
+            ),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import '../../../../../shared/widgets/guest_gate.dart';
 import '../../../../../core/utils/input_formatters.dart';
 import '../../../../../services/notify/notify_client.dart';
 import 'package:flutter/material.dart';
@@ -76,7 +77,9 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   int _clampedQty(Product product) =>
       product.stock > 0 ? _qty.clamp(1, product.stock) : 1;
 
-  void _addToCart(Product product) {
+  Future<void> _addToCart(Product product) async {
+    if (!await requireAccount(context, ref, 'add items to your cart')) return;
+    if (!mounted) return;
     final qty = _clampedQty(product);
     ref.read(cartProvider.notifier).addItem(product, qty: qty);
     final message = qty > 1
@@ -90,6 +93,8 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   }
 
   Future<void> _openQuoteDialog(Product product) async {
+    if (!await requireAccount(context, ref, 'request a bulk quote')) return;
+    if (!mounted) return;
     final user = ref.read(currentUserProvider);
     if (user == null) {
       if (mounted) {
@@ -397,7 +402,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                               : Colors.black.withValues(alpha: 0.35),
                           tooltip:
                               isWishlisted ? 'Remove from wishlist' : 'Wishlist',
-                          onTap: () {
+                          onTap: () async {
+                            if (!await requireAccount(
+                                context, ref, 'save items to your wishlist')) {
+                              return;
+                            }
+                            if (!context.mounted) return;
                             ref
                                 .read(wishlistProvider.notifier)
                                 .toggle(product.id);
@@ -462,13 +472,20 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                     ),
                     child: ElevatedButton.icon(
                       onPressed: buyable
-                          ? () => context.pushNamed(
+                          ? () async {
+                              if (!await requireAccount(
+                                  context, ref, 'buy products')) {
+                                return;
+                              }
+                              if (!context.mounted) return;
+                              context.pushNamed(
                                 RouteNames.homeownerCheckout,
                                 extra: BuyNowRequest(
                                   product: product,
                                   quantity: _clampedQty(product),
                                 ),
-                              )
+                              );
+                            }
                           : null,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
@@ -873,7 +890,11 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                 RouteNames.homeownerProductDetail,
                 pathParameters: {'id': item.id},
               ),
-              onAddToCart: () {
+              onAddToCart: () async {
+                if (!await requireAccount(context, ref, 'add items to your cart')) {
+                  return;
+                }
+                if (!context.mounted) return;
                 ref.read(cartProvider.notifier).addItem(item);
                 showAddedToCartSnack(
                   context,
@@ -881,7 +902,12 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                   onViewCart: () => context.pushNamed(RouteNames.homeownerCart),
                 );
               },
-              onToggleWishlist: () {
+              onToggleWishlist: () async {
+                if (!await requireAccount(
+                    context, ref, 'save items to your wishlist')) {
+                  return;
+                }
+                if (!context.mounted) return;
                 final was = ref
                     .read(wishlistProvider)
                     .contains(item.id);

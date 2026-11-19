@@ -1,6 +1,6 @@
 import type { RequestHandler } from 'express';
 import { env } from '../config/env';
-import { authenticate } from '../middleware/authenticate';
+import { authenticateAllowGuest } from '../middleware/authenticate';
 
 /**
  * Server-side Gemini call behind `/api/ai/chat`.
@@ -165,7 +165,7 @@ export function defaultAiChatDeps(): AiChatDeps {
     model: env.geminiModel,
     isConfigured: () => env.geminiApiKey.trim().length > 0,
     generate: (req) => generateWithGemini(req),
-    authorize: authenticate,
+    authorize: authenticateAllowGuest,
     log: (message) => console.log(message),
   };
 }

@@ -38,6 +38,9 @@ void main() {
 }
 
 class _FakeAuthRepository implements IAuthRepository {
+  @override
+  Future<AppUser> continueAsGuest() async => throw UnimplementedError();
+
   final StreamController<AppUser?> _controller =
       StreamController<AppUser?>.broadcast();
 

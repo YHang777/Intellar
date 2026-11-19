@@ -129,6 +129,9 @@ final _designs = [
 ];
 
 class _FakeAuth implements IAuthRepository {
+  @override
+  Future<AppUser> continueAsGuest() async => throw UnimplementedError();
+
   _FakeAuth(this._user);
   final AppUser? _user;
 
