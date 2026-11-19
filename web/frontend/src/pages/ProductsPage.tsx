@@ -200,7 +200,9 @@ export function ProductsPage({ query }: { query: string }) {
         sortValue: (r) => r.name.toLowerCase(),
         render: (r) => (
           <div className="cell-primary flag-listing">
-            {r.image ? (
+            {/^https?:\/\//.test(r.image ?? '') ? (
+              // Demo listings point at a picture bundled in the mobile app
+              // (assets/...), which a browser cannot load: placeholder instead.
               <img className="flag-thumb" src={r.image} alt="" loading="lazy" />
             ) : (
               <span className="flag-thumb flag-thumb-empty">
