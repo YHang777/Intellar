@@ -282,6 +282,9 @@ class Product {
   // Units sold across paid orders — kept by the backend payment path. Drives
   // popularity sort/filter; clamped at zero for legacy docs without a counter.
   final int soldCount;
+
+  /// Server-owned: buyers' product-page views (one per buyer per day).
+  final int viewCount;
   final bool isEcoFriendly;
   final int? originalPrice;
 
@@ -309,6 +312,7 @@ class Product {
     this.rating = 0.0,
     this.ratingCount = 0,
     this.soldCount = 0,
+    this.viewCount = 0,
     this.isEcoFriendly = false,
     this.originalPrice,
     this.createdAt,
@@ -353,6 +357,7 @@ class Product {
     double? rating,
     int? ratingCount,
     int? soldCount,
+    int? viewCount,
     bool? isEcoFriendly,
     int? originalPrice,
     DateTime? createdAt,
@@ -380,6 +385,7 @@ class Product {
       rating: rating ?? this.rating,
       ratingCount: ratingCount ?? this.ratingCount,
       soldCount: soldCount ?? this.soldCount,
+      viewCount: viewCount ?? this.viewCount,
       isEcoFriendly: isEcoFriendly ?? this.isEcoFriendly,
       originalPrice:
           clearOriginalPrice ? null : (originalPrice ?? this.originalPrice),
@@ -437,6 +443,9 @@ class Product {
           ? (json['soldCount'] as num).round().clamp(0, 1 << 30)
           : 0,
       isEcoFriendly: json['isEcoFriendly'] == true,
+      viewCount: (json['viewCount'] is num)
+          ? (json['viewCount'] as num).round().clamp(0, 1 << 30)
+          : 0,
       originalPrice: (json['originalPrice'] is num)
           ? (json['originalPrice'] as num).round()
           : null,
@@ -492,7 +501,7 @@ DateTime? _parseDate(dynamic value) {
 // Fields only the server writes (photo analysis, the popularity counter).
 // A seller's edit replaces the whole document, so these are carried over
 // unchanged: dropping one reads as an edit to it, which the rules refuse.
-const serverOwnedProductFields = ['vision', 'soldCount'];
+const serverOwnedProductFields = ['vision', 'soldCount', 'viewCount', 'lowStockAlert'];
 
 Map<String, dynamic> preserveStoredVision(
   Map<String, dynamic> json,

@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../models/order.dart';
+import '../../../../models/product.dart';
 import '../../../../shared/widgets/empty_state.dart';
 import '../../../../shared/widgets/page_heading.dart';
 import '../../../../shared/widgets/product_image.dart';
@@ -249,6 +250,14 @@ class _SalesAnalyticsScreenState extends ConsumerState<SalesAnalyticsScreen> {
                       _TopProductRow(index: i, tally: top[i]),
                   ],
                 ),
+        ),
+        const SizedBox(height: 14),
+
+        // ── Product views (report 1.5.1: views, sales volume, interest) ──
+        _card(
+          title: 'Product views',
+          subtitle: 'Buyers who opened each listing (once per buyer per day)',
+          child: const _ViewsSection(),
         ),
       ],
     );
@@ -549,6 +558,76 @@ class _AnalyticsSkeleton extends StatelessWidget {
             ],
           ),
         ),
+      ],
+    );
+  }
+}
+
+
+class _ViewsSection extends ConsumerWidget {
+  const _ViewsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final uid = ref.watch(currentUserProvider)?.uid ?? '';
+    final products =
+        ref.watch(marketplaceProductsProvider).valueOrNull ?? const <Product>[];
+    final total = totalViews(products, uid);
+    final stats = viewStats(products, uid);
+    if (total == 0) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Text(
+          'No views yet. Views appear here as buyers open your listings.',
+          style: GoogleFonts.poppins(
+              fontSize: 13, color: AppColors.textSecondary),
+        ),
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('$total total views',
+            key: const Key('views-total'),
+            style: GoogleFonts.poppins(
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary)),
+        const SizedBox(height: 8),
+        for (final s in stats)
+          if (s.views > 0)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(s.product.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary)),
+                  ),
+                  const SizedBox(width: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text('${s.views} views · ${s.sold} sold',
+                          style: GoogleFonts.poppins(
+                              fontSize: 12, color: AppColors.textSecondary)),
+                      if (s.conversionPercent != null)
+                        Text(
+                            '${s.conversionPercent!.toStringAsFixed(s.conversionPercent! < 10 ? 1 : 0)}% converted',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.accent)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
       ],
     );
   }

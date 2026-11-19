@@ -48,6 +48,14 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
   bool _descExpanded = false;
 
   @override
+  void initState() {
+    super.initState();
+    // Seller analytics: the backend counts one view per buyer per day and
+    // ignores the seller's own visits. Fire-and-forget.
+    NotifyClient.instance.productViewed(widget.productId);
+  }
+
+  @override
   void dispose() {
     _pageCtrl.dispose();
     super.dispose();

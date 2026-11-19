@@ -89,7 +89,7 @@ service cloud.firestore {
       // payment path (popularity counter) write them, never a client.
       function touchesServerFields() {
         return request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['vision', 'soldCount']);
+            .hasAny(['vision', 'soldCount', 'viewCount', 'lowStockAlert']);
       }
       // A buyer's review may move only the rating: one more review, and a
       // rating that stays on the 0–5 scale.
@@ -106,7 +106,8 @@ service cloud.firestore {
       allow create: if signedIn() && isSupplier() &&
           listingOwner(request.resource.data) == request.auth.uid &&
           !('vision' in request.resource.data) &&
-          !('soldCount' in request.resource.data);
+          !('soldCount' in request.resource.data) &&
+          !('viewCount' in request.resource.data);
       // The owner edits their listing (never re-assigning it); anyone
       // signed in may only add a review's rating.
       allow update: if signedIn() && !touchesServerFields() && (

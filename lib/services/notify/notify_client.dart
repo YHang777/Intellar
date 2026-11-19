@@ -47,6 +47,9 @@ class NotifyClient {
 
   // The backend checks the listing really is on sale and only notifies once
   // per price, so calling this after every save is safe.
+  void productViewed(String productId) =>
+      _fire('/api/product-views', {'productId': productId});
+
   void productOnSale(String productId) =>
       _fire('/api/notify/promotion', {'productId': productId});
 

@@ -246,3 +246,29 @@ double? conversionRate(Iterable<Order> orders, String supplierId) {
   if (all == 0) return null;
   return collectedCount(orders, supplierId) / all;
 }
+
+// ─── Product views (seller analytics) ─────────────────────────────────────────
+
+class ProductViewStat {
+  const ProductViewStat(this.product);
+  final Product product;
+  int get views => product.viewCount;
+  int get sold => product.soldCount;
+
+  /// Units sold per 100 views; null until there are views to divide by.
+  double? get conversionPercent => views == 0 ? null : sold / views * 100;
+}
+
+/// The seller's listings by views, most viewed first.
+List<ProductViewStat> viewStats(Iterable<Product> products, String supplierId,
+    {int max = 5}) {
+  final list = [
+    for (final p in productsOfSupplier(products, supplierId))
+      ProductViewStat(p),
+  ]..sort((a, b) => b.views.compareTo(a.views));
+  return list.take(max).toList();
+}
+
+int totalViews(Iterable<Product> products, String supplierId) =>
+    productsOfSupplier(products, supplierId)
+        .fold(0, (sum, p) => sum + p.viewCount);
