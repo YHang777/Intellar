@@ -104,11 +104,28 @@ const NAV_GROUPS: { label: string; items: NavItem[] }[] = [
  * App shell: dark brand sidebar (grouped nav, active state, admin identity +
  * sign-out at the bottom) and a sticky topbar carrying the breadcrumb, page
  * title and a global search that drives the users table. Under 900px the
- * sidebar collapses to an icon rail.
+ * sidebar collapses to an icon rail; on phones (under 640px) it becomes a
+ * slide-in panel opened from the topbar menu button.
  */
 export function Layout({ current, onNavigate, query, onQueryChange, children }: Props) {
   const { user, logout } = useAuth();
   const meta = PAGE_META[current];
+
+  // Phones: the sidebar is a slide-in panel opened from the topbar menu
+  // button; it closes on navigation, on the backdrop, or with Escape.
+  const [menuOpen, setMenuOpen] = useState(false);
+  const go = (page: PageKey) => {
+    setMenuOpen(false);
+    onNavigate(page);
+  };
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [menuOpen]);
 
   // Pending-verification count for the sidebar badge. Best-effort: failures
   // are silent here (the Verification page surfaces its own error state) —
@@ -132,12 +149,17 @@ export function Layout({ current, onNavigate, query, onQueryChange, children }: 
     e.preventDefault();
     // On the overview page the search jumps into the directory with the
     // query applied; on directory pages it already filters the table.
-    if (current === 'overview') onNavigate('users');
+    if (current === 'overview') go('users');
   };
 
   return (
-    <div className="shell">
-      <aside className="sidebar">
+    <div className={`shell ${menuOpen ? 'menu-open' : ''}`}>
+      <div
+        className="sidebar-backdrop"
+        aria-hidden="true"
+        onClick={() => setMenuOpen(false)}
+      />
+      <aside className={`sidebar ${menuOpen ? 'open' : ''}`} id="admin-sidebar">
         <div className="brand">
           <span className="brand-mark" aria-hidden="true">
             I
@@ -156,7 +178,7 @@ export function Layout({ current, onNavigate, query, onQueryChange, children }: 
                 <button
                   key={item.key}
                   className={`nav-item ${current === item.key ? 'active' : ''}`}
-                  onClick={() => onNavigate(item.key)}
+                  onClick={() => go(item.key)}
                   aria-current={current === item.key ? 'page' : undefined}
                   title={item.label}
                 >
@@ -194,6 +216,16 @@ export function Layout({ current, onNavigate, query, onQueryChange, children }: 
 
       <div className="main">
         <header className="topbar">
+          <button
+            type="button"
+            className="menu-toggle"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-expanded={menuOpen}
+            aria-controls="admin-sidebar"
+            onClick={() => setMenuOpen((open) => !open)}
+          >
+            <span className="menu-toggle-bars" aria-hidden="true" />
+          </button>
           <div className="topbar-left">
             <div className="breadcrumb" aria-hidden="true">
               <span>Admin</span>

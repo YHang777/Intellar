@@ -56,6 +56,9 @@ class ChatFiltersBar extends ConsumerWidget {
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               onPressed: () => showModalBottomSheet<void>(
                 context: context,
+                // Above the whole app, not inside the tab (the floating nav
+                // bar otherwise covers the sheet's bottom).
+                useRootNavigator: true,
                 showDragHandle: true,
                 isScrollControlled: true,
                 builder: (_) => const _ChatFiltersSheet(),
