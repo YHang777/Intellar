@@ -64,6 +64,8 @@ const roomCatalog = [
       'assets/images/furniture_ph_vintage_wooden_drawer_01.png', 109),
   RoomCatalogItem('Office Desk', 'office_desk', Icons.desk, 'office', 200, 95,
       'assets/images/furniture_ph_metal_office_desk.png', 79),
+  RoomCatalogItem('Office Chair', 'office_chair', Icons.chair_alt, 'office', 55, 54,
+      'assets/images/furniture_oga_office_chair.png', 101),
   RoomCatalogItem('Velvet Sofa', 'velvet_sofa', Icons.weekend, 'seating', 219, 102,
       'assets/images/furniture_kh_glam_velvet_sofa.png', 79),
   RoomCatalogItem('Velvet Chair', 'velvet_chair', Icons.chair, 'seating', 83, 57,

@@ -50,6 +50,7 @@ const _families = <String, String>{
   'accent_chair': 'armchair',
   'velvet_chair': 'armchair',
   'dining_chair': 'armchair',
+  'office_chair': 'armchair',
   'round_coffee_table': 'coffee_table',
   'round_dining_table': 'dining_table',
   'office_desk': 'desk',

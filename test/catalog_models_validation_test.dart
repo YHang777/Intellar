@@ -72,7 +72,9 @@ void main() {
     final credits = File('assets/models/CREDITS.md').readAsStringSync();
     for (final f in Directory('assets/models').listSync().whereType<File>()) {
       final name = f.uri.pathSegments.last;
-      if (!(name.startsWith('ph_') || name.startsWith('kh_')) ||
+      if (!(name.startsWith('ph_') ||
+              name.startsWith('kh_') ||
+              name.startsWith('oga_')) ||
           !name.endsWith('.glb')) {
         continue;
       }

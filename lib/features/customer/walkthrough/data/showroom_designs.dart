@@ -361,8 +361,8 @@ final showroomRooms = <ShowroomRoom>[
       furniture: [
         _f('o1', 'Office Desk', 'office_desk', 100, 10, 200, 95, 0,
             'assets/images/furniture_ph_metal_office_desk.png'),
-        _f('o2', 'Dining Chair', 'dining_chair', 178.5, 100, 43, 58, 180,
-            'assets/images/furniture_ph_dining_chair_02.png'),
+        _f('o2', 'Office Chair', 'office_chair', 172.5, 100, 55, 54, 180,
+            'assets/images/furniture_oga_office_chair.png'),
         _f('o3', 'Bookshelf', 'bookshelf', 5, 120, 108, 37, 270,
             'assets/images/furniture_ph_wooden_display_shelves_01.png'),
         _f('o4', 'Industrial Shelf', 'industrial_shelf', 345, 110, 110, 50,

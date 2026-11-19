@@ -52,3 +52,14 @@ Thumbnails are the samples' own screenshots.
 |---|---|---|---|
 | kh_glam_velvet_sofa.glb | [GlamVelvetSofa](https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/GlamVelvetSofa) | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — **attribution required** | "Glam Velvet Sofa" © 2021 Wayfair, LLC, by Eric Chadwick, CC BY 4.0 |
 | kh_sheen_chair.glb | [SheenChair](https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/SheenChair) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | © 2020 Wayfair, LLC, by Eric Chadwick |
+
+## OpenGameArt (CC0)
+
+Files prefixed `oga_` come from [OpenGameArt](https://opengameart.org) under
+[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). Converted from FBX to GLB (FBX2glTF);
+the bundled PBR textures were embedded at 1k, the model grounded at y = 0 and turned to face +Z.
+The thumbnail is our own render of the model.
+
+| File | Asset | License |
+|---|---|---|
+| oga_office_chair.glb | [office chair 1](https://opengameart.org/content/office-chair-1) | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) |

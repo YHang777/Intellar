@@ -197,6 +197,12 @@ class ArFurnitureLibrary {
         icon: Icons.desk,
         placement: PlacementType.floor),
     ArFurnitureItem(
+        name: 'Office Chair',
+        modelFile: 'oga_office_chair.glb',
+        widthMeters: 0.55,
+        icon: Icons.chair_alt,
+        placement: PlacementType.floor),
+    ArFurnitureItem(
         name: 'Velvet Sofa',
         modelFile: 'kh_glam_velvet_sofa.glb',
         widthMeters: 2.19,
@@ -397,6 +403,12 @@ class ArFurnitureLibrary {
         modelFile: 'ph_metal_office_desk.glb',
         widthMeters: 2.0,
         icon: Icons.desk,
+        placement: PlacementType.floor),
+    'office_chair': ArFurnitureItem(
+        name: 'Office Chair',
+        modelFile: 'oga_office_chair.glb',
+        widthMeters: 0.55,
+        icon: Icons.chair_alt,
         placement: PlacementType.floor),
     'velvet_sofa': ArFurnitureItem(
         name: 'Velvet Sofa',
