@@ -69,6 +69,7 @@ export interface AdminStats {
   suppliers: number;
   /** Users with a Firebase Auth account but no `users/{uid}` profile doc. */
   authOnlyAccounts: number;
+  guestAccounts: number;
   products: number;
   orders: number;
   /** Suppliers whose `verificationStatus` is 'pending'. */

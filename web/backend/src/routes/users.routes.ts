@@ -10,6 +10,7 @@ import { changeUserRole } from '../services/role.service';
 import { auditQuietly } from '../services/audit.service';
 import { deleteAccount } from '../services/deletion.service';
 import { generatePasswordResetLink, setTemporaryPassword } from '../services/identity.service';
+import { purgeIdleGuests } from '../services/guests.service';
 
 /**
  * User administration routes.
@@ -71,6 +72,32 @@ usersRouter.get(
       q: q.q,
       limit: q.limit,
       offset: q.offset,
+    });
+    res.json(result);
+  })
+);
+
+const purgeGuestsBody = z.object({
+  idleHours: z.coerce.number().min(1).max(24 * 90).default(1),
+});
+
+/**
+ * POST /api/users/guests/purge  Body: { idleHours?: number }
+ * Removes guest sessions (anonymous sign-ins) idle at least that long.
+ * A guest still using the app keeps refreshing its token, so it is kept.
+ */
+usersRouter.post(
+  '/guests/purge',
+  validateBody(purgeGuestsBody),
+  asyncHandler(async (req, res) => {
+    const { idleHours } = req.body as z.infer<typeof purgeGuestsBody>;
+    const result = await purgeIdleGuests(idleHours * 3600 * 1000);
+    auditQuietly({
+      actorId: req.user.uid,
+      action: 'user.guests_purge',
+      targetType: 'user',
+      targetId: 'guests',
+      details: { idleHours, removed: result.removed },
     });
     res.json(result);
   })

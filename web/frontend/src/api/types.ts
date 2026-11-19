@@ -37,6 +37,8 @@ export interface ListUsersResult {
   limit: number;
   offset: number;
   items: AdminUserRow[];
+  /** Guest sessions (Explore as a guest) — counted, never listed. */
+  guests: number;
 }
 
 export interface PlatformRevenue {
@@ -51,6 +53,7 @@ export interface AdminStats {
   customers: number;
   suppliers: number;
   authOnlyAccounts: number;
+  guestAccounts: number;
   products: number;
   orders: number;
   pendingSuppliers: number;

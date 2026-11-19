@@ -5,6 +5,7 @@ import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { ApiError } from '../lib/errors';
 import { fbAuth, fbDb, Timestamp } from '../config/firebase';
 import { env } from '../config/env';
+import { isGuestAccount } from './guests.service';
 import type { AdminStats, AdminUserDetail, AdminUserRow, UserRole, VerificationStatus } from '../types/models';
 
 /**
@@ -26,6 +27,8 @@ export interface ListUsersResult {
   limit: number;
   offset: number;
   items: AdminUserRow[];
+  /** Guest sessions (anonymous sign-ins) — never listed as users. */
+  guests: number;
 }
 
 /** Every Firebase Auth account, paged through `listUsers`. */
@@ -154,9 +157,16 @@ export async function listUsers(query: ListUsersQuery): Promise<ListUsersResult>
     rows.push(buildRow(uid, authRecords.get(uid), profile, productCounts, orderCounts));
     seen.add(uid);
   }
-  // Auth accounts without a profile document still matter for monitoring.
+  // Auth accounts without a profile document still matter for monitoring —
+  // except guest sessions, which are counted separately, not listed.
+  let guests = 0;
   for (const [uid, auth] of authRecords) {
-    if (!seen.has(uid)) rows.push(buildRow(uid, auth, undefined, productCounts, orderCounts));
+    if (seen.has(uid)) continue;
+    if (isGuestAccount(auth)) {
+      guests += 1;
+      continue;
+    }
+    rows.push(buildRow(uid, auth, undefined, productCounts, orderCounts));
   }
 
   const q = (query.q ?? '').trim().toLowerCase();
@@ -183,6 +193,7 @@ export async function listUsers(query: ListUsersQuery): Promise<ListUsersResult>
     limit: query.limit,
     offset: query.offset,
     items: filtered.slice(query.offset, query.offset + query.limit),
+    guests,
   };
 }
 
@@ -335,14 +346,18 @@ export async function getStats(): Promise<AdminStats> {
   recent.sort((a, b) => (b.createdAt ?? '').localeCompare(a.createdAt ?? ''));
 
   let authOnly = 0;
-  for (const uid of authRecords.keys()) {
-    if (!profiles.has(uid)) authOnly += 1;
+  let guestAccounts = 0;
+  for (const [uid, auth] of authRecords) {
+    if (profiles.has(uid)) continue;
+    if (isGuestAccount(auth)) guestAccounts += 1;
+    else authOnly += 1;
   }
 
   return {
     customers,
     suppliers,
     authOnlyAccounts: authOnly,
+    guestAccounts,
     products: productCount.data().count,
     orders: orderCount.data().count,
     pendingSuppliers,

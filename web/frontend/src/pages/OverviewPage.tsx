@@ -235,6 +235,8 @@ export function OverviewPage() {
             <span className="panel-note">
               {stats.authOnlyAccounts.toLocaleString()} without profile
               {stats.authOnlyAccounts === 1 ? '' : 's'}
+              {(stats.guestAccounts ?? 0) > 0 &&
+                ` · ${stats.guestAccounts.toLocaleString()} guest session${stats.guestAccounts === 1 ? '' : 's'}`}
             </span>
           )}
         </div>

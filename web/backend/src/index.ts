@@ -6,6 +6,7 @@ import { firebaseConfigured } from './config/firebase';
 import { verificationEmailConfigured } from './services/verification-email.service';
 import { purgeDueDeletions } from './services/deletion.service';
 import { expireUnpaidOrders, stripeConfigured } from './services/checkout.service';
+import { purgeIdleGuests } from './services/guests.service';
 
 const app = createApp();
 
@@ -71,3 +72,18 @@ const runPaymentExpiry = (): void => {
 };
 runPaymentExpiry();
 setInterval(runPaymentExpiry, 60 * 1000).unref?.();
+
+// Guest sessions (Explore as a guest) idle for a week are removed so they
+// do not pile up in Firebase Auth. Checked every 6 hours.
+const runGuestSweep = (): void => {
+  if (!firebaseConfigured()) return;
+  void purgeIdleGuests(7 * 24 * 3600 * 1000)
+    .then((r) => {
+      if (r.removed > 0) console.log(`[guest sweep] removed=${r.removed} remaining=${r.remaining}`);
+    })
+    .catch((err: unknown) => {
+      console.log(`[guest sweep] skipped: ${err instanceof Error ? err.message : String(err)}`);
+    });
+};
+runGuestSweep();
+setInterval(runGuestSweep, 6 * 3600 * 1000).unref?.();

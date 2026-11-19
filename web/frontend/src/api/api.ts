@@ -63,6 +63,8 @@ export const usersApi = {
     apiPost<PasswordResetResponse>(`/users/${encodeURIComponent(uid)}/password-reset`, { mode }),
   delete: (uid: string, confirmEmail: string) =>
     apiDelete<DeleteResult>(`/users/${encodeURIComponent(uid)}`, { confirmEmail }),
+  purgeGuests: (idleHours: number) =>
+    apiPost<{ removed: number; remaining: number }>('/users/guests/purge', { idleHours }),
 };
 
 export const statsApi = {

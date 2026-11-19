@@ -8,6 +8,7 @@ import { DataTable, type Column, type SortState } from '../components/DataTable'
 import { DeleteUserDialog } from '../components/DeleteUserDialog';
 import { PasswordResetModal } from '../components/PasswordResetModal';
 import { RoleChangeDialog } from '../components/RoleChangeDialog';
+import { PurgeGuestsDialog } from '../components/PurgeGuestsDialog';
 import { IconRefresh, IconX } from '../components/icons';
 import { useToast } from '../state/ToastContext';
 
@@ -72,6 +73,8 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
   const [sort, setSort] = useState<SortState | null>(null);
   const [rows, setRows] = useState<AdminUserRow[]>([]);
   const [total, setTotal] = useState(0);
+  const [guests, setGuests] = useState(0);
+  const [purgeOpen, setPurgeOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyUid, setBusyUid] = useState<string | null>(null);
@@ -106,6 +109,7 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
       });
       setRows(res.items);
       setTotal(res.total);
+      setGuests(res.guests ?? 0);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Failed to load users.');
       setRows([]);
@@ -365,6 +369,15 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
           <span>
             {from}–{to} of {total.toLocaleString()}
             {sort ? ' · sorted' : ''}
+            {roleFilter === 'all' && guests > 0 && (
+              <>
+                {' · '}
+                {guests.toLocaleString()} guest session{guests === 1 ? '' : 's'} not listed{' '}
+                <button className="btn btn-ghost btn-sm" onClick={() => setPurgeOpen(true)}>
+                  Remove idle guests
+                </button>
+              </>
+            )}
           </span>
           <div className="pager">
             <button
@@ -385,6 +398,22 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
         </div>
       </section>
 
+      {purgeOpen && (
+        <PurgeGuestsDialog
+          guests={guests}
+          onClose={() => setPurgeOpen(false)}
+          onDone={(removed) => {
+            setPurgeOpen(false);
+            push(
+              'success',
+              removed === 0
+                ? 'No idle guest sessions to remove.'
+                : `Removed ${removed} idle guest session${removed === 1 ? '' : 's'}.`
+            );
+            refresh();
+          }}
+        />
+      )}
       {dialog?.type === 'reset' && <PasswordResetModal user={dialog.user} onClose={() => setDialog(null)} />}
       {dialog?.type === 'role' && (
         <RoleChangeDialog
