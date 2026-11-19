@@ -28,8 +28,10 @@ export function defaultSharedDesignsDeps(): SharedDesignsDeps {
     authorize: authenticate,
     db: fbDb,
     newToken: () => crypto.randomBytes(9).toString('base64url'),
+    // Not PUBLIC_BASE_URL: that one is stale on Render, and links must use
+    // the host the Android app link is verified for.
     publicBaseUrl:
-      process.env.PUBLIC_BASE_URL || 'https://interior-design-recommendation.onrender.com',
+      process.env.SHARE_BASE_URL || 'https://interior-design-recommendation.onrender.com',
   };
 }
 
