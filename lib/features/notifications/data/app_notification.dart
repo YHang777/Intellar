@@ -69,6 +69,11 @@ String? routeForNotification({
   if (quoteId != null) {
     return isSupplier ? '/supplier/quotes/$quoteId' : '/marketplace/orders?tab=quotes';
   }
-  if (productId != null && !isSupplier) return '/marketplace/product/$productId';
+  if (productId != null) {
+    // A seller's product notice (low stock) opens the listing to restock it.
+    return isSupplier
+        ? '/supplier/products/$productId/edit'
+        : '/marketplace/product/$productId';
+  }
   return null;
 }

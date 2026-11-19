@@ -15,7 +15,8 @@ export type NotificationKind =
   | 'new_order'
   | 'quote'
   | 'promotion'
-  | 'recommendation';
+  | 'recommendation'
+  | 'low_stock';
 
 export interface NotificationInput {
   kind: NotificationKind;
@@ -78,9 +79,10 @@ const SETTING_FOR: Record<NotificationKind, string> = {
   quote: 'orderUpdates',
   promotion: 'promotions',
   recommendation: 'recommendations',
+  low_stock: 'orderUpdates',
 };
 
-const TRANSACTIONAL = new Set<NotificationKind>(['order_update', 'new_order', 'quote']);
+const TRANSACTIONAL = new Set<NotificationKind>(['order_update', 'new_order', 'quote', 'low_stock']);
 
 export interface NotifyOutcome {
   stored: boolean;

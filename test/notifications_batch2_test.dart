@@ -66,6 +66,9 @@ void main() {
           '/supplier/quotes/q1');
       expect(routeForNotification(isSupplier: false, productId: 'p1'),
           '/marketplace/product/p1');
+      // A seller's low-stock notice opens the listing to restock it.
+      expect(routeForNotification(isSupplier: true, productId: 'p1'),
+          '/supplier/products/p1/edit');
       expect(routeForNotification(isSupplier: false), isNull);
     });
   });

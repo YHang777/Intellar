@@ -134,6 +134,7 @@ class _NotificationTile extends StatelessWidget {
         'quote' => Icons.request_quote_outlined,
         'recommendation' => Icons.auto_awesome_outlined,
         'promotion' => Icons.local_offer_outlined,
+        'low_stock' => Icons.inventory_2_outlined,
         _ => Icons.notifications_outlined,
       };
 

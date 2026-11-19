@@ -136,3 +136,18 @@ test('sold count follows the money: up on payment, down on refund', async () => 
   assert.equal('gone' in stock, false);
   assert.deepEqual(written, []);
 });
+
+test('low-stock alerts: once per level, again after a restock', async () => {
+  const { stockLevel, shouldAlertStock } = await import('./checkout.service');
+  assert.equal(stockLevel(5), null, '5 is not low (seller screens use < 5)');
+  assert.equal(stockLevel(4), 'low');
+  assert.equal(stockLevel(0), 'out');
+
+  assert.equal(shouldAlertStock(8, undefined), false, 'plenty left');
+  assert.equal(shouldAlertStock(4, undefined), true, 'first drop below 5');
+  assert.equal(shouldAlertStock(3, { level: 'low', stock: 4 }), false, 'not on every sale');
+  assert.equal(shouldAlertStock(0, { level: 'low', stock: 3 }), true, 'sold out is news');
+  assert.equal(shouldAlertStock(0, { level: 'out', stock: 0 }), false);
+  assert.equal(shouldAlertStock(4, { level: 'out', stock: 0 }), true,
+    'restocked then dropped low again');
+});

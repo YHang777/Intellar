@@ -1,5 +1,10 @@
 import { auditQuietly } from './audit.service';
-import { defaultNotificationDeps, notifyQuietly } from './notifications.service';
+import {
+  defaultNotificationDeps,
+  notifyQuietly,
+  notifyUser,
+  type NotificationDeps,
+} from './notifications.service';
 import { randomInt } from 'node:crypto';
 import type { RequestHandler } from 'express';
 import type { DocumentReference, Firestore, Transaction } from 'firebase-admin/firestore';
@@ -278,6 +283,9 @@ async function announcePaidOrder(db: Firestore, orderId: string): Promise<void> 
     }
     void applySoldCountDelta(db, order.items, 1).catch((err) =>
       console.log(`[checkout] soldCount bump skipped: ${err.message}`)
+    );
+    void alertLowStock(db, order.items, { notifications: deps }).catch((err) =>
+      console.log(`[checkout] low-stock alert skipped: ${err.message}`)
     );
     auditQuietly(
       {
@@ -675,6 +683,66 @@ export async function refundOrderIfPaid(
   }
   await markRefunded(db, orderId, asNumber(data.total));
   return true;
+}
+
+// ── Low-stock alerts (FR29) ─────────────────────────────────────────────────
+// Same thresholds as the seller's screens: under 5 is low, 0 is sold out.
+// After a paid sale each item's seller hears once per level (low, then sold
+// out), and afresh after a restock — never on every sale.
+export const LOW_STOCK_BELOW = 5;
+
+export type StockLevel = 'low' | 'out' | null;
+
+export function stockLevel(stock: number): StockLevel {
+  if (stock <= 0) return 'out';
+  if (stock < LOW_STOCK_BELOW) return 'low';
+  return null;
+}
+
+/** Whether this stock reading deserves an alert, given the last one sent. */
+export function shouldAlertStock(
+  stock: number,
+  last: { level?: unknown; stock?: unknown } | undefined
+): boolean {
+  const level = stockLevel(stock);
+  if (level === null) return false;
+  const lastLevel = (last?.level as StockLevel | undefined) ?? null;
+  const lastStock = Number(last?.stock);
+  // Restocked since the last alert, then dropped again: news again.
+  const restocked = Number.isFinite(lastStock) && stock > lastStock;
+  return level !== lastLevel || restocked;
+}
+
+export async function alertLowStock(
+  db: Firestore,
+  items: unknown,
+  deps: { notifications: NotificationDeps } = { notifications: defaultNotificationDeps() }
+): Promise<void> {
+  for (const productId of stockQuantities(items).keys()) {
+    const ref = db.collection('products').doc(productId);
+    const snap = await ref.get();
+    if (!snap.exists) continue;
+    const p = asRecord(snap.data());
+    const stock = Math.round(asNumber(p.stock));
+    const last = asRecord(p.lowStockAlert);
+    if (stockLevel(stock) === null) {
+      if (p.lowStockAlert != null) await ref.update({ lowStockAlert: null });
+      continue;
+    }
+    if (!shouldAlertStock(stock, last)) continue;
+    await ref.update({ lowStockAlert: { level: stockLevel(stock), stock } });
+    const supplierId = asString(p.supplierId) || asString(asRecord(p.supplier).id);
+    if (!supplierId) continue;
+    const name = asString(p.name) || 'A product';
+    await notifyUser(deps.notifications, supplierId, {
+      kind: 'low_stock',
+      title: stock <= 0 ? `${name} is sold out` : `Low stock: ${name}`,
+      body: stock <= 0
+        ? 'Restock it so buyers can order again.'
+        : `Only ${stock} left. Restock soon so it does not sell out.`,
+      data: { productId },
+    });
+  }
 }
 
 // Popularity counter on each product, kept by the payment path only.
