@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { statsApi } from '../api/api';
 import { ApiError } from '../api/client';
-import type { AdminStats } from '../api/types';
+import type { AdminStats, PlatformRevenue } from '../api/types';
 import { RoleBadges, StatusBadge } from '../components/Badge';
 import {
   IconAlertTriangle,
@@ -94,6 +94,55 @@ function buildKpis(stats: AdminStats): Kpi[] {
   ];
 }
 
+const rm = (n: number) =>
+  `RM ${n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const monthLabel = (ym: string) => {
+  const [y, m] = ym.split('-').map(Number);
+  return new Date(Date.UTC(y, m - 1, 15)).toLocaleDateString(undefined, { month: 'short' });
+};
+
+function RevenuePanel({ revenue }: { revenue: PlatformRevenue }) {
+  const pct = Math.round(revenue.commissionRate * 10000) / 100;
+  const peak = Math.max(...revenue.monthly.map((m) => m.platformRevenue), 0);
+  return (
+    <section className="panel revenue-panel">
+      <div className="panel-header">
+        <h2>Platform revenue</h2>
+        <span className="panel-note">{pct}% commission on each paid order</span>
+      </div>
+      <div className="revenue-body">
+        <div className="revenue-figures">
+          <div>
+            <span className="kpi-label">Intellar earned</span>
+            <span className="kpi-value revenue-main">{rm(revenue.platformRevenue)}</span>
+            <span className="kpi-hint">From {revenue.paidOrders.toLocaleString()} paid order{revenue.paidOrders === 1 ? '' : 's'}</span>
+          </div>
+          <div>
+            <span className="kpi-label">Sales through Intellar</span>
+            <span className="kpi-value">{rm(revenue.grossSales)}</span>
+            <span className="kpi-hint">Goods value, before SST. Sellers keep {Math.round((100 - pct) * 100) / 100}%.</span>
+          </div>
+        </div>
+        <div className="revenue-chart" role="img" aria-label="Platform revenue over the last six months">
+          {revenue.monthly.map((m) => (
+            <div className="revenue-col" key={m.month} title={`${monthLabel(m.month)}: ${rm(m.platformRevenue)} from ${rm(m.sales)} sales`}>
+              <span className="revenue-amount">{m.platformRevenue > 0 ? rm(m.platformRevenue) : ''}</span>
+              <div className="revenue-track">
+                <div className="revenue-bar" style={{ height: `${peak > 0 ? Math.max(4, (m.platformRevenue / peak) * 100) : 0}%` }} />
+              </div>
+              <span className="revenue-month">{monthLabel(m.month)}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p className="revenue-note">
+        SST collected at checkout is passed on to the government and is not counted as income.
+      </p>
+    </section>
+  );
+}
+
 export function OverviewPage() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -176,6 +225,8 @@ export function OverviewPage() {
           );
         })}
       </div>
+
+      {stats?.revenue && <RevenuePanel revenue={stats.revenue} />}
 
       <section className="panel">
         <div className="panel-header">

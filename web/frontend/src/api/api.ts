@@ -157,7 +157,8 @@ export const ordersApi = {
 /** Marketplace-wide settings (tax rate), stored in `appConfig/marketplace`. */
 export const settingsApi = {
   get: () => apiGet<{ settings: AppSettings }>('/settings'),
-  update: (taxRate: number) => apiPatch<{ settings: AppSettings }>('/settings', { taxRate }),
+  update: (patch: { taxRate?: number; commissionRate?: number }) =>
+    apiPatch<{ settings: AppSettings }>('/settings', patch),
 };
 
 export const auditApi = {

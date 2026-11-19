@@ -1,3 +1,4 @@
+import '../../../../core/utils/pricing.dart';
 import '../../../../services/notify/notify_client.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -350,7 +351,7 @@ class _SupplierOrderDetailScreenState
                   valueColor: AppColors.success,
                 ),
               if (invoice != null && invoice.taxAllocated > 0) ...[
-                SummaryLine('Tax collected (6%)',
+                SummaryLine('Tax collected (${taxPercentLabel(order.chargedTaxRate)})',
                     Formatters.myr(invoice.taxAllocated)),
                 SummaryLine('Invoice total (incl. tax)',
                     Formatters.myr(invoice.total)),

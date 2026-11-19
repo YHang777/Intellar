@@ -36,6 +36,8 @@ export function SettingsPage() {
 
   const [settings, setSettings] = useState<AppSettings | null>(null);
   const [taxPercent, setTaxPercent] = useState('');
+  const [commissionPercent, setCommissionPercent] = useState('');
+  const [commissionError, setCommissionError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,6 +54,7 @@ export function SettingsPage() {
         if (cancelled) return;
         setSettings(res.settings);
         setTaxPercent(toPercentInput(res.settings.taxRate));
+        setCommissionPercent(toPercentInput(res.settings.commissionRate ?? 0.03));
       })
       .catch((err) => {
         if (!cancelled) setError(describeSettingsError(err));
@@ -71,13 +74,23 @@ export function SettingsPage() {
       setFieldError('Enter a percentage between 0 and 100.');
       return;
     }
+    const com = Number(commissionPercent);
+    if (!commissionPercent.trim() || !Number.isFinite(com) || com < 0 || com > 30) {
+      setCommissionError('Enter a percentage between 0 and 30.');
+      return;
+    }
     setFieldError(null);
+    setCommissionError(null);
     setSaving(true);
     try {
-      const { settings: next } = await settingsApi.update(Math.round(pct * 10000) / 10000);
+      const { settings: next } = await settingsApi.update({
+        taxRate: Math.round(pct * 100) / 10000,
+        commissionRate: Math.round(com * 100) / 10000,
+      });
       setSettings(next);
       setTaxPercent(toPercentInput(next.taxRate));
-      push('success', 'Tax rate saved.');
+      setCommissionPercent(toPercentInput(next.commissionRate));
+      push('success', 'Settings saved.');
     } catch (err) {
       push('error', describeSettingsError(err));
     } finally {
@@ -145,6 +158,27 @@ export function SettingsPage() {
                 />
                 <span className="field-hint">Applied to the chargeable total after discounts. Default 6%.</span>
                 {fieldError && <span className="field-error">{fieldError}</span>}
+              </div>
+              <div className="field">
+                <label className="field-label" htmlFor="commission-rate">
+                  Platform commission (%)
+                </label>
+                <input
+                  id="commission-rate"
+                  className="input"
+                  type="number"
+                  min={0}
+                  max={30}
+                  step={0.1}
+                  value={commissionPercent}
+                  aria-invalid={commissionError ? true : undefined}
+                  onChange={(e) => {
+                    setCommissionPercent(e.target.value);
+                    setCommissionError(null);
+                  }}
+                />
+                <span className="field-hint">Intellar's share of each sale (goods value, before SST). Sellers keep the rest. Default 3%.</span>
+                {commissionError && <span className="field-error">{commissionError}</span>}
               </div>
               <div className="field field-span">
                 <span className="field-hint">

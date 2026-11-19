@@ -39,6 +39,14 @@ export interface ListUsersResult {
   items: AdminUserRow[];
 }
 
+export interface PlatformRevenue {
+  commissionRate: number;
+  grossSales: number;
+  platformRevenue: number;
+  paidOrders: number;
+  monthly: { month: string; sales: number; platformRevenue: number }[];
+}
+
 export interface AdminStats {
   customers: number;
   suppliers: number;
@@ -51,6 +59,7 @@ export interface AdminStats {
   unverifiedSuppliers: number;
   /** verification_applications still awaiting a decision (IC queue). */
   pendingVerifications: number;
+  revenue?: PlatformRevenue;
   recentUsers: Pick<
     AdminUserRow,
     'uid' | 'email' | 'name' | 'role' | 'isAdmin' | 'verificationStatus' | 'createdAt'
@@ -309,6 +318,8 @@ export interface ListOrdersResult {
 export interface AppSettings {
   /** Marketplace tax rate as a fraction (0..1) — 0.06 = 6%. */
   taxRate: number;
+  /** Intellar's commission per sale as a fraction (0..0.3) — 0.03 = 3%. */
+  commissionRate: number;
   updatedAt: string | null;
   updatedBy: string | null;
 }

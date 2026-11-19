@@ -250,9 +250,7 @@ class _OrderBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final config = ref.watch(configProvider).valueOrNull;
-    final taxLabel =
-        config == null ? 'Tax' : 'Tax (${taxPercentLabel(config.taxRate)})';
+    final taxLabel = 'Tax (${taxPercentLabel(order.chargedTaxRate)})';
     final breakdown = PriceBreakdown.fromStored(
       subtotal: order.subtotal,
       discount: order.discount,

@@ -333,6 +333,15 @@ class Order {
 
   final int tax;
 
+  // Rate charged when the order was placed; later admin changes never touch it.
+  final double? taxRate;
+
+  double get chargedTaxRate {
+    if (taxRate != null) return taxRate!;
+    final chargeable = subtotal - discount;
+    return chargeable > 0 ? tax / chargeable : 0;
+  }
+
   final String membershipTier;
 
   final List<String> supplierIds;
@@ -365,6 +374,7 @@ class Order {
     this.paidAt,
     this.discount = 0,
     this.tax = 0,
+    this.taxRate,
     this.membershipTier = '',
     this.supplierIds = const [],
     this.statusHistory = const {},
@@ -412,6 +422,7 @@ class Order {
     int? total,
     int? discount,
     int? tax,
+    double? taxRate,
     String? membershipTier,
     List<String>? supplierIds,
     DateTime? createdAt,
@@ -440,6 +451,7 @@ class Order {
       total: total ?? this.total,
       discount: discount ?? this.discount,
       tax: tax ?? this.tax,
+      taxRate: taxRate ?? this.taxRate,
       membershipTier: membershipTier ?? this.membershipTier,
       supplierIds: supplierIds ?? this.supplierIds,
       createdAt: createdAt ?? this.createdAt,
@@ -476,6 +488,7 @@ class Order {
       total: (json['total'] as num?)?.toInt() ?? 0,
       discount: (json['discount'] as num?)?.toInt() ?? 0,
       tax: (json['tax'] as num?)?.toInt() ?? 0,
+      taxRate: (json['taxRate'] as num?)?.toDouble(),
       membershipTier: json['membershipTier']?.toString() ?? '',
       supplierIds: (json['supplierIds'] as List<dynamic>?)
               ?.map((e) => e?.toString() ?? '')
@@ -510,6 +523,7 @@ class Order {
         'total': total,
         'discount': discount,
         'tax': tax,
+        if (taxRate != null) 'taxRate': taxRate,
         'membershipTier': membershipTier,
         'supplierIds': resolvedSupplierIds,
         'createdAt': createdAt.toUtc().toIso8601String(),

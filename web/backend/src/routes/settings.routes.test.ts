@@ -5,7 +5,7 @@ import type { AddressInfo } from 'node:net';
 import type { Server } from 'node:http';
 import { createSettingsRouter } from './settings.routes';
 import { ApiError } from '../lib/errors';
-import type { SettingsDeps } from '../services/settings.service';
+import type { SettingsDeps, SettingsPatch } from '../services/settings.service';
 import type { AppSettings } from '../types/models';
 
 const allowAdmin: RequestHandler = (req, _res, next) => {
@@ -23,6 +23,7 @@ const deny: RequestHandler = (_req, _res, next) =>
 
 const SETTINGS: AppSettings = {
   taxRate: 0.06,
+  commissionRate: 0.03,
   updatedAt: '2026-10-19T00:00:00.000Z',
   updatedBy: 'admin-1',
 };
@@ -33,7 +34,7 @@ async function withServer(
 ): Promise<void> {
   const fullDeps: SettingsDeps = {
     get: async () => SETTINGS,
-    update: async (taxRate, adminUid) => ({ taxRate, updatedAt: '2026-10-19T01:00:00.000Z', updatedBy: adminUid }),
+    update: async (p, adminUid) => ({ taxRate: p.taxRate ?? 0.06, commissionRate: p.commissionRate ?? 0.03, updatedAt: '2026-10-19T01:00:00.000Z', updatedBy: adminUid }),
     authorize: allowAdmin,
     log: () => {},
     ...deps,
@@ -108,12 +109,12 @@ test('settings PATCH → 400 for out-of-range or non-numeric taxRate', async () 
 });
 
 test('settings PATCH → 200 forwards the fraction and the admin uid', async () => {
-  const calls: [number, string][] = [];
+  const calls: [SettingsPatch, string][] = [];
   await withServer(
     {
-      update: async (taxRate, adminUid) => {
-        calls.push([taxRate, adminUid]);
-        return { taxRate, updatedAt: '2026-10-19T02:00:00.000Z', updatedBy: adminUid };
+      update: async (p, adminUid) => {
+        calls.push([p, adminUid]);
+        return { taxRate: p.taxRate ?? 0.06, commissionRate: p.commissionRate ?? 0.03, updatedAt: '2026-10-19T02:00:00.000Z', updatedBy: adminUid };
       },
     },
     async (base) => {
@@ -122,7 +123,7 @@ test('settings PATCH → 200 forwards the fraction and the admin uid', async () 
       const body = (await res.json()) as { settings: AppSettings };
       assert.equal(body.settings.taxRate, 0.08);
       assert.equal(body.settings.updatedBy, 'admin-1');
-      assert.deepEqual(calls, [[0.08, 'admin-1']]);
+      assert.deepEqual(calls, [[{ taxRate: 0.08 }, 'admin-1']]);
     }
   );
 });

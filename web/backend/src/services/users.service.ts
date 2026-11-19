@@ -1,3 +1,5 @@
+import { getSettings, DEFAULT_COMMISSION_RATE } from './settings.service';
+import type { PlatformRevenue } from '../types/models';
 import type { UserRecord } from 'firebase-admin/auth';
 import type { QueryDocumentSnapshot } from 'firebase-admin/firestore';
 import { ApiError } from '../lib/errors';
@@ -234,14 +236,69 @@ export async function getUserDetail(uid: string): Promise<AdminUserDetail> {
   };
 }
 
+const malaysiaMonth = (iso: string): string =>
+  new Date(new Date(iso).getTime() + 8 * 3600 * 1000).toISOString().slice(0, 7);
+
+export function summariseRevenue(
+  orders: Record<string, unknown>[],
+  currentRate: number,
+  now: Date
+): PlatformRevenue {
+  const months: string[] = [];
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - i, 15));
+    months.push(d.toISOString().slice(0, 7));
+  }
+  const monthly = months.map((month) => ({ month, sales: 0, platformRevenue: 0 }));
+  let grossSales = 0;
+  let platformRevenue = 0;
+  let paidOrders = 0;
+  for (const o of orders) {
+    if (o.paymentStatus !== 'paid' || o.status === 'cancelled') continue;
+    const subtotal = typeof o.subtotal === 'number' ? o.subtotal : 0;
+    const discount = typeof o.discount === 'number' ? o.discount : 0;
+    const goods = subtotal - discount;
+    // Each order keeps the fee recorded when it was placed. Orders from before
+    // fees were recorded use the fixed launch rate, never today's setting.
+    const fee = typeof o.platformFee === 'number'
+      ? o.platformFee
+      : Math.round(goods * DEFAULT_COMMISSION_RATE * 100) / 100;
+    grossSales += goods;
+    platformRevenue += fee;
+    paidOrders += 1;
+    const when = typeof o.paidAt === 'string' ? o.paidAt : typeof o.createdAt === 'string' ? o.createdAt : '';
+    const slot = when ? monthly.find((m) => m.month === malaysiaMonth(when)) : undefined;
+    if (slot) {
+      slot.sales += goods;
+      slot.platformRevenue = Math.round((slot.platformRevenue + fee) * 100) / 100;
+    }
+  }
+  return {
+    commissionRate: currentRate,
+    grossSales,
+    platformRevenue: Math.round(platformRevenue * 100) / 100,
+    paidOrders,
+    monthly,
+  };
+}
+
+async function loadRevenue(): Promise<PlatformRevenue> {
+  const [snap, settings] = await Promise.all([
+    fbDb().collection('orders').where('paymentStatus', '==', 'paid').get(),
+    getSettings(),
+  ]);
+  return summariseRevenue(snap.docs.map((d) => d.data()), settings.commissionRate, new Date());
+}
+
 export async function getStats(): Promise<AdminStats> {
-  const [profiles, authRecords, productCount, orderCount, pendingApps] = await Promise.all([
+  const [profiles, authRecords, productCount, orderCount, pendingApps, revenue] = await Promise.all([
     loadProfiles(),
     loadAuthRecords().catch(() => new Map<string, UserRecord>()),
     fbDb().collection('products').count().get(),
     fbDb().collection('orders').count().get(),
     // Suppliers whose IC application is still waiting for a decision.
     fbDb().collection('verification_applications').where('status', '==', 'pending').count().get(),
+    loadRevenue(),
   ]);
 
   let customers = 0;
@@ -289,6 +346,7 @@ export async function getStats(): Promise<AdminStats> {
     rejectedSuppliers,
     unverifiedSuppliers,
     pendingVerifications: pendingApps.data().count,
+    revenue,
     recentUsers: recent.slice(0, 5),
   };
 }

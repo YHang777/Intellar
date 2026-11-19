@@ -2604,3 +2604,41 @@ code,
     white-space: nowrap;
   }
 }
+
+/* ── Platform revenue ── */
+.revenue-panel .revenue-body {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) 2fr;
+  gap: 24px;
+  padding: 16px 20px;
+}
+.revenue-figures { display: flex; flex-direction: column; gap: 18px; }
+.revenue-figures > div { display: flex; flex-direction: column; gap: 4px; }
+.revenue-main { color: var(--accent-text); }
+.revenue-chart {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 10px;
+  align-items: end;
+  min-height: 170px;
+}
+.revenue-col { display: flex; flex-direction: column; align-items: center; gap: 6px; min-width: 0; }
+.revenue-track {
+  width: 100%;
+  max-width: 44px;
+  height: 120px;
+  display: flex;
+  align-items: flex-end;
+  background: var(--accent-soft);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.revenue-bar { width: 100%; background: var(--accent); border-radius: 6px 6px 0 0; }
+.revenue-amount { font-size: 11px; color: var(--text-muted); white-space: nowrap; min-height: 14px; }
+.revenue-month { font-size: 12px; color: var(--text-muted); }
+.revenue-note { margin: 0; padding: 0 20px 16px; font-size: 12px; color: var(--text-muted); }
+@media (max-width: 720px) {
+  .revenue-panel .revenue-body { grid-template-columns: 1fr; padding: 14px 16px; }
+  .revenue-amount { font-size: 10px; }
+  .revenue-note { padding: 0 16px 14px; }
+}

@@ -13,7 +13,7 @@ import { fbDb } from '../config/firebase';
 import { env } from '../config/env';
 import { ApiError } from '../lib/errors';
 import { authenticate } from '../middleware/authenticate';
-import { getSettings, DEFAULT_TAX_RATE } from './settings.service';
+import { getSettings, DEFAULT_TAX_RATE, DEFAULT_COMMISSION_RATE } from './settings.service';
 
 export interface CheckoutItemInput {
   productId: string;
@@ -105,6 +105,11 @@ export function computeTotals(
   return { subtotal, discount, tax, total: chargeable + tax };
 }
 
+/** Intellar's cut of the goods value (after discount, before tax), in RM to the sen. */
+export function platformFee(subtotal: number, discount: number, commissionRate: number): number {
+  return Math.round((subtotal - discount) * commissionRate * 100) / 100;
+}
+
 /** Mirrors the app's `AppConfigData.membershipTiers` constants. */
 export const MEMBERSHIP_TIERS = [
   { name: 'Free', discountPercent: 0, minOrders: 0 },
@@ -140,7 +145,7 @@ interface OrderDoc {
     unitPrice: number;
     quantity: number;
     supplierId: string;
-  }>;
+}>;
   status: string;
   paymentStatus: string;
   paymentMethod: string;
@@ -157,6 +162,9 @@ interface OrderDoc {
   invoices: Record<string, unknown>;
   refundStatus?: string;
   refundAmount?: number;
+  taxRate?: number;
+  commissionRate?: number;
+  platformFee?: number;
 }
 
 function isoNow(): string {
@@ -341,6 +349,7 @@ export async function createCheckoutIntent(
   const tier = tierForOrderCount(await collectedOrderCount(db, uid));
   const settings = await getSettings(db);
   const taxRate = settings.taxRate ?? DEFAULT_TAX_RATE;
+  const commissionRate = settings.commissionRate ?? DEFAULT_COMMISSION_RATE;
 
   // Validate products + snapshot prices inside one transaction.
   const orderId = newOrderId();
@@ -413,6 +422,9 @@ export async function createCheckoutIntent(
       paymentStatus: 'unpaid',
       paymentMethod: 'card_fpx',
       ...totals,
+      taxRate,
+      commissionRate,
+      platformFee: platformFee(totals.subtotal, totals.discount, commissionRate),
       membershipTier: tier.name,
       supplierIds: [...supplierIds],
       createdAt: now.toISOString(),

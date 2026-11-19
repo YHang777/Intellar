@@ -53,6 +53,17 @@ export interface AdminUserDetail extends AdminUserRow {
   updatedAt: string | null;
 }
 
+export interface PlatformRevenue {
+  commissionRate: number;
+  /** Goods value of paid, non-cancelled orders (after discount, before tax). */
+  grossSales: number;
+  /** Intellar's commission from those orders, in RM (2 decimals). */
+  platformRevenue: number;
+  paidOrders: number;
+  /** Last 6 months, oldest first; month = 'YYYY-MM' in Malaysian time. */
+  monthly: { month: string; sales: number; platformRevenue: number }[];
+}
+
 export interface AdminStats {
   customers: number;
   suppliers: number;
@@ -68,6 +79,8 @@ export interface AdminStats {
   unverifiedSuppliers: number;
   /** `verification_applications` docs still at status 'pending' (IC queue). */
   pendingVerifications: number;
+  /** How Intellar earns: commission on paid, non-cancelled orders. */
+  revenue: PlatformRevenue;
   /** Five newest profile documents, newest first. */
   recentUsers: Pick<
     AdminUserRow,
@@ -328,6 +341,8 @@ export interface ListOrdersResult {
 export interface AppSettings {
   /** Marketplace tax rate as a fraction (0..1) — 0.06 = 6%. */
   taxRate: number;
+  /** Intellar's commission on each sale as a fraction (0..0.3) — 0.03 = 3%. */
+  commissionRate: number;
   updatedAt: string | null;
   updatedBy: string | null;
 }
