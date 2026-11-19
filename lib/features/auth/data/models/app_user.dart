@@ -113,7 +113,10 @@ class AppUser {
       businessPhone: data['businessPhone']?.toString(),
       businessAddress: data['businessAddress']?.toString(),
       storeProfile: StoreProfile.fromMap(data['storeProfile']),
-      twoFactorEnabled: data['twoFactorEnabled'] == true,
+      // Sellers default to two-step sign-in until they switch it off.
+      twoFactorEnabled: data.containsKey('twoFactorEnabled')
+          ? data['twoFactorEnabled'] == true
+          : role == UserRole.supplier,
       onboardingCompleted: data['onboardingCompleted'] == true,
       designPreferences: DesignPreferences.fromMap(data['designPreferences']),
       notificationSettings:

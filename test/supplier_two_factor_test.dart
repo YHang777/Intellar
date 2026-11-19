@@ -31,17 +31,19 @@ Future<SwitchListTile> _switch(WidgetTester tester, AppUser user) async {
 }
 
 void main() {
-  testWidgets('a seller sees two-step sign-in on and locked', (tester) async {
-    final sw = await _switch(tester, _user(UserRole.supplier));
+  testWidgets('a seller with two-step on can switch it off (code-checked)',
+      (tester) async {
+    final sw = await _switch(tester, _user(UserRole.supplier, twoFactor: true));
     expect(sw.value, isTrue);
-    expect(sw.onChanged, isNull, reason: 'cannot be switched off');
-    expect(find.textContaining('Required for seller accounts'), findsOneWidget);
+    expect(sw.onChanged, isNotNull, reason: 'sellers may turn it off');
+    expect(find.textContaining('Recommended for sellers'), findsOneWidget);
+    expect(find.textContaining('needs a code'), findsOneWidget);
   });
 
   testWidgets('a homeowner keeps the optional switch', (tester) async {
     final sw = await _switch(tester, _user(UserRole.homeowner));
     expect(sw.value, isFalse);
     expect(sw.onChanged, isNotNull);
-    expect(find.textContaining('Required for seller accounts'), findsNothing);
+    expect(find.textContaining('Recommended for sellers'), findsNothing);
   });
 }

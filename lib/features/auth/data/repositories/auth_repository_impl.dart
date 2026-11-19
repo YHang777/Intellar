@@ -12,7 +12,9 @@ import '../../../../models/store_profile.dart';
 import '../models/app_user.dart';
 
 // Two-step sign-in is required for sellers and optional for homeowners.
-bool needsTwoFactor(AppUser user) => user.twoFactorEnabled || user.isSupplier;
+// Sellers start with it on (see AppUser.fromMap) but may switch it off
+// after confirming an emailed code, like homeowners.
+bool needsTwoFactor(AppUser user) => user.twoFactorEnabled;
 
 class AuthRepositoryImpl implements IAuthRepository {
   final FirebaseAuthDatasource _authDatasource;
