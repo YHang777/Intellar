@@ -2442,10 +2442,24 @@ code,
     padding: 0 var(--sp-2) var(--sp-4);
   }
 
+  .nav-group-label {
+    display: block;
+  }
+
+  /* Back to the stacked desktop layout (revert dropped flex). */
   .brand-text,
-  .nav-group-label,
   .whoami-meta {
-    display: revert;
+    display: flex;
+  }
+
+  .whoami-meta {
+    flex: 1;
+  }
+
+  /* A long email wraps inside the panel instead of running off it. */
+  .whoami-email {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
   .nav {
