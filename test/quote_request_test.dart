@@ -438,6 +438,10 @@ void main() {
       await _pumpSupplierScreen(tester, repo, const QuoteRequestsScreen());
 
       expect(find.text('No quote requests yet'), findsOneWidget);
+      expect(find.text('Quote requests'), findsOneWidget,
+          reason: 'the empty page keeps its title');
+      expect(find.textContaining('Contact buyers outside the app'), findsOneWidget,
+          reason: 'and explains what quote requests are');
       expect(
         find.textContaining('When buyers ask for bulk pricing'),
         findsOneWidget,

@@ -34,6 +34,7 @@ class QuoteRequestsScreen extends ConsumerWidget {
                     child: CircularProgressIndicator(color: AppColors.accent))
                 : quotesAsync.hasError && quotes.isEmpty
                     ? _scrollableState(
+                        context,
                         EmptyState(
                           icon: Icons.cloud_off_outlined,
                           title: 'Could not load quote requests',
@@ -45,6 +46,7 @@ class QuoteRequestsScreen extends ConsumerWidget {
                       )
                     : quotes.isEmpty
                         ? _scrollableState(
+                            context,
                             const EmptyState(
                               icon: Icons.request_quote_outlined,
                               title: 'No quote requests yet',
@@ -68,7 +70,7 @@ class QuoteRequestsScreen extends ConsumerWidget {
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.fromLTRB(
-          16, 16, 16, MediaQuery.paddingOf(context).bottom + 24),
+          16, 60, 16, MediaQuery.paddingOf(context).bottom + 24),
       children: [
         const PageHeading(title: 'Quote requests'),
         const SizedBox(height: 12),
@@ -86,15 +88,21 @@ class QuoteRequestsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _scrollableState(Widget child) {
-    return LayoutBuilder(
-      builder: (context, constraints) => SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(minHeight: constraints.maxHeight),
-          child: child,
-        ),
-      ),
+  // Empty and error states keep the page title and the explainer, so the
+  // page never shows a lone icon under the back button.
+  Widget _scrollableState(BuildContext context, Widget child) {
+    return ListView(
+      key: const Key('quote-requests-state'),
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.fromLTRB(
+          16, 60, 16, MediaQuery.paddingOf(context).bottom + 24),
+      children: [
+        const PageHeading(title: 'Quote requests'),
+        const SizedBox(height: 12),
+        const QuoteRequestsBanner(),
+        const SizedBox(height: 40),
+        child,
+      ],
     );
   }
 }
