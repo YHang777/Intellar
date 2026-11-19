@@ -3521,6 +3521,8 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
   Future<void> _savePreview() async {
     final session = _session;
     if (session == null || _savingPreview) return;
+    final store = ProviderScope.containerOf(context, listen: false)
+        .read(arPreviewStoreProvider);
     setState(() => _savingPreview = true);
     try {
       final bytes = await session.snapshotBytes();
@@ -3528,9 +3530,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           ? (widget.title.trim().isEmpty ? 'AR preview' : widget.title.trim())
           : '${widget.title.trim()} · ${_placed.length} '
               '${_placed.length == 1 ? 'item' : 'items'}';
-      await ProviderScope.containerOf(context, listen: false)
-          .read(arPreviewStoreProvider)
-          .save(bytes, label: label);
+      await store.save(bytes, label: label);
       if (!mounted) return;
       showAppSnackbar(context, 'Preview saved',
           actionLabel: 'View',

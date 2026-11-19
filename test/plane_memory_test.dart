@@ -30,6 +30,24 @@ ARPlaneInfo plane({
 
 void main() {
   group('PlaneMemory floor establishment', () {
+    test('a small glossy-floor ghost below the real floor cannot drag floorY down',
+        () {
+      // Device recording 2026-11-20: an 11 m² floor at -0.95 plus a 1.1 m²
+      // reflection patch at -1.08 next to it. The patches merge as one
+      // surface; its height must follow the big floor, not the ghost.
+      final m = PlaneMemory();
+      m.ingest([plane(id: 1, type: 1, cy: -0.95, ex: 3.3, ez: 3.3)]);
+      expect(m.floorY, closeTo(-0.95, 1e-6));
+      for (var i = 0; i < 5; i++) {
+        m.ingest([
+          plane(id: 1, type: 1, cy: -0.95, ex: 3.3, ez: 3.3),
+          plane(id: 2, type: 1, cx: 1.8, cy: -1.08, cz: 2, ex: 1.0, ez: 1.1),
+        ]);
+      }
+      expect(m.floorY!, greaterThan(-0.97),
+          reason: 'stays at the real floor, not 13 cm under it');
+    });
+
     test('one large floor plane → floorY established at its height', () {
       final m = PlaneMemory();
       m.ingest([plane(id: 1, type: 1, cy: -0.02, ex: 3, ez: 3)]);

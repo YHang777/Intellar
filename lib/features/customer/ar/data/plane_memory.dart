@@ -743,19 +743,37 @@ class PlaneMemory {
     for (final g in groups) {
       var xMin = double.infinity, xMax = -double.infinity;
       var zMin = double.infinity, zMax = -double.infinity;
-      var low = double.infinity;
       for (final r in g) {
         xMin = math.min(xMin, r.centerX - r.extentX / 2);
         xMax = math.max(xMax, r.centerX + r.extentX / 2);
         zMin = math.min(zMin, r.centerZ - r.extentZ / 2);
         zMax = math.max(zMax, r.centerZ + r.extentZ / 2);
-        if (r.centerY < low) low = r.centerY;
       }
       final shortSide = math.min(xMax - xMin, zMax - zMin);
       if (shortSide < minFloorEstablishExtentM) continue;
-      if (best == null || low < best) best = low;
+      // One surface's height = area-weighted median of its patches. Taking
+      // the LOWEST member let a 1 m² reflection ghost 15 cm under glossy
+      // tiles outvote an 11 m² floor (device recording 2026-11-20: painted
+      // floor and wall bases sat 10 cm too low until the ghost record aged
+      // out). Separate surfaces (another storey) still compare lowest-wins.
+      final height = _areaWeightedMedianY(g);
+      if (best == null || height < best) best = height;
     }
     return best;
+  }
+
+  double _areaWeightedMedianY(List<_TrackedPlane> g) {
+    final sorted = [...g]..sort((a, b) => a.centerY.compareTo(b.centerY));
+    double total = 0;
+    for (final r in sorted) {
+      total += math.max(r.extentX * r.extentZ, 1e-4);
+    }
+    var acc = 0.0;
+    for (final r in sorted) {
+      acc += math.max(r.extentX * r.extentZ, 1e-4);
+      if (acc >= total / 2) return r.centerY;
+    }
+    return sorted.last.centerY;
   }
 
   bool _coplanarNear(_TrackedPlane a, _TrackedPlane b) {
