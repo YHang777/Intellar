@@ -2658,3 +2658,6 @@ code,
 }
 .role-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .role-select:disabled { opacity: 0.6; cursor: progress; }
+
+.modal-lead { margin: 0 0 var(--sp-3); line-height: 1.5; }
+.modal-notes { margin: 0 0 var(--sp-2); padding-left: 18px; color: var(--text-muted); font-size: 13px; line-height: 1.6; }

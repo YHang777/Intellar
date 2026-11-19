@@ -7,6 +7,7 @@ import { AdminBadge, RoleBadges, StatusBadge } from '../components/Badge';
 import { DataTable, type Column, type SortState } from '../components/DataTable';
 import { DeleteUserDialog } from '../components/DeleteUserDialog';
 import { PasswordResetModal } from '../components/PasswordResetModal';
+import { RoleChangeDialog } from '../components/RoleChangeDialog';
 import { IconRefresh, IconX } from '../components/icons';
 import { useToast } from '../state/ToastContext';
 
@@ -74,7 +75,11 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busyUid, setBusyUid] = useState<string | null>(null);
-  const [dialog, setDialog] = useState<{ type: 'reset' | 'delete'; user: AdminUserRow } | null>(null);
+  const [dialog, setDialog] = useState<
+    | { type: 'reset' | 'delete'; user: AdminUserRow }
+    | { type: 'role'; user: AdminUserRow; next: 'homeowner' | 'supplier' }
+    | null
+  >(null);
   const [reloadKey, setReloadKey] = useState(0);
 
   // Debounce the global search box.
@@ -133,26 +138,9 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
     }
   };
 
-  const changeRole = async (user: AdminUserRow, next: 'homeowner' | 'supplier') => {
+  const changeRole = (user: AdminUserRow, next: 'homeowner' | 'supplier') => {
     if (busyUid || next === user.role) return;
-    const label = next === 'supplier' ? 'Supplier' : 'Customer';
-    const ok = window.confirm(
-      `Change ${user.email} to ${label}?
-
-Use this only for an account that signed up with the wrong role. ` +
-        'It is refused once the account has orders or listings.'
-    );
-    if (!ok) return;
-    setBusyUid(user.uid);
-    try {
-      await usersApi.setRole(user.uid, next);
-      push('success', `${user.email} is now a ${label.toLowerCase()}.`);
-      refresh();
-    } catch (err) {
-      push('error', err instanceof ApiError ? err.message : 'Role change failed.');
-    } finally {
-      setBusyUid(null);
-    }
+    setDialog({ type: 'role', user, next });
   };
 
   const columns = useMemo<Column<AdminUserRow>[]>(() => {
@@ -189,7 +177,7 @@ Use this only for an account that signed up with the wrong role. ` +
                 aria-label={`Role for ${u.email}`}
                 value={u.role}
                 disabled={busyUid === u.uid}
-                onChange={(e) => void changeRole(u, e.target.value as 'homeowner' | 'supplier')}
+                onChange={(e) => changeRole(u, e.target.value as 'homeowner' | 'supplier')}
               >
                 <option value="homeowner">Customer</option>
                 <option value="supplier">Supplier</option>
@@ -398,6 +386,18 @@ Use this only for an account that signed up with the wrong role. ` +
       </section>
 
       {dialog?.type === 'reset' && <PasswordResetModal user={dialog.user} onClose={() => setDialog(null)} />}
+      {dialog?.type === 'role' && (
+        <RoleChangeDialog
+          user={dialog.user}
+          next={dialog.next}
+          onClose={() => setDialog(null)}
+          onChanged={(user, next) => {
+            setDialog(null);
+            push('success', `${user.email} is now a ${next === 'supplier' ? 'supplier' : 'customer'}.`);
+            refresh();
+          }}
+        />
+      )}
       {dialog?.type === 'delete' && (
         <DeleteUserDialog
           user={dialog.user}
