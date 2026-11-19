@@ -13,6 +13,7 @@ import '../../../budget/data/budget_providers.dart';
 import '../../../marketplace/presentation/providers/marketplace_providers.dart';
 import '../../data/stats/customer_stats.dart';
 import '../../data/stats/stats_providers.dart';
+import '../widgets/dashboard_ar_previews.dart';
 import '../providers/design_providers.dart';
 
 class DashboardScreen extends ConsumerWidget {
@@ -200,6 +201,8 @@ class DashboardScreen extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 24),
+
+            const DashboardArPreviews(),
 
             Text('Recent Activity',
                 style: GoogleFonts.poppins(

@@ -36,6 +36,23 @@ Product _product({
 void main() {
   _cheaperSwapCoverage();
 
+  group('budgetStatus (FR25: approach or exceed)', () {
+    test('no budget set', () {
+      expect(budgetStatus(total: 500, budget: 0), BudgetStatus.noBudget);
+    });
+    test('below 90% is comfortable', () {
+      expect(budgetStatus(total: 899, budget: 1000), BudgetStatus.comfortable);
+    });
+    test('from 90% it warns before the money runs out', () {
+      expect(budgetStatus(total: 900, budget: 1000), BudgetStatus.approaching);
+      expect(budgetStatus(total: 1000, budget: 1000), BudgetStatus.approaching,
+          reason: 'exactly at budget is not yet over');
+    });
+    test('above the budget is over', () {
+      expect(budgetStatus(total: 1001, budget: 1000), BudgetStatus.over);
+    });
+  });
+
   group('medianPrice', () {
     test('empty input → null (no price data), never 0-as-a-quote', () {
       expect(medianPrice(const []), isNull);

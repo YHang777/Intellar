@@ -191,6 +191,7 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
     final hasBudget = _budget > 0;
     final remaining = _budget - totalCost;
     final overBudget = hasBudget && remaining < 0;
+    final status = budgetStatus(total: totalCost, budget: _budget);
     final partial = lines.any((l) => !l.hasData);
     final totalMatches = lines.fold<int>(0, (sum, l) => sum + l.matches);
     final optionsByLabel = {
@@ -472,6 +473,35 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                 Text('Estimate from the cheapest listing per category, not money spent. Covers categories with price data only.',
                     style: GoogleFonts.poppins(
                         fontSize: 11, color: AppColors.textHint)),
+              ],
+              // FR25: warn before the budget is gone, not only after.
+              if (status == BudgetStatus.approaching) ...[
+                const SizedBox(height: 12),
+                Container(
+                  key: const Key('budget-approaching'),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppColors.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: AppColors.warning.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.info_outline, color: AppColors.warning),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Nearly at your budget: ${Formatters.myr(remaining)} '
+                          'left (${(totalCost / _budget * 100).round()}% used)',
+                          style: GoogleFonts.poppins(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
               if (overBudget) ...[
                 const SizedBox(height: 12),

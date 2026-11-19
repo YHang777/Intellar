@@ -248,3 +248,17 @@ String buildBudgetReport({
 
   return buf.toString();
 }
+
+// ── Budget alerts (FR25: "approach or exceed") ──────────────────────────────
+
+enum BudgetStatus { noBudget, comfortable, approaching, over }
+
+/// Share of the budget at which the planner starts warning.
+const double budgetWarnAt = 0.9;
+
+BudgetStatus budgetStatus({required num total, required num budget}) {
+  if (budget <= 0) return BudgetStatus.noBudget;
+  if (total > budget) return BudgetStatus.over;
+  if (total >= budget * budgetWarnAt) return BudgetStatus.approaching;
+  return BudgetStatus.comfortable;
+}
