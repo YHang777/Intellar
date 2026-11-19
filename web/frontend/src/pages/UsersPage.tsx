@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { usersApi } from '../api/api';
 import { ApiError } from '../api/client';
 import type { AdminUserRow, VerificationStatus } from '../api/types';
-import { RoleBadges, StatusBadge } from '../components/Badge';
+import { AdminBadge, RoleBadges, StatusBadge } from '../components/Badge';
 import { DataTable, type Column, type SortState } from '../components/DataTable';
 import { DeleteUserDialog } from '../components/DeleteUserDialog';
 import { PasswordResetModal } from '../components/PasswordResetModal';
@@ -133,6 +133,28 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
     }
   };
 
+  const changeRole = async (user: AdminUserRow, next: 'homeowner' | 'supplier') => {
+    if (busyUid || next === user.role) return;
+    const label = next === 'supplier' ? 'Supplier' : 'Customer';
+    const ok = window.confirm(
+      `Change ${user.email} to ${label}?
+
+Use this only for an account that signed up with the wrong role. ` +
+        'It is refused once the account has orders or listings.'
+    );
+    if (!ok) return;
+    setBusyUid(user.uid);
+    try {
+      await usersApi.setRole(user.uid, next);
+      push('success', `${user.email} is now a ${label.toLowerCase()}.`);
+      refresh();
+    } catch (err) {
+      push('error', err instanceof ApiError ? err.message : 'Role change failed.');
+    } finally {
+      setBusyUid(null);
+    }
+  };
+
   const columns = useMemo<Column<AdminUserRow>[]>(() => {
     const base: Column<AdminUserRow>[] = [
       {
@@ -159,8 +181,25 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
         key: 'role',
         header: 'Role',
         sortValue: (u) => u.role,
-        render: (u) => <RoleBadges role={u.role} isAdmin={u.isAdmin} />,
-        width: '150px',
+        render: (u) =>
+          u.profileExists && u.role !== 'unknown' ? (
+            <span className="badge-row">
+              <select
+                className="role-select"
+                aria-label={`Role for ${u.email}`}
+                value={u.role}
+                disabled={busyUid === u.uid}
+                onChange={(e) => void changeRole(u, e.target.value as 'homeowner' | 'supplier')}
+              >
+                <option value="homeowner">Customer</option>
+                <option value="supplier">Supplier</option>
+              </select>
+              {u.isAdmin && <AdminBadge />}
+            </span>
+          ) : (
+            <RoleBadges role={u.role} isAdmin={u.isAdmin} />
+          ),
+        width: '170px',
       },
       {
         key: 'status',
@@ -178,7 +217,8 @@ export function UsersPage({ role, showRoleChips = false, query, onQueryChange }:
       },
       {
         key: 'orders',
-        header: 'Orders',
+        // Customers place orders; for a supplier this is orders received.
+        header: isSupplierScope ? 'Sales' : 'Orders',
         sortValue: (u) => u.orderCount,
         render: (u) => u.orderCount.toLocaleString(),
         width: '80px',

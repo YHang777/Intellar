@@ -61,7 +61,7 @@ async function loadCounts(): Promise<{ productCounts: Map<string, number>; order
 
   const [prodSnap, orderSnap] = await Promise.all([
     fbDb().collection('products').select('supplierId', 'supplier').get(),
-    fbDb().collection('orders').select('customerId', 'supplierIds').get(),
+    fbDb().collection('orders').select('customerId', 'supplierIds', 'paymentStatus').get(),
   ]);
 
   for (const doc of prodSnap.docs) {
@@ -71,6 +71,9 @@ async function loadCounts(): Promise<{ productCounts: Map<string, number>; order
     if (sid) productCounts.set(sid, (productCounts.get(sid) ?? 0) + 1);
   }
   for (const doc of orderSnap.docs) {
+    // Unpaid checkouts (still paying or abandoned) are not orders yet.
+    const pay = doc.get('paymentStatus') as string | undefined;
+    if (pay !== undefined && pay !== 'paid' && pay !== 'refunded') continue;
     const involved = new Set<string>();
     const cid = (doc.get('customerId') as string | undefined) ?? '';
     if (cid) involved.add(cid);

@@ -6,6 +6,8 @@ import { validateBody, validateParams, validateQuery } from '../middleware/valid
 import { asyncHandler } from '../lib/errors';
 import { getUserDetail, listUsers } from '../services/users.service';
 import { setSupplierVerification } from '../services/verification.service';
+import { changeUserRole } from '../services/role.service';
+import { auditQuietly } from '../services/audit.service';
 import { deleteAccount } from '../services/deletion.service';
 import { generatePasswordResetLink, setTemporaryPassword } from '../services/identity.service';
 
@@ -100,6 +102,35 @@ usersRouter.patch(
     const { uid } = req.params as { uid: string };
     const { status } = req.body as z.infer<typeof verificationBody>;
     const result = await setSupplierVerification(uid, status);
+    res.json(result);
+  })
+);
+
+const roleBody = z.object({ role: z.enum(['homeowner', 'supplier']) });
+
+/**
+ * PATCH /api/users/:uid/role
+ * Body: { role: 'homeowner' | 'supplier' }
+ * Corrects an account registered with the wrong role. Refused (409) once the
+ * account has orders or listings.
+ */
+usersRouter.patch(
+  '/:uid/role',
+  validateParams(uidParam),
+  validateBody(roleBody),
+  asyncHandler(async (req, res) => {
+    const { uid } = req.params as { uid: string };
+    const { role } = req.body as z.infer<typeof roleBody>;
+    const result = await changeUserRole(uid, role);
+    if (result.changed && req.user?.uid) {
+      auditQuietly({
+        actorId: req.user.uid,
+        action: 'user.role',
+        targetType: 'user',
+        targetId: uid,
+        details: { role },
+      });
+    }
     res.json(result);
   })
 );

@@ -2646,3 +2646,15 @@ code,
 .email-link { cursor: pointer; border-radius: 4px; }
 .email-link:hover { color: var(--accent-text); text-decoration: underline dotted; }
 .email-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.role-select {
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface, transparent);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.role-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.role-select:disabled { opacity: 0.6; cursor: progress; }

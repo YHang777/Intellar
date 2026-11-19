@@ -52,6 +52,11 @@ export const usersApi = {
     return apiGet<ListUsersResult>(`/users?${params.toString()}`);
   },
   detail: (uid: string) => apiGet<{ user: AdminUserDetail }>(`/users/${encodeURIComponent(uid)}`),
+  setRole: (uid: string, role: 'homeowner' | 'supplier') =>
+    apiPatch<{ uid: string; role: string; changed: boolean }>(
+      `/users/${encodeURIComponent(uid)}/role`,
+      { role }
+    ),
   setVerification: (uid: string, status: VerificationStatus) =>
     apiPatch<VerificationResult>(`/users/${encodeURIComponent(uid)}/verification`, { status }),
   passwordReset: (uid: string, mode: 'reset_link' | 'temp_password') =>
