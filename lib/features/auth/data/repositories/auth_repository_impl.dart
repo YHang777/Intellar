@@ -49,7 +49,8 @@ class AuthRepositoryImpl implements IAuthRepository {
         final user = await _buildAppUser(fbUser)
             .timeout(const Duration(seconds: 25));
         await BootTrace.log('authState: profile OK');
-        if (user.twoFactorEnabled &&
+        // Seller accounts always use two-step sign-in on a new device.
+        if ((user.twoFactorEnabled || user.isSupplier) &&
             !await _deviceStore.isVerified(user.uid)) {
           return user.copyWith(twoFactorPending: true);
         }

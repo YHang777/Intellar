@@ -125,7 +125,10 @@ class _SecuritySettingsScreenState
   Widget build(BuildContext context) {
     final user = ref.watch(currentUserProvider);
     final email = user?.email ?? '';
-    final enabled = user?.twoFactorEnabled ?? false;
+    // Seller accounts always use it (report: supplier login "with 2FA
+    // enabled"); the backend refuses to switch it off for them too.
+    final required = user?.isSupplier ?? false;
+    final enabled = required || (user?.twoFactorEnabled ?? false);
     return SettingsPage(
       title: 'Login & security',
       subtitle: 'Protect your account',
@@ -137,11 +140,16 @@ class _SecuritySettingsScreenState
               key: const Key('two-factor-switch'),
               icon: Icons.shield_outlined,
               title: 'Email code at sign-in',
-              subtitle: enabled
-                  ? 'A 6-digit code is emailed to you each time you sign in.'
-                  : 'Add a second step: a code emailed to $email.',
+              subtitle: required
+                  ? 'Required for seller accounts. A 6-digit code is emailed '
+                      'to you when you sign in on a new device.'
+                  : enabled
+                      ? 'A 6-digit code is emailed to you each time you sign in.'
+                      : 'Add a second step: a code emailed to $email.',
               value: enabled,
-              onChanged: (_busy || user == null) ? null : _toggleTwoFactor,
+              onChanged: (_busy || user == null || required)
+                  ? null
+                  : _toggleTwoFactor,
             ),
           ],
         ),

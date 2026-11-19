@@ -219,6 +219,14 @@ export function createSecurityCodeRouter(deps: SecurityCodeDeps): Router {
     asyncHandler(async (req: Request, res: Response) => {
       const { uid } = requireUser(req);
       const { enabled, code } = settingsBody.parse(req.body);
+      // Seller accounts always use two-step sign-in (report: supplier login
+      // "with 2FA enabled"); refuse before spending the code.
+      if (!enabled) {
+        const role = (await deps.db().collection('users').doc(uid).get()).data()?.role;
+        if (role === 'supplier') {
+          throw new ApiError(403, 'TWO_FACTOR_REQUIRED', 'Two-step sign-in is required for seller accounts.');
+        }
+      }
       await consume(uid, 'login', code);
       await deps.db().collection('users').doc(uid).set({ twoFactorEnabled: enabled }, { merge: true });
       deps.audit?.({ actorId: uid, action: enabled ? '2fa.enabled' : '2fa.disabled', targetType: 'user', targetId: uid });

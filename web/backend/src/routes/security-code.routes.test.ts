@@ -182,6 +182,23 @@ test('2fa settings needs a valid code and writes the user flag', async () => {
   }
 });
 
+test('seller accounts cannot switch two-step sign-in off', async () => {
+  const h = await harness();
+  try {
+    h.db.store.set('users/u1', { role: 'supplier', twoFactorEnabled: true });
+    await post(`${h.base}/2fa/send`, {});
+    const off = await post(`${h.base}/2fa/settings`, { enabled: false, code: h.sent[0].code });
+    assert.equal(off.status, 403);
+    assert.equal(off.body.error.code, 'TWO_FACTOR_REQUIRED');
+    assert.equal(h.db.store.get('users/u1')?.twoFactorEnabled, true);
+    // The code was not spent on the refused request.
+    const on = await post(`${h.base}/2fa/settings`, { enabled: true, code: h.sent[0].code });
+    assert.equal(on.status, 200);
+  } finally {
+    await h.close();
+  }
+});
+
 test('email change sends the code to the new address and swaps the email', async () => {
   const h = await harness();
   try {
