@@ -240,10 +240,6 @@ pw.Widget _expenses(DesignReportData report) {
         'Installation (est.)',
         money ? Formatters.myr(expenses.installation!) : '-',
       ),
-      _totalLine(
-        'Delivery (est.)',
-        money ? Formatters.myr(expenses.delivery!) : '-',
-      ),
       pw.SizedBox(height: 8),
       pw.Divider(height: 1, thickness: 0.8, color: PdfColors.grey500),
       pw.SizedBox(height: 8),
@@ -275,7 +271,8 @@ pw.Widget _totalLine(String label, String value, {bool strong = false}) {
 pw.Widget _footnote() {
   return pw.Text(
     'Prices are estimated from current marketplace listings (median). '
-    'Installation and delivery are estimated percentages of furniture cost.',
+    'Installation is estimated at 10% of furniture cost. Orders are collected '
+    'from the seller, so there is no delivery fee.',
     style: _muted(9),
   );
 }

@@ -91,6 +91,24 @@ void main() {
     );
   });
 
+  testWidgets('system back on another tab returns to Home instead of exiting',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(800, 1400));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final router = await _boot(tester);
+    router.go('/saved');
+    await _settle(tester);
+    expect(_navIndex(tester), 4);
+
+    final handled = await tester.binding.handlePopRoute();
+    await _settle(tester);
+
+    expect(handled, isTrue, reason: 'the app must consume back, not close');
+    expect(_navIndex(tester), 0);
+    expect(find.byType(DashboardScreen), findsOneWidget);
+  });
+
   testWidgets('cross-branch push through GuardedGoRouter highlights the tab',
       (tester) async {
     final router = await _boot(tester);

@@ -15,6 +15,7 @@ import '../../../../../shared/widgets/gradient_scaffold.dart';
 import '../../../../../shared/widgets/page_heading.dart';
 import '../../../../../shared/widgets/section_header.dart';
 import '../providers/design_providers.dart';
+import '../../../marketplace/presentation/providers/marketplace_providers.dart';
 
 class SavedDesignsScreen extends ConsumerWidget {
   const SavedDesignsScreen({super.key});
@@ -132,7 +133,7 @@ class SavedDesignsScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 40),
-          _buildStyleLibrary(),
+          _buildStyleLibrary(context),
           const SizedBox(height: 32),
         ],
       ),
@@ -162,7 +163,7 @@ class SavedDesignsScreen extends ConsumerWidget {
                 child: _buildDesignCard(context, ref, d),
               )),
           const SizedBox(height: 28),
-          _buildStyleLibrary(),
+          _buildStyleLibrary(context),
           const SizedBox(height: 32),
         ],
       ),
@@ -367,7 +368,7 @@ class SavedDesignsScreen extends ConsumerWidget {
 
   // ── Style Library (3-column grid) ─────────────────────────────────────────
 
-  Widget _buildStyleLibrary() {
+  Widget _buildStyleLibrary(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -385,23 +386,38 @@ class SavedDesignsScreen extends ConsumerWidget {
           mainAxisSpacing: 10,
           childAspectRatio: 0.62,
           children: _styles
-              .map((s) => _buildStyleCard(s.$1, s.$2, s.$3))
+              .map((s) => _buildStyleCard(context, s.$1, s.$2, s.$3))
               .toList(),
         ),
       ],
     );
   }
 
-  Widget _buildStyleCard(String name, IconData icon, String subtitle) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 6),
+  // Opens the marketplace showing only this style.
+  void _shopStyle(BuildContext context, String name) {
+    final container = ProviderScope.containerOf(context, listen: false);
+    container.read(searchQueryProvider.notifier).state = '';
+    container.read(selectedStyleFilterProvider.notifier).state = name;
+    context.go('/marketplace');
+  }
+
+  Widget _buildStyleCard(
+      BuildContext context, String name, IconData icon, String subtitle) {
+    return Material(
+      color: AppColors.surface,
+      borderRadius: BorderRadius.circular(14),
+      child: InkWell(
+      key: Key('style-card-$name'),
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => _shopStyle(context, name),
+      child: Container(
+      padding: const EdgeInsets.fromLTRB(6, 22, 6, 14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Container(
             width: 44,
@@ -429,6 +445,8 @@ class SavedDesignsScreen extends ConsumerWidget {
                     fontSize: 11, color: AppColors.textHint)),
           ),
         ],
+      ),
+      ),
       ),
     );
   }

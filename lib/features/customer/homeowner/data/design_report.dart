@@ -4,8 +4,6 @@ import '../../budget/data/budget_estimates.dart';
 
 const double kInstallationRate = 0.10;
 
-const double kDeliveryRate = 0.05;
-
 const Map<String, String> _placementCatalog = {
   'sofa': 'seating',
   'armchair': 'seating',
@@ -77,15 +75,12 @@ class DesignExpenses {
   const DesignExpenses({
     required this.furniture,
     this.installation,
-    this.delivery,
     this.total,
   });
 
   final int furniture;
 
   final int? installation;
-
-  final int? delivery;
 
   final int? total;
 
@@ -149,7 +144,6 @@ DesignReportData buildDesignReport(
   final anyPriced = items.any((i) => i.estimatedPrice != null);
 
   final installation = anyPriced ? (furniture * kInstallationRate).round() : null;
-  final delivery = anyPriced ? (furniture * kDeliveryRate).round() : null;
 
   return DesignReportData(
     design: design,
@@ -157,8 +151,8 @@ DesignReportData buildDesignReport(
     expenses: DesignExpenses(
       furniture: furniture,
       installation: installation,
-      delivery: delivery,
-      total: anyPriced ? furniture + installation! + delivery! : null,
+      // Self-collection only: there is no delivery cost to estimate.
+      total: anyPriced ? furniture + installation! : null,
     ),
     generatedAt: DateTime.now(),
     derivedStyle: _majorityStyle(styleSources),

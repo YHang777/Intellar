@@ -7,6 +7,7 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/router/route_names.dart';
 import '../../../../../core/utils/formatters.dart';
 import '../../../../../models/product.dart';
+import '../../../../../models/order.dart';
 import '../../../../../shared/widgets/app_feedback.dart';
 import '../../../../../shared/widgets/search_bar.dart' as sw;
 import '../../../../../shared/widgets/filter_chip_bar.dart';
@@ -145,7 +146,16 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     final wishlistIds = ref.watch(wishlistProvider);
     final wishlistCount = ref.watch(wishlistCountProvider);
     final ordersAsync = ref.watch(customerOrdersProvider);
-    final orderCount = ordersAsync.whenOrNull(data: (o) => o.length) ?? 0;
+    // Badge = paid orders still on the go, not every order ever placed.
+    final orderCount = ordersAsync.whenOrNull(
+            data: (o) => o
+                .where((x) =>
+                    x.paymentStatus == PaymentStatus.paid &&
+                    (x.status == OrderStatus.pending ||
+                        x.status == OrderStatus.confirmed ||
+                        x.status == OrderStatus.waitingCollection))
+                .length) ??
+        0;
 
     return GradientScaffold(
       child: RobotAssistantHost(

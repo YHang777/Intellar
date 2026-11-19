@@ -121,6 +121,12 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
   void debugAddFromCatalog(RoomCatalogItem item) => _addFromCatalog(item);
 
   @visibleForTesting
+  void debugAdoptDesign(RoomDesign d) => _adoptDesign(d);
+
+  @visibleForTesting
+  String? get debugDesignId => _designId;
+
+  @visibleForTesting
   int debugAutoPlace(List<String> labels) {
     _found
       ..clear()
@@ -1419,9 +1425,10 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
   // the next save update the same design instead of minting a duplicate.
   void _adoptDesign(RoomDesign d) {
     setState(() {
-      _designId = d.id;
-      _designName = d.name;
-      _designCreatedAt = d.createdAt;
+      // An unsaved plan comes back with an empty id; keep it "not saved yet".
+      _designId = d.id.isEmpty ? null : d.id;
+      _designName = _designId == null ? _designName : d.name;
+      _designCreatedAt = _designId == null ? _designCreatedAt : d.createdAt;
       _roomW = d.widthCm;
       _roomH = d.heightCm;
       _roomType = d.roomType;
@@ -1494,8 +1501,9 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
 
     final ds = ref.read(roomDesignDatasourceProvider);
     final now = DateTime.now();
-    final designId =
-        _designId ?? 'design-${now.millisecondsSinceEpoch}';
+    final existingId =
+        (_designId == null || _designId!.isEmpty) ? null : _designId;
+    final designId = existingId ?? 'design-${now.millisecondsSinceEpoch}';
 
     final design = RoomDesign(
       id: designId,
@@ -1517,7 +1525,7 @@ class _RoomScannerScreenState extends ConsumerState<RoomScannerScreen> {
     );
 
     try {
-      if (_designId != null) {
+      if (existingId != null) {
         await ds.updateDesign(designId, design.toJson());
       } else {
         await ds.createDesign(

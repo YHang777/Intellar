@@ -520,10 +520,6 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
             'Installation (est.)',
             money ? Formatters.myr(expenses.installation!) : '—',
           ),
-          _expenseRow(
-            'Delivery (est.)',
-            money ? Formatters.myr(expenses.delivery!) : '—',
-          ),
           const SizedBox(height: 6),
           Divider(height: 1, thickness: 1, color: AppColors.divider),
           const SizedBox(height: 8),
@@ -551,8 +547,9 @@ class _DesignReportScreenState extends ConsumerState<DesignReportScreen> {
           const SizedBox(height: 12),
           Text(
             'Prices are estimated from current marketplace listings '
-            '(median). Installation and delivery are estimated percentages '
-            'of furniture cost.',
+            '(median). Installation is estimated at 10% of furniture cost. '
+            'Orders are collected from the seller, so there is no delivery '
+            'fee.',
             style: GoogleFonts.poppins(
               fontSize: 12,
               color: AppColors.textSecondary,

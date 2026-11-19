@@ -10,7 +10,13 @@ class HomeownerShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // Back on another tab returns to the first tab before leaving the app.
+    return PopScope(
+      canPop: navigationShell.currentIndex == 0,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) navigationShell.goBranch(0);
+      },
+      child: Scaffold(
       backgroundColor: AppColors.background,
       extendBody: true,
       body: navigationShell,
@@ -53,6 +59,7 @@ class HomeownerShell extends StatelessWidget {
           ),
         ],
       ),
+    ),
     );
   }
 }

@@ -331,6 +331,45 @@ void main() {
     dynamic stateOf(WidgetTester tester) =>
         tester.state(find.byType(RoomScannerScreen));
 
+    testWidgets('an unsaved plan stays unsaved after a walkthrough round trip',
+        (tester) async {
+      await tester.pumpWidget(ProviderScope(
+        child: MaterialApp(
+          home: RoomScannerScreen(
+            existingDesign: RoomDesign(
+              id: '',
+              name: 'Shared Room',
+              roomType: 'living_room',
+              widthCm: 400,
+              heightCm: 500,
+              createdAt: DateTime(2026, 1, 1),
+              updatedAt: DateTime(2026, 1, 1),
+              userId: '',
+            ),
+          ),
+        ),
+      ));
+      await tester.pump();
+      expect(find.text('Room Planner'), findsOneWidget);
+
+      stateOf(tester).debugAdoptDesign(RoomDesign(
+        id: '',
+        name: 'My Living Room Design',
+        roomType: 'living_room',
+        widthCm: 400,
+        heightCm: 500,
+        createdAt: DateTime(2026, 1, 1),
+        updatedAt: DateTime(2026, 1, 1),
+        userId: '',
+      ));
+      await tester.pump();
+
+      expect(stateOf(tester).debugDesignId, isNull,
+          reason: 'Save must create a new design, not update id ""');
+      expect(find.text('Room Planner'), findsOneWidget);
+      expect(find.textContaining('Edit:'), findsNothing);
+    });
+
     testWidgets('zoom buttons dolly the orbit camera', (tester) async {
       await pumpPlanner(tester);
       final start = stateOf(tester).debugCameraDistanceM as double;

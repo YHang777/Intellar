@@ -165,7 +165,7 @@ void main() {
   });
 
   group('buildDesignReport — expenses', () {
-    test('installation is 10%, delivery 5%, total sums the three', () {
+    test('installation is 10%; no delivery since orders are collected', () {
       final report = buildDesignReport(
         _design(furniture: [
           _place(name: 'Sofa'),
@@ -179,8 +179,7 @@ void main() {
 
       expect(report.expenses.furniture, 1500);
       expect(report.expenses.installation, 150);
-      expect(report.expenses.delivery, 75);
-      expect(report.expenses.total, 1500 + 150 + 75);
+      expect(report.expenses.total, 1500 + 150);
       expect(report.expenses.hasData, isTrue);
     });
 
@@ -197,8 +196,7 @@ void main() {
       expect(report.items[1].estimatedPrice, isNull);
       expect(report.expenses.furniture, 1000);
       expect(report.expenses.installation, 100);
-      expect(report.expenses.delivery, 50);
-      expect(report.expenses.total, 1150);
+      expect(report.expenses.total, 1100);
     });
   });
 
