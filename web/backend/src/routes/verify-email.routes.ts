@@ -1,3 +1,4 @@
+import { renderBrandPage } from '../lib/brand';
 import { Router, type Request, type Response } from 'express';
 import {
   createVerificationToken,
@@ -188,37 +189,5 @@ function renderPage(
     note,
   }: { success: boolean; title: string; message: string; note?: string }
 ): void {
-  const icon = success ? '✔' : '✖';
-  const iconClass = success ? 'ok' : 'bad';
-  res
-    .status(200)
-    .type('html')
-    .send(`<!DOCTYPE html>
-<html>
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${title} — Intellar</title>
-<style>
-  body{font-family:Segoe UI,Roboto,sans-serif;background:#f7f5f2;display:flex;
-    align-items:center;justify-content:center;min-height:100vh;margin:0}
-  .card{background:#fff;border-radius:16px;padding:40px;max-width:420px;
-    text-align:center;box-shadow:0 4px 24px rgba(0,0,0,.08)}
-  .icon{width:64px;height:64px;border-radius:50%;display:inline-flex;
-    align-items:center;justify-content:center;font-size:32px;margin-bottom:16px}
-  .ok{background:#e7f6ec;color:#1f9d55}.bad{background:#fdeaea;color:#d64545}
-  h1{font-size:22px;margin:0 0 8px;color:#222}
-  p{color:#555;font-size:15px;line-height:1.5}
-  .note{background:#f0f4ff;border-radius:8px;padding:12px;font-size:13px;color:#334}
-</style>
-</head>
-<body>
-<div class="card">
-  <div class="icon ${iconClass}">${icon}</div>
-  <h1>${title}</h1>
-  <p>${message}</p>
-${note === undefined ? '' : `  <p class="note">${note}</p>`}
-</div>
-</body>
-</html>`);
+  renderBrandPage(res, { tone: success ? 'success' : 'error', title, message, note, openApp: success });
 }

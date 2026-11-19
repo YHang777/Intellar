@@ -13,6 +13,8 @@ export class VerificationEmailException extends Error {
   }
 }
 
+import { BRAND, emailButton, emailCode, emailLayout, emailNote, escapeHtml } from './brand';
+
 const SEND_TIMEOUT_MS = 20_000;
 
 export interface VerificationMailerOptions {
@@ -147,54 +149,59 @@ export class VerificationMailer {
 }
 
 function emailHtml(link: string): string {
-  return `
-<div style="font-family:Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
-  <h2 style="margin:0 0 12px">Welcome to Intellar!</h2>
-  <p style="color:#444;line-height:1.6">Thanks for creating an account. Click the
-    button below to verify your email address.</p>
-  <p style="margin:28px 0">
-    <a href="${link}" style="background:#2d6cdf;color:#fff;padding:12px 28px;
-      border-radius:8px;text-decoration:none;font-weight:600">Verify my email</a>
-  </p>
-  <p style="color:#777;font-size:13px">Or open this link in your browser:<br>
-    <a href="${link}">${link}</a><br><br>
-    This link expires in 24 hours. If you didn't create an account, you can
-    ignore this email.</p>
-</div>`;
+  return emailLayout({
+    preheader: 'Confirm your email to start designing with Intellar.',
+    eyebrow: 'Verify your email',
+    title: 'Welcome to Intellar!',
+    body:
+      '<p style="margin:0">Thanks for creating an account. Confirm your email address to start ' +
+      'designing your space, getting AI suggestions and shopping from local suppliers.</p>' +
+      emailButton(link, 'Verify my email') +
+      emailNote(
+        `This link expires in 24 hours. If the button does not work, copy this link into your browser:<br>` +
+          `<a href="${link}" style="color:${BRAND.green};word-break:break-all">${escapeHtml(link)}</a>`
+      ),
+    footnote: "You received this email because this address was used to sign up for Intellar. If that wasn't you, you can ignore it.",
+  });
 }
 
 function codeHtml(code: string, purpose: 'login' | 'email_change'): string {
-  const intro =
-    purpose === 'login'
-      ? 'Use this code to finish signing in to Intellar.'
-      : 'Use this code to confirm this new email address for your Intellar account.';
-  return `
-<div style="font-family:Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
-  <h2 style="margin:0 0 12px">Your security code</h2>
-  <p style="color:#444;line-height:1.6">${intro}</p>
-  <p style="margin:28px 0;font-size:32px;font-weight:700;letter-spacing:8px;color:#1A1A2E">${code}</p>
-  <p style="color:#777;font-size:13px">The code expires in 10 minutes. If you didn't ask
-    for it, someone may know your password — change it from the app.</p>
-</div>`;
+  const login = purpose === 'login';
+  return emailLayout({
+    preheader: `${code} is your Intellar ${login ? 'sign-in' : 'email change'} code.`,
+    eyebrow: login ? 'Two-step sign-in' : 'Confirm new email',
+    title: 'Your security code',
+    body:
+      `<p style="margin:0">${login
+        ? 'Enter this code in the Intellar app to finish signing in.'
+        : 'Enter this code in the Intellar app to confirm this new email address for your account.'}</p>` +
+      emailCode(code) +
+      `<p style="margin:12px 0 0;font-size:13px;color:${BRAND.muted}">The code expires in 10 minutes.</p>` +
+      emailNote(
+        "Didn't ask for this code? Someone may know your password. Change it from the app under " +
+          'Profile &rsaquo; Change Password.',
+        'warn'
+      ),
+    footnote: 'Never share this code with anyone, including people who say they work for Intellar.',
+  });
 }
 
 function deletionHtml(link: string): string {
-  return `
-<div style="font-family:Segoe UI,Roboto,sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
-  <h2 style="margin:0 0 12px">Confirm account deletion</h2>
-  <p style="color:#444;line-height:1.6">You asked to delete your Intellar account.
-    Click the button below to confirm. This link expires in 24 hours.</p>
-  <p style="margin:28px 0">
-    <a href="${link}" style="background:#d64545;color:#fff;padding:12px 28px;
-      border-radius:8px;text-decoration:none;font-weight:600">Confirm account deletion</a>
-  </p>
-  <p style="color:#444;line-height:1.6">After you confirm you have a 7-day recovery
-    window: your account and personal data are permanently deleted once those
-    7 days pass (your order history is kept as anonymized records). You can
-    recover your account at any time during the window by signing in and
-    cancelling the deletion.</p>
-  <p style="color:#777;font-size:13px">Or open this link in your browser:<br>
-    <a href="${link}">${link}</a><br><br>
-    If you didn't ask to delete your account, you can ignore this email.</p>
-</div>`;
+  return emailLayout({
+    preheader: 'Confirm that you want to delete your Intellar account.',
+    eyebrow: 'Account deletion',
+    eyebrowColor: BRAND.red,
+    title: 'Confirm account deletion',
+    body:
+      '<p style="margin:0">You asked to delete your Intellar account. Confirm with the button ' +
+      'below. The link expires in 24 hours.</p>' +
+      emailButton(link, 'Confirm account deletion', BRAND.red) +
+      emailNote(
+        '<strong>You have a 7-day recovery window.</strong> After you confirm, your account and ' +
+          'personal data are deleted once 7 days pass, and your order history is kept as anonymized ' +
+          'records. You can keep your account at any time during the window by signing in and ' +
+          'cancelling the deletion.'
+      ),
+    footnote: "If you didn't ask to delete your account, ignore this email and nothing will change.",
+  });
 }
