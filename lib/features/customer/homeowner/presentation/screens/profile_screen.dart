@@ -322,59 +322,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 title: 'Settings',
                 accentColor: AppColors.textHint,
                 children: [
-                  _LinkRow(Icons.lock_outline, 'Change Password', () {
-                    final email = user?.email ?? '';
-                    if (email.isEmpty) {
-                      showAppSnackbar(context, 'No email on file',
-                          isError: true);
-                      return;
-                    }
-                    showDialog(
-                      context: context,
-                      builder:
-                          (ctx) => AlertDialog(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            actionsAlignment: MainAxisAlignment.center,
-                            title: const Text('Reset Password?'),
-                            content: Text(
-                              'A password reset link will be sent to $email. '
-                              'Check your inbox after a few minutes.',
-                            ),
-                            actions: [
-                              ConfirmDialogActions(
-                                confirmLabel: 'Send Reset Link',
-                                onCancel: () => Navigator.pop(ctx),
-                                onConfirm: () async {
-                                  Navigator.pop(ctx);
-                                  try {
-                                    await ref
-                                        .read(authStateProvider.notifier)
-                                        .sendPasswordResetEmail(email);
-                                    if (context.mounted) {
-                                      showAppSnackbar(
-                                        context,
-                                        'Password reset email sent to $email',
-                                      );
-                                    }
-                                  } catch (e) {
-                                    if (context.mounted) {
-                                      showAppSnackbar(
-                                        context,
-                                        userMessage(e,
-                                            fallback:
-                                                'Could not send the reset email. Please try again.'),
-                                        isError: true,
-                                      );
-                                    }
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                    );
-                  }),
                   _LinkRow(Icons.palette_outlined, 'Design Preferences',
                       () => pushOnce(context, '/settings/preferences')),
                   _LinkRow(Icons.shield_outlined, 'Login & Security',

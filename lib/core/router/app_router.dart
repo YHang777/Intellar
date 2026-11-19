@@ -144,7 +144,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (isLoggedIn && !user.onboardingCompleted) {
         return loc == '/onboarding' ? null : '/onboarding';
       }
-      if (isLoggedIn && isOnAuthRoute) {
+      // A guest may open sign-in / sign-up on top of what they were doing
+      // and come straight back with Back if they change their mind.
+      if (isLoggedIn && isOnAuthRoute && !user.isGuest) {
         return takePendingLink() ?? home;
       }
       // Supplier-only, but outside /supplier/ (so the supplier rule below

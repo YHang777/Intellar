@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:interior_design_recommendation/features/auth/data/models/app_user.dart';
 import 'package:interior_design_recommendation/features/auth/presentation/providers/auth_providers.dart';
 import 'package:interior_design_recommendation/shared/widgets/guest_gate.dart';
@@ -52,5 +53,39 @@ void main() {
     final allowed = await _tapGated(tester, user);
     expect(allowed, [true]);
     expect(find.byKey(const Key('guest-sign-up-sheet')), findsNothing);
+  });
+
+  testWidgets('Create account opens sign-up on top; Back returns, still a guest',
+      (tester) async {
+    final router = GoRouter(routes: [
+      GoRoute(
+        path: '/',
+        builder: (_, __) => Scaffold(
+          body: Consumer(
+            builder: (context, ref, _) => ElevatedButton(
+              onPressed: () => requireAccount(context, ref, 'save designs'),
+              child: const Text('Save'),
+            ),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (_, __) => const Scaffold(body: Text('Sign-up page')),
+      ),
+    ]);
+    await tester.pumpWidget(ProviderScope(
+      overrides: [currentUserProvider.overrideWithValue(AppUser.guest('anon1'))],
+      child: MaterialApp.router(routerConfig: router),
+    ));
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('guest-create-account')));
+    await tester.pumpAndSettle();
+    expect(find.text('Sign-up page'), findsOneWidget);
+
+    router.pop();
+    await tester.pumpAndSettle();
+    expect(find.text('Save'), findsOneWidget, reason: 'back where they were');
   });
 }

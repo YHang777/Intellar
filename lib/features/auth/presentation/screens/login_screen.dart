@@ -98,6 +98,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Widget build(BuildContext context) {
     final state = ref.watch(authStateProvider);
     final loading = state is AsyncLoading<AppUser?> || _submitting;
+    final isGuest = ref.watch(currentUserProvider)?.isGuest ?? false;
 
     ref.listen<AsyncValue<AppUser?>>(authStateProvider, (_, next) {
       next.whenOrNull(error: (e, _) {
@@ -288,10 +289,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                   ),
                   TextButton.icon(
                     key: const Key('continue-as-guest'),
-                    onPressed: loading ? null : _continueAsGuest,
+                    onPressed: loading
+                        ? null
+                        : (isGuest
+                            // Already exploring: just go back to it.
+                            ? () => context.canPop()
+                                ? context.pop()
+                                : context.go('/home')
+                            : _continueAsGuest),
                     icon: Icon(Icons.explore_outlined,
                         size: 18, color: AppColors.textSecondary),
-                    label: Text('Explore as a guest',
+                    label: Text(isGuest ? 'Back to exploring' : 'Explore as a guest',
                         style: GoogleFonts.poppins(
                             color: AppColors.textSecondary,
                             fontWeight: FontWeight.w600,

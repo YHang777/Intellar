@@ -134,44 +134,6 @@ class _SupplierProfileScreenState
     showAppSnackbar(context, 'Check your inbox — your deletion request was sent.');
   }
 
-  Future<void> _changePassword() async {
-    final user = ref.read(currentUserProvider);
-    final email = user?.email ?? '';
-    if (email.isEmpty) {
-      showAppSnackbar(context, 'No email on file', isError: true);
-      return;
-    }
-    final confirmed = await showConfirmDialog(
-      context,
-      title: 'Reset Password?',
-      message: 'A password reset link will be sent to $email. '
-          'Check your inbox after a few minutes.',
-      confirmLabel: 'Send Reset Link',
-    );
-    if (!confirmed || !mounted) return;
-    try {
-      await ref.read(authStateProvider.notifier).sendPasswordResetEmail(email);
-      if (mounted) {
-        showAppSnackbar(
-          context,
-          'Password reset email sent to $email',
-          color: AppColors.success,
-          duration: const Duration(seconds: 3),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        showAppSnackbar(
-          context,
-          userMessage(e,
-              fallback: 'Could not send the reset email. Please try again.'),
-          isError: true,
-          duration: const Duration(seconds: 3),
-        );
-      }
-    }
-  }
-
   Future<void> _logout() async {
     final confirmed = await showConfirmDialog(
       context,
@@ -489,8 +451,6 @@ class _SupplierProfileScreenState
                       title: 'Account',
                       accentColor: AppColors.textHint,
                       children: [
-                        _LinkRow(Icons.password_outlined, 'Change Password',
-                            _changePassword),
                         _LinkRow(Icons.shield_outlined, 'Login & Security',
                             () => pushOnce(context, '/settings/security')),
                         _LinkRow(Icons.notifications_outlined,

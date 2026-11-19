@@ -26,7 +26,6 @@ import '../../../../../core/utils/native_scene_guard.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../core/utils/user_errors.dart';
-import '../../data/ar_previews.dart';
 import '../../../../../models/product.dart';
 import '../../../../../models/room_design.dart';
 import '../../../../../shared/widgets/app_feedback.dart';

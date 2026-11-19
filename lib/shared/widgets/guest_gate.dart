@@ -22,10 +22,9 @@ Future<bool> requireAccount(BuildContext context, WidgetRef ref, String action) 
   return false;
 }
 
-Future<void> leaveGuestMode(WidgetRef ref, GoRouter router, String route) async {
-  await ref.read(authStateProvider.notifier).logout();
-  router.go(route);
-}
+// Opens sign-up / sign-in ON TOP of the current page: the guest session
+// stays until a real account signs in, so Back returns to where they were.
+void openAccountPage(GoRouter router, String route) => router.push(route);
 
 class GuestSignUpSheet extends ConsumerWidget {
   const GuestSignUpSheet({super.key, required this.action, this.inline = false});
@@ -68,8 +67,8 @@ class GuestSignUpSheet extends ConsumerWidget {
                 key: const Key('guest-create-account'),
                 onPressed: () {
                   final router = GoRouter.of(context);
-                  Navigator.of(context).maybePop();
-                  leaveGuestMode(ref, router, '/register');
+                  if (!inline) Navigator.of(context).maybePop();
+                  openAccountPage(router, '/register');
                 },
                 child: const Text('Create account'),
               ),
@@ -81,8 +80,8 @@ class GuestSignUpSheet extends ConsumerWidget {
                 key: const Key('guest-sign-in'),
                 onPressed: () {
                   final router = GoRouter.of(context);
-                  Navigator.of(context).maybePop();
-                  leaveGuestMode(ref, router, '/login');
+                  if (!inline) Navigator.of(context).maybePop();
+                  openAccountPage(router, '/login');
                 },
                 child: const Text('I already have an account'),
               ),
