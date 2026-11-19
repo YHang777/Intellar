@@ -122,8 +122,12 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
   late final TextEditingController _depthCtrl;
 
   bool _dimsEdited = false;
+  // 3D generation is opt-in: it uses the paid model service, so it only runs
+  // when the seller ticks it (and then the real size is required).
+  bool _want3d = false;
 
   ProductDimensions? get _formDimensions {
+    if (!_want3d) return null;
     final w = double.tryParse(_widthCtrl.text.trim());
     final h = double.tryParse(_heightCtrl.text.trim());
     final d = double.tryParse(_depthCtrl.text.trim());
@@ -194,6 +198,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       );
     }).toList();
     final dims = p.dimensions;
+    _want3d = (p.ar3d?.status ?? 'none') != 'none' ||
+        (dims != null && (dims.widthM > 0 || dims.heightM > 0 || dims.depthM > 0));
     if (dims != null && (dims.widthM > 0 || dims.heightM > 0 || dims.depthM > 0)) {
       _widthCtrl.text = _dimText(dims.widthM);
       _heightCtrl.text = _dimText(dims.heightM);
@@ -696,7 +702,7 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
       }
       _saved = true;
       _dirty = false;
-      kickOffProduct3DGeneration(saved);
+      if (_want3d) kickOffProduct3DGeneration(saved);
       NotifyClient.instance.audit(
           _isEditing ? 'product.update' : 'product.create',
           targetType: 'product',
@@ -1468,11 +1474,46 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
 
   Widget _buildDimensionsSection() {
     return _SectionCard(
-      title: 'Dimensions (for 3D & AR)',
-      subtitle: 'Real-world size of the product, in meters',
+      title: '3D model for AR',
+      subtitle: 'Optional — lets buyers place this product in their room',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Material(
+            type: MaterialType.transparency,
+            child: SwitchListTile(
+            key: const Key('want-3d'),
+            contentPadding: EdgeInsets.zero,
+            value: _want3d,
+            onChanged: (v) => setState(() {
+              _want3d = v;
+              _dirty = true;
+            }),
+            title: Text('Generate a 3D model',
+                style: GoogleFonts.poppins(
+                    fontSize: 14, fontWeight: FontWeight.w600)),
+            subtitle: Text(
+                'Made from your product photo. Enter the real size so it '
+                'shows at true scale in AR and the room planner.',
+                style: GoogleFonts.poppins(
+                    fontSize: 12, color: AppColors.textSecondary)),
+          ),
+          ),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            alignment: Alignment.topCenter,
+            child: !_want3d
+                ? const SizedBox(width: double.infinity)
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+          const SizedBox(height: 8),
+          Text('Size in metres',
+              style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary)),
+          const SizedBox(height: 6),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1554,7 +1595,8 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    'Used to auto-generate the 3D model at true size in AR.',
+                    'The model is generated after you publish; it can take a '
+                    'few minutes. You will see its status on the product.',
                     style: GoogleFonts.poppins(
                       fontSize: 12,
                       height: 1.4,
@@ -1564,6 +1606,9 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
                 ),
               ],
             ),
+          ),
+                    ],
+                  ),
           ),
         ],
       ),
