@@ -19,7 +19,7 @@ export function renderViewerPage(token: string): string {
 <meta name="description" content="A room design shared from the Intellar app. Drag to look around.">
 <meta property="og:title" content="Shared room design">
 <meta property="og:description" content="Open to look around this room in 3D.">
-<link rel="icon" href="/admin/app-logo.png">
+<link rel="icon" href="/admin/favicon.png">
 <style>
   :root {
     --bg: #f4f2ee; --panel: rgba(255,255,255,0.92); --text: #1d1b19; --muted: #6b655e;
@@ -69,7 +69,7 @@ export function renderViewerPage(token: string): string {
 <body>
 <div id="stage" aria-label="3D view of the room. Drag to look around."></div>
 <header class="bar">
-  <img class="logo" src="/admin/app-logo.png" alt="">
+  <img class="logo" src="/admin/favicon.png" alt="">
   <div class="titles">
     <h1 id="title">Shared room design</h1>
     <p id="subtitle">Loading…</p>
