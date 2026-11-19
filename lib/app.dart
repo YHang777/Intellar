@@ -8,6 +8,7 @@ import 'features/auth/data/models/app_user.dart';
 import 'features/auth/presentation/providers/auth_providers.dart';
 import 'features/notifications/data/app_notification.dart';
 import 'features/notifications/data/notifications_repository.dart';
+import 'services/marketplace_api.dart';
 import 'services/push/push_service.dart';
 
 class InteriorDesignApp extends ConsumerStatefulWidget {
@@ -25,6 +26,9 @@ class _InteriorDesignAppState extends ConsumerState<InteriorDesignApp> {
     super.initState();
     PushService.instance.onTap = _openFromPush;
     ref.listenManual<AppUser?>(currentUserProvider, (prev, next) {
+      // Wake the API host on sign-in so the first real request isn't the one
+      // that waits out a cold start.
+      if (next != null && next.uid != prev?.uid) MarketplaceApi().warmUp();
       // Guests have no account to notify, so don't ask them for permission.
       if (next != null && !next.twoFactorPending && !next.isGuest) {
         PushService.instance.register(next.uid);

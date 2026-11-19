@@ -60,7 +60,10 @@ class DashboardScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
 
-            Container(
+            GestureDetector(
+              key: const Key('dashboard-hero'),
+              onTap: () => context.go('/design'),
+              child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -109,6 +112,7 @@ class DashboardScreen extends ConsumerWidget {
                   ),
                 ],
               ),
+            ),
             ),
             const SizedBox(height: 20),
 

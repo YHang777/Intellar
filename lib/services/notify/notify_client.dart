@@ -15,15 +15,18 @@ class NotifyClient {
     http.Client? client,
     Future<String?> Function()? idTokenProvider,
     String? baseUrl,
+    Duration retryDelay = const Duration(seconds: 3),
   })  : _client = client ?? http.Client(),
         _idTokenProvider = idTokenProvider ?? _firebaseIdToken,
-        _baseUrl = baseUrl;
+        _baseUrl = baseUrl,
+        _retryDelay = retryDelay;
 
   static NotifyClient instance = NotifyClient();
 
   final http.Client _client;
   final Future<String?> Function() _idTokenProvider;
   final String? _baseUrl;
+  final Duration _retryDelay;
 
   static Future<String?> _firebaseIdToken() async {
     try {
@@ -70,26 +73,41 @@ class NotifyClient {
     unawaited(send(path, body));
   }
 
+  // The free Render host can take ~30-50 s to wake, so the wait is generous.
+  // One retry covers "still starting" replies and dropped connections; a
+  // timeout is not retried because the server may already have acted on it.
+  static const _timeout = Duration(seconds: 60);
+
   Future<bool> send(String path, Map<String, Object?> body) async {
-    try {
-      final base = (_baseUrl ?? AppConfig.verificationApiUrl).trim();
-      if (base.isEmpty) return false;
-      final token = await _idTokenProvider();
-      if (token == null || token.isEmpty) return false;
-      final resp = await _client
-          .post(
-            Uri.parse('$base$path'),
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer $token',
-            },
-            body: jsonEncode(body),
-          )
-          .timeout(const Duration(seconds: 15));
-      return resp.statusCode >= 200 && resp.statusCode < 300;
-    } catch (e) {
-      debugPrint('[notify] $path skipped: $e');
-      return false;
+    final base = (_baseUrl ?? AppConfig.verificationApiUrl).trim();
+    if (base.isEmpty) return false;
+    for (var attempt = 0; attempt < 2; attempt++) {
+      try {
+        final token = await _idTokenProvider();
+        if (token == null || token.isEmpty) return false;
+        final resp = await _client
+            .post(
+              Uri.parse('$base$path'),
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $token',
+              },
+              body: jsonEncode(body),
+            )
+            .timeout(_timeout);
+        if (resp.statusCode >= 200 && resp.statusCode < 300) return true;
+        final waking = resp.statusCode == 502 ||
+            resp.statusCode == 503 ||
+            resp.statusCode == 504;
+        if (!waking) return false;
+      } on TimeoutException catch (e) {
+        debugPrint('[notify] $path timed out: $e');
+        return false;
+      } catch (e) {
+        debugPrint('[notify] $path attempt ${attempt + 1} failed: $e');
+      }
+      if (attempt == 0) await Future<void>.delayed(_retryDelay);
     }
+    return false;
   }
 }

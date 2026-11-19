@@ -94,8 +94,39 @@ void main() {
         client: MockClient((_) async => throw http.ClientException('offline')),
         idTokenProvider: () async => 'tok',
         baseUrl: 'https://api.test',
+        retryDelay: Duration.zero,
       );
       expect(await failing.send('/api/audit', {'action': 'x'}), isFalse);
+    });
+
+    test('a waking server gets one retry; a refusal does not', () async {
+      var calls = 0;
+      final waking = NotifyClient(
+        client: MockClient((_) async {
+          calls++;
+          return http.Response('{}', calls == 1 ? 503 : 200);
+        }),
+        idTokenProvider: () async => 'tok',
+        baseUrl: 'https://api.test',
+        retryDelay: Duration.zero,
+      );
+      expect(await waking.send('/api/notify/order-status', {'orderId': 'o1'}),
+          isTrue);
+      expect(calls, 2);
+
+      var refused = 0;
+      final forbidden = NotifyClient(
+        client: MockClient((_) async {
+          refused++;
+          return http.Response('{}', 403);
+        }),
+        idTokenProvider: () async => 'tok',
+        baseUrl: 'https://api.test',
+        retryDelay: Duration.zero,
+      );
+      expect(await forbidden.send('/api/notify/order-status', {'orderId': 'o1'}),
+          isFalse);
+      expect(refused, 1);
     });
 
     test('signed-out callers send nothing', () async {
