@@ -180,6 +180,72 @@ export function createNotifyRouter(deps: NotifyRouteDeps): Router {
     })
   );
 
+  // Promotions (FR20): a seller puts a listing on sale. Buyers who saved it
+  // or whose style matches hear about it once per price: the same discount
+  // never re-notifies, a deeper cut later does. Buyers with Promotions
+  // switched off are skipped by notifyUser.
+  router.post(
+    '/notify/promotion',
+    deps.authorize,
+    validateBody(productBody),
+    asyncHandler(async (req: Request, res: Response) => {
+      const { uid } = requireUser(req);
+      const { productId } = productBody.parse(req.body);
+      const db = deps.db();
+      const ref = db.collection('products').doc(productId);
+      const snap = await ref.get();
+      if (!snap.exists) throw new ApiError(404, 'PRODUCT_NOT_FOUND', 'That product could not be found.');
+      const p = snap.data() ?? {};
+      if (String(p.supplierId) !== uid) throw new ApiError(403, 'FORBIDDEN', 'Not your product.');
+      const price = Number(p.price);
+      const was = Number(p.originalPrice);
+      const onSale = Number.isFinite(price) && Number.isFinite(was) && was > price && price > 0;
+      const already = Number(p.promotionNotifiedPrice);
+      if (!onSale || p.isActive === false || (Number.isFinite(already) && price >= already)) {
+        res.json({ notified: 0 });
+        return;
+      }
+      // Claim first so a retry can never fan out twice for this price.
+      await ref.set({ promotionNotifiedPrice: price }, { merge: true });
+
+      const recipients = new Set<string>();
+      const saved = await db
+        .collectionGroup('wishlist')
+        .where('productId', '==', productId)
+        .limit(RECOMMENDATION_FANOUT_LIMIT)
+        .get();
+      for (const d of saved.docs) {
+        const owner = d.ref.parent.parent?.id;
+        if (owner) recipients.add(owner);
+      }
+      const style = String(p.designStyle ?? '').trim();
+      if (style) {
+        const fans = await db
+          .collection('users')
+          .where('designPreferences.styles', 'array-contains', style)
+          .limit(RECOMMENDATION_FANOUT_LIMIT)
+          .get();
+        for (const d of fans.docs) recipients.add(d.id);
+      }
+      recipients.delete(uid);
+
+      const percent = Math.round((1 - price / was) * 100);
+      let notified = 0;
+      for (const rid of recipients) {
+        const u = (await db.collection('users').doc(rid).get()).data();
+        if (!u || u.role !== 'homeowner') continue;
+        const out = await notifyUser(deps.notifications, rid, {
+          kind: 'promotion',
+          title: `${percent}% off ${String(p.name)}`,
+          body: `Now RM ${price} (was RM ${was}).`,
+          data: { productId },
+        });
+        if (out.stored) notified++;
+      }
+      res.json({ notified });
+    })
+  );
+
   router.post(
     '/audit',
     deps.authorize,

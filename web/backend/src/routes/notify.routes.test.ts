@@ -20,6 +20,40 @@ class FakeDb {
     return new FakeCollection(this, path);
   }
 
+  // Minimal collectionGroup(): every doc whose parent collection is `name`,
+  // with equality filters; each result exposes ref.parent.parent.id.
+  collectionGroup(name: string) {
+    const db = this;
+    const filters: [string, unknown][] = [];
+    const q = {
+      where(field: string, _op: string, value: unknown) {
+        filters.push([field, value]);
+        return q;
+      },
+      limit(_n: number) {
+        return q;
+      },
+      async get() {
+        const docs = [...db.docs.entries()]
+          .filter(([k, d]) => {
+            const parts = k.split('/');
+            return parts.length >= 2 && parts[parts.length - 2] === name &&
+              filters.every(([f, v]) => d[f] === v);
+          })
+          .map(([k, d]) => {
+            const parts = k.split('/');
+            return {
+              id: parts[parts.length - 1],
+              data: () => ({ ...d }),
+              ref: { parent: { parent: parts.length >= 4 ? { id: parts[parts.length - 3] } : null } },
+            };
+          });
+        return { docs };
+      },
+    };
+    return q;
+  }
+
   seed(path: string, doc: Doc) {
     this.docs.set(path, doc);
   }
@@ -287,5 +321,50 @@ test('audit: only allow-listed client actions are recorded', async () => {
     assert.equal(h.audits[0].actorId, 'u1');
   } finally {
     await h.close();
+  }
+});
+
+
+test('promotion: notifies wishlisters and style fans once per price', async () => {
+  const db = new FakeDb();
+  db.seed('products/p1', { supplierId: 'seller', name: 'Oak Table', designStyle: 'Classic', isActive: true, price: 360, originalPrice: 450 });
+  db.seed('users/saver', { role: 'homeowner' });
+  db.seed('users/saver/wishlist/p1', { productId: 'p1' });
+  db.seed('users/fan', { role: 'homeowner', designPreferences: { styles: ['Classic'] } });
+  db.seed('users/quiet', { role: 'homeowner', designPreferences: { styles: ['Classic'] }, notificationSettings: { promotions: false } });
+  db.seed('users/other', { role: 'homeowner', designPreferences: { styles: ['Modern'] } });
+  const seller = await harness(db, 'seller');
+  try {
+    const first = await seller.post('/notify/promotion', { productId: 'p1' });
+    assert.equal(first.body.notified, 2);
+    assert.equal(inbox(db, 'saver').length, 1);
+    assert.equal(inbox(db, 'fan').length, 1);
+    assert.equal(inbox(db, 'quiet').length, 0, 'Promotions switched off');
+    assert.equal(inbox(db, 'other').length, 0);
+    assert.match(String(inbox(db, 'fan')[0].title), /20% off Oak Table/);
+
+    const again = await seller.post('/notify/promotion', { productId: 'p1' });
+    assert.equal(again.body.notified, 0, 'the same discount never re-notifies');
+
+    db.seed('products/p1', { ...db.docs.get('products/p1'), price: 300 });
+    const deeper = await seller.post('/notify/promotion', { productId: 'p1' });
+    assert.equal(deeper.body.notified, 2, 'a deeper cut is news again');
+  } finally {
+    await seller.close();
+  }
+});
+
+test('promotion: no sale, or not your listing, notifies nobody', async () => {
+  const db = new FakeDb();
+  db.seed('products/full', { supplierId: 'seller', name: 'Lamp', designStyle: 'Classic', isActive: true, price: 90, originalPrice: 90 });
+  db.seed('products/theirs', { supplierId: 'rival', name: 'Rug', designStyle: 'Classic', isActive: true, price: 50, originalPrice: 80 });
+  db.seed('users/fan', { role: 'homeowner', designPreferences: { styles: ['Classic'] } });
+  const seller = await harness(db, 'seller');
+  try {
+    assert.equal((await seller.post('/notify/promotion', { productId: 'full' })).body.notified, 0);
+    assert.equal((await seller.post('/notify/promotion', { productId: 'theirs' })).status, 403);
+    assert.equal(inbox(db, 'fan').length, 0);
+  } finally {
+    await seller.close();
   }
 });

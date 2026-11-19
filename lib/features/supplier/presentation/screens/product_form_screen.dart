@@ -702,6 +702,11 @@ class _ProductFormScreenState extends ConsumerState<ProductFormScreen> {
           targetType: 'product',
           targetId: saved.id);
       if (!_isEditing) NotifyClient.instance.productPublished(saved.id);
+      // FR20 promotions: a listing saved with a discount tells interested
+      // buyers (once per price; the backend decides).
+      if ((saved.originalPrice ?? 0) > saved.price) {
+        NotifyClient.instance.productOnSale(saved.id);
+      }
 
       final vision = await kickOffProductVisionAnalysis(saved)
           .timeout(const Duration(seconds: 20), onTimeout: () => null);
