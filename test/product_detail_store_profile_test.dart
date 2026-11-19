@@ -116,7 +116,8 @@ void main() {
     await _reveal(tester, find.byKey(const Key('store-profile-block')));
     expect(find.text('Handmade oak furniture from Penang'), findsOneWidget);
     expect(find.text('Open Mon–Fri 9am–6pm'), findsOneWidget);
-    expect(find.text('Accepts Bank transfer, E-wallet'), findsOneWidget);
+    expect(find.text('Paid online at checkout — card or FPX'), findsOneWidget);
+    expect(find.textContaining('Accepts'), findsNothing);
     expect(find.text('Collect within 7 days'), findsOneWidget);
     expect(find.text('14-day returns'), findsOneWidget);
 

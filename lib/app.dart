@@ -25,7 +25,8 @@ class _InteriorDesignAppState extends ConsumerState<InteriorDesignApp> {
     super.initState();
     PushService.instance.onTap = _openFromPush;
     ref.listenManual<AppUser?>(currentUserProvider, (prev, next) {
-      if (next != null && !next.twoFactorPending) {
+      // Guests have no account to notify, so don't ask them for permission.
+      if (next != null && !next.twoFactorPending && !next.isGuest) {
         PushService.instance.register(next.uid);
       }
     }, fireImmediately: true);

@@ -28,9 +28,11 @@ Future<void> leaveGuestMode(WidgetRef ref, GoRouter router, String route) async 
 }
 
 class GuestSignUpSheet extends ConsumerWidget {
-  const GuestSignUpSheet({super.key, required this.action});
+  const GuestSignUpSheet({super.key, required this.action, this.inline = false});
 
   final String action;
+  // Shown inside a page rather than a popup: no "Keep browsing" to close.
+  final bool inline;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -85,10 +87,13 @@ class GuestSignUpSheet extends ConsumerWidget {
                 child: const Text('I already have an account'),
               ),
             ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Keep browsing'),
-            ),
+            if (!inline)
+              TextButton(
+                onPressed: () => Navigator.of(context).maybePop(),
+                child: const Text('Keep browsing'),
+              )
+            else
+              const SizedBox(height: 8),
           ],
         ),
       ),

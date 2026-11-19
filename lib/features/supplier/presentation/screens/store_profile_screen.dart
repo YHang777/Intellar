@@ -230,36 +230,6 @@ class _StoreProfileScreenState extends ConsumerState<StoreProfileScreen> {
               ],
             ),
             _card(
-              'Accepted payment options',
-              [
-                Text(
-                  'How buyers may pay you. Card payments are handled by '
-                  'Stripe at checkout.',
-                  style: GoogleFonts.poppins(
-                      fontSize: 12, color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 6),
-                for (final option in StoreProfile.paymentOptions)
-                  CheckboxListTile(
-                    key: Key('pay-${option.replaceAll(' ', '-')}'),
-                    value: _draft.paymentMethods.contains(option),
-                    controlAffinity: ListTileControlAffinity.leading,
-                    contentPadding: EdgeInsets.zero,
-                    activeColor: AppColors.accent,
-                    title: Text(option, style: GoogleFonts.poppins(fontSize: 14)),
-                    onChanged: (v) => setState(() {
-                      final list = [..._draft.paymentMethods];
-                      if (v == true) {
-                        if (!list.contains(option)) list.add(option);
-                      } else {
-                        list.remove(option);
-                      }
-                      _draft = _draft.copyWith(paymentMethods: list);
-                    }),
-                  ),
-              ],
-            ),
-            _card(
               'Policies',
               [
                 _presetChips('pickup', StoreProfile.pickupPresets, _pickup),

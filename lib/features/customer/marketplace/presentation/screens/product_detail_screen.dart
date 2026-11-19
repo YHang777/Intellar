@@ -964,10 +964,9 @@ List<Widget> _hoursLines(StoreProfile store, {DateTime? nowUtc}) {
 // What a seller says about how they trade, in the order a buyer cares about.
 List<(IconData, String)> _storeDetailRows(StoreProfile store) {
   final rows = <(IconData, String)>[];
-  if (store.paymentMethods.isNotEmpty) {
-    rows.add((Icons.payments_outlined,
-        'Accepts ${store.paymentMethods.join(', ')}'));
-  }
+  if (store.isEmpty) return rows;
+  // Every order is paid in the app, whatever older store profiles say.
+  rows.add((Icons.payments_outlined, 'Paid online at checkout — card or FPX'));
   if (store.pickupPolicy.trim().isNotEmpty) {
     rows.add((Icons.storefront_outlined, store.pickupPolicy.trim()));
   }

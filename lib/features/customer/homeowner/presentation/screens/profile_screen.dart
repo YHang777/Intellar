@@ -451,6 +451,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 border: Border.all(color: AppColors.border),
               ),
               child: const GuestSignUpSheet(
+                  inline: true,
                   action: 'save designs, buy from local suppliers and keep your '
                       'preferences'),
             ),

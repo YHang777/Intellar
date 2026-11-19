@@ -155,12 +155,6 @@ void main() {
     expect(find.text('Business hours'), findsOneWidget);
 
     // Top to bottom: scrollUntilVisible only scrolls one way.
-    await reveal(tester, find.text('Accepted payment options'));
-    expect(find.text('Accepted payment options'), findsOneWidget);
-    for (final option in StoreProfile.paymentOptions) {
-      await reveal(tester, find.text(option));
-      expect(find.text(option), findsOneWidget);
-    }
     await reveal(tester, find.text('Policies'));
     expect(find.text('Policies'), findsOneWidget);
   });
@@ -176,9 +170,6 @@ void main() {
     await reveal(tester, find.byKey(const Key('store-pickup-policy')));
     await tester.enterText(find.byKey(const Key('store-pickup-policy')),
         'Collect within 7 days');
-    await reveal(tester, find.byKey(const Key('pay-Bank-transfer')));
-    await tester.tap(find.byKey(const Key('pay-Bank-transfer')));
-    await tester.pump(const Duration(milliseconds: 200));
 
     await tester.tap(find.byKey(const Key('save-store-profile')));
     for (var i = 0; i < 8; i++) {
@@ -189,12 +180,10 @@ void main() {
     expect(auth.saved?.description, 'Oak furniture, made in Penang');
     expect(auth.saved?.hours, 'Mon–Fri 9:00–18:00');
     expect(auth.saved?.pickupPolicy, 'Collect within 7 days');
-    expect(auth.saved?.paymentMethods, ['Bank transfer']);
 
     // Buyers read the profile from each listing, so it must be copied there.
     expect(repo.syncedFor, 'u1');
     expect(repo.synced?.hours, 'Mon–Fri 9:00–18:00');
-    expect(repo.synced?.paymentMethods, ['Bank transfer']);
   });
 
   testWidgets('if listings cannot be updated, it says so and stays open',
@@ -228,27 +217,6 @@ void main() {
 
     expect(auth.saves, 1);
     expect(auth.saved?.brandColorValue, isNull);
-  });
-
-  testWidgets('a saved option can be turned off again', (tester) async {
-    final auth = await pump(
-      tester,
-      initial: const StoreProfile(paymentMethods: ['E-wallet']),
-    );
-    const key = Key('pay-E-wallet');
-
-    await reveal(tester, find.byKey(key));
-    // Tap the control itself: the tile's centre sits on its label.
-    await tester.tap(find.descendant(
-        of: find.byKey(key), matching: find.byType(Checkbox)));
-    await tester.pump(const Duration(milliseconds: 150));
-
-    await tester.tap(find.byKey(const Key('save-store-profile')));
-    for (var i = 0; i < 8; i++) {
-      await tester.pump(const Duration(milliseconds: 120));
-    }
-    expect(auth.saved?.paymentMethods, isEmpty,
-        reason: 'the option should be cleared, not just left alone');
   });
 
   Future<void> save(WidgetTester tester) async {
