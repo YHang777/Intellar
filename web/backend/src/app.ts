@@ -19,6 +19,8 @@ import { defaultProductVisionDeps } from './services/product-vision.service';
 import { createRoomMaterialRouter } from './routes/room-material.routes';
 import { defaultRoomMaterialDeps } from './services/room-material.service';
 import { createTripoRouter } from './routes/tripo.routes';
+import { createSharedDesignsRouter, createSharedPagesRouter, defaultSharedDesignsDeps } from './routes/shared-designs.routes';
+import { createModelsRouter, defaultModelsDeps } from './routes/models.routes';
 import { createDesignsRouter, defaultDesignsDeps } from './routes/designs.routes';
 import { createProductViewsRouter, defaultProductViewsDeps } from './routes/product-views.routes';
 import { defaultTripoDeps } from './services/tripo.service';
@@ -109,6 +111,7 @@ export function createApp(): express.Express {
   // A saved design carries its walls and furniture as JSON — larger than the
   // global cap allows for a busy room.
   app.use('/api/designs', express.json({ limit: '2mb' }));
+  app.use('/api/shared-designs', express.json({ limit: '1mb' }));
 
   app.use(express.json({ limit: '128kb' }));
 
@@ -128,6 +131,11 @@ export function createApp(): express.Express {
   // Saved room designs: Firebase-authenticated, pinned to the caller's own
   // rows, Supabase reached with the service key (never the app's anon key).
   app.use('/api/designs', createDesignsRouter(defaultDesignsDeps()));
+  // Share a design as a link; the viewer page and bundled models are public.
+  app.use('/api/shared-designs', createSharedDesignsRouter(defaultSharedDesignsDeps()));
+  app.use(createSharedPagesRouter());
+  // Product 3D model uploads (service key; the bucket refuses anon writes).
+  app.use('/api/models', createModelsRouter(defaultModelsDeps()));
 
   // Product views for seller analytics: authenticated, deduped per buyer per
   // day, seller's own views ignored.

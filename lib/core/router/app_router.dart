@@ -48,6 +48,7 @@ import '../../features/customer/marketplace/presentation/screens/order_history_s
 import '../../features/customer/marketplace/presentation/screens/buyer_order_detail_screen.dart';
 import '../../features/customer/marketplace/presentation/screens/wishlist_screen.dart';
 import '../../features/customer/scanner/presentation/screens/room_scanner_screen.dart';
+import '../../features/customer/scanner/presentation/screens/shared_design_screen.dart';
 import '../../features/customer/ar/data/furniture_model_library.dart';
 import '../../features/customer/ar/presentation/ar_viewer_args.dart';
 import '../../features/customer/ar/presentation/screens/ar_viewer_screen.dart';
@@ -67,6 +68,9 @@ const _sandboxRoute =
     kDebugMode ? String.fromEnvironment('SANDBOX_ROUTE') : '';
 const _sandboxRoutes = {'/walkthrough', '/design-editor', '/ar-viewer'};
 const _sandbox = _sandboxRoute != '';
+
+// A share link opened while signed out survives the trip through sign-in.
+String? _pendingSharedLink;
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   final authRefresh = ref.watch(authRefreshProvider);
@@ -91,22 +95,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == '/verify-email';
 
       if (!isLoggedIn && !isOnAuthRoute) {
+        if (state.matchedLocation.startsWith('/d/')) {
+          _pendingSharedLink = state.matchedLocation;
+        }
         return '/login';
       }
       final home =
           (user?.isHomeowner ?? true) ? '/home' : '/supplier/dashboard';
       final loc = state.matchedLocation;
+      String? takePendingLink() {
+        final p = _pendingSharedLink;
+        if (p == null || user == null || !user.isHomeowner ||
+            !user.onboardingCompleted) {
+          return null;
+        }
+        _pendingSharedLink = null;
+        return p;
+      }
       if (isLoggedIn && user.twoFactorPending) {
         return loc == '/two-factor' ? null : '/two-factor';
       }
       if (loc == '/two-factor') {
-        return isLoggedIn ? home : '/login';
+        return isLoggedIn ? (takePendingLink() ?? home) : '/login';
       }
       if (isLoggedIn && !user.onboardingCompleted) {
         return loc == '/onboarding' ? null : '/onboarding';
       }
       if (isLoggedIn && isOnAuthRoute) {
-        return home;
+        return takePendingLink() ?? home;
       }
       // Supplier-only, but outside /supplier/ (so the supplier rule below
       // would otherwise bounce it to the dashboard).
@@ -235,6 +251,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         name: RouteNames.homeownerDesignEditor,
         pageBuilder: (_, state) => _buildPage(
           RoomScannerScreen(existingDesign: state.extra as dynamic),
+        ),
+      ),
+
+      // ── Shared design link (/d/<token>) → opens in the 3D planner ──
+      GoRoute(
+        path: '/d/:token',
+        pageBuilder: (_, state) => _buildPage(
+          SharedDesignScreen(token: state.pathParameters['token'] ?? ''),
         ),
       ),
 

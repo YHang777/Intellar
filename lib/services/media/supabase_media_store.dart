@@ -1,36 +1,54 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:http/http.dart' as http;
 
 import '../../config/app_config.dart';
 import 'media_store.dart';
 
+// 3D models still live in the public Supabase bucket, but every write goes
+// through our backend (/api/models): it checks the Firebase sign-in and that
+// the listing is the caller's, then writes with the service key. The app no
+// longer uploads with the public anon key, so the bucket can refuse anon
+// writes.
 class SupabaseMediaStore implements MediaStore {
-  SupabaseMediaStore({http.Client? client}) : _client = client ?? http.Client();
+  SupabaseMediaStore({
+    http.Client? client,
+    Future<String?> Function()? idTokenProvider,
+  })  : _client = client ?? http.Client(),
+        _idTokenProvider = idTokenProvider ?? _firebaseIdToken;
 
   final http.Client _client;
+  final Future<String?> Function() _idTokenProvider;
 
   static const Duration _timeout = Duration(seconds: 120);
 
-  String get _baseUrl => AppConfig.supabaseUrl;
-  String get _anonKey => AppConfig.supabaseAnonKey;
-  String get _bucket => AppConfig.supabaseModelsBucket;
+  static Future<String?> _firebaseIdToken() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+    return user.getIdToken();
+  }
+
+  String get _apiBase =>
+      '${AppConfig.verificationApiUrl.replaceAll(RegExp(r'/+$'), '')}/api/models';
 
   @override
-  bool get isConfigured =>
-      _baseUrl.trim().isNotEmpty &&
-      _anonKey.trim().isNotEmpty &&
-      _bucket.trim().isNotEmpty;
+  bool get isConfigured => AppConfig.verificationApiUrl.trim().isNotEmpty;
 
-  void _requireConfigured() {
-    if (!isConfigured) {
-      throw const MediaStoreException(
-          'Supabase is not configured — set SUPABASE_URL and '
-          'SUPABASE_ANON_KEY (or LocalConfig overrides).');
-    }
+  // 'product_models/<productId>' → '<productId>'.
+  static String? productIdOfPath(String remotePath) {
+    final id = remotePath.split('/').last.replaceAll(RegExp(r'\.glb$'), '');
+    return RegExp(r'^[A-Za-z0-9_-]+$').hasMatch(id) ? id : null;
+  }
+
+  static String? productIdOfUrl(String url) {
+    final m = RegExp(r'/storage/v1/object/public/[^/]+/product_models/([A-Za-z0-9_-]+)\.glb$')
+        .firstMatch(url);
+    return m?.group(1);
   }
 
   @override
@@ -46,58 +64,58 @@ class SupabaseMediaStore implements MediaStore {
 
   @override
   Future<String> uploadModelBytes(Uint8List bytes, String remotePath) async {
-    _requireConfigured();
-    final path = '$remotePath.glb';
-    final url = Uri.parse('$_baseUrl/storage/v1/object/$_bucket/$path');
+    final id = productIdOfPath(remotePath);
+    if (!isConfigured || id == null) {
+      throw const MediaStoreException('3D model storage is not available.');
+    }
+    final token = await _idTokenProvider();
+    if (token == null || token.isEmpty) {
+      throw const MediaStoreException('Sign in to save 3D models.');
+    }
     http.Response resp;
     try {
       resp = await _client
-          .post(
-            url,
+          .put(
+            Uri.parse('$_apiBase/$id'),
             headers: {
-              'Authorization': 'Bearer $_anonKey',
+              'Authorization': 'Bearer $token',
               'Content-Type': 'model/gltf-binary',
-              'x-upsert': 'true',
             },
             body: bytes,
           )
           .timeout(_timeout);
     } on TimeoutException {
-      throw const MediaStoreException('Supabase upload timed out');
+      throw const MediaStoreException('3D model upload timed out');
     } on http.ClientException catch (e) {
-      throw MediaStoreException('Supabase network error: ${e.message}');
+      throw MediaStoreException('3D model upload network error: ${e.message}');
     }
     if (resp.statusCode < 200 || resp.statusCode >= 300) {
       throw MediaStoreException(
-          'Supabase rejected the upload (HTTP ${resp.statusCode}): '
+          '3D model upload refused (HTTP ${resp.statusCode}): '
           '${resp.body.length > 200 ? resp.body.substring(0, 200) : resp.body}');
     }
-    return '$_baseUrl/storage/v1/object/public/$_bucket/$path';
+    final url = (jsonDecode(resp.body) as Map<String, dynamic>)['url'];
+    if (url is! String || url.isEmpty) {
+      throw const MediaStoreException('3D model upload returned no link');
+    }
+    return url;
   }
 
   @override
   Future<void> deleteByUrl(String url) async {
-    if (!isConfigured) {
-      debugPrint('[media] Supabase delete skipped (not configured): $url');
+    final id = productIdOfUrl(url);
+    if (!isConfigured || id == null) {
+      debugPrint('[media] model delete skipped (foreign URL): $url');
       return;
     }
-    final marker = '/storage/v1/object/public/$_bucket/';
-    final idx = url.indexOf(marker);
-    if (idx < 0) {
-      debugPrint('[media] Supabase delete skipped (foreign URL): $url');
-      return;
-    }
-    final path = url.substring(idx + marker.length);
     try {
-      final resp = await _client
-          .delete(
-            Uri.parse('$_baseUrl/storage/v1/object/$_bucket/$path'),
-            headers: {'Authorization': 'Bearer $_anonKey'},
-          )
-          .timeout(_timeout);
-      debugPrint('[media] Supabase delete $path: HTTP ${resp.statusCode}');
+      final token = await _idTokenProvider();
+      if (token == null || token.isEmpty) return;
+      final resp = await _client.delete(Uri.parse('$_apiBase/$id'),
+          headers: {'Authorization': 'Bearer $token'}).timeout(_timeout);
+      debugPrint('[media] model delete $id: HTTP ${resp.statusCode}');
     } catch (e) {
-      debugPrint('[media] Supabase delete failed for $path: $e');
+      debugPrint('[media] model delete failed for $id: $e');
     }
   }
 }

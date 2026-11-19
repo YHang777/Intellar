@@ -42,6 +42,9 @@ COPY --from=backend-build /build/backend/dist ./backend/dist
 COPY --from=frontend-build /build/frontend/dist ./frontend-dist
 # Where app.ts looks for the SPA (it also falls back to web/frontend/dist).
 ENV ADMIN_STATIC_DIR=/app/frontend-dist
+# Bundled furniture models for the shared-design web viewer (/d/<token>).
+COPY assets/models ./shared-models
+ENV SHARED_MODELS_DIR=/app/shared-models
 # Render injects PORT; never hardcode it. EXPOSE is documentation only.
 EXPOSE 8080
 CMD ["node", "backend/dist/index.js"]
