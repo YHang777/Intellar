@@ -126,7 +126,6 @@ class SettingsSwitchTile extends StatelessWidget {
               style: GoogleFonts.poppins(
                   fontSize: 12, color: AppColors.textSecondary)),
       value: value,
-      activeThumbColor: AppColors.accent,
       onChanged: onChanged,
     );
   }

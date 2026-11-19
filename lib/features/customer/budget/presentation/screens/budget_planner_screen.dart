@@ -619,6 +619,13 @@ class _BudgetPlannerScreenState extends ConsumerState<BudgetPlannerScreen> {
                           ),
                         ],
                       ],
+                      if (options.isEmpty && priceText == '—') ...[
+                        const SizedBox(height: 2),
+                        Text('No listings yet',
+                            style: GoogleFonts.poppins(
+                                fontSize: 11,
+                                color: AppColors.textHint)),
+                      ],
                       if (options.isNotEmpty) ...[
                         const SizedBox(height: 2),
                         Text(_rangeText(options),
