@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector3, Vector4;
 
 import '../../../../../core/utils/boot_trace.dart';
 import '../../data/plane_overlay_math.dart';
@@ -31,7 +32,11 @@ class PlaneOverlay extends StatelessWidget {
     required this.quads,
     this.masks = const [],
     this.zoneCache,
+    this.ticks = const [],
   });
+
+  // World points of areas the first-run guide marks as scanned.
+  final List<Vector3> ticks;
 
   final Matrix4 viewProjection;
 
@@ -46,7 +51,7 @@ class PlaneOverlay extends StatelessWidget {
     return IgnorePointer(
       child: CustomPaint(
         painter: PlaneOverlayPainter(
-            viewProjection, quads, masks, zoneCache),
+            viewProjection, quads, masks, zoneCache, ticks),
       ),
     );
   }
@@ -54,7 +59,9 @@ class PlaneOverlay extends StatelessWidget {
 
 class PlaneOverlayPainter extends CustomPainter {
   PlaneOverlayPainter(this.viewProjection, this.quads, this.masks,
-      [this.zoneCache]);
+      [this.zoneCache, this.ticks = const []]);
+
+  final List<Vector3> ticks;
 
   final Matrix4 viewProjection;
 
@@ -164,6 +171,14 @@ class PlaneOverlayPainter extends CustomPainter {
           ..color = const Color(0xCC42A5F5),
       );
     }
+    for (final t in ticks) {
+      final c = viewProjection.transform(Vector4(t.x, t.y, t.z, 1));
+      if (c.w <= 0.05) continue;
+      final p = Offset((c.x / c.w + 1) / 2 * size.width,
+          (1 - c.y / c.w) / 2 * size.height);
+      if (!(Offset.zero & size).deflate(18).contains(p)) continue;
+      _drawTick(canvas, p);
+    }
     final ms = slowWatch.elapsedMilliseconds;
     if (ms >= 6) {
       final now = DateTime.now();
@@ -214,9 +229,26 @@ class PlaneOverlayPainter extends CustomPainter {
     canvas.restore();
   }
 
+  void _drawTick(Canvas canvas, Offset c) {
+    canvas.drawCircle(c, 15, Paint()..color = const Color(0x55000000));
+    canvas.drawCircle(c, 13, Paint()..color = const Color(0xFF4CAF50));
+    canvas.drawPath(
+        Path()
+          ..moveTo(c.dx - 6, c.dy)
+          ..lineTo(c.dx - 1.5, c.dy + 5)
+          ..lineTo(c.dx + 6.5, c.dy - 4.5),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.6
+          ..strokeCap = StrokeCap.round
+          ..strokeJoin = StrokeJoin.round
+          ..color = Colors.white);
+  }
+
   @override
   bool shouldRepaint(PlaneOverlayPainter oldDelegate) =>
       oldDelegate.viewProjection != viewProjection ||
       oldDelegate.quads != quads ||
-      oldDelegate.masks != masks;
+      oldDelegate.masks != masks ||
+      oldDelegate.ticks != ticks;
 }

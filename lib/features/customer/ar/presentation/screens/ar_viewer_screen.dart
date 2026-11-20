@@ -57,6 +57,8 @@ import '../../data/wall_snap.dart';
 import '../widgets/placement_reticle.dart';
 import '../widgets/plane_overlay.dart';
 import '../widgets/scan_coach_overlay.dart';
+import '../widgets/ar_first_run_guide.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 // One overlay frame: geometry + the same-frame projection matrix. Kept in
 // a ValueNotifier so ~30 Hz plane events repaint only PlaneOverlay instead
@@ -297,9 +299,17 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
       !_arUnresponsive &&
       _sessionStartedAt != null;
 
-  bool get _scanCoachVisible => _scanCoachActive && !_scanCoachDismissed;
+  bool get _scanCoachVisible =>
+      _scanCoachActive && !_scanCoachDismissed && !_guideActive;
 
-  bool get _scanCoachHelpAvailable => _scanCoachActive && _scanCoachDismissed;
+  // ── First-visit guide (floor, then walls; ticks on finished areas) ──
+  static const _guideDoneKey = 'ar_first_run_guide_done_v1';
+  static const _guideWallWidthM = 2.0;
+  bool _guideActive = false;
+  ArGuideStep _guideStep = ArGuideStep.floor;
+  double _guideProgress = 0;
+  List<Vector3> _guideTicks = const [];
+  Timer? _guideCloseTimer;
 
   ReticleState _reticle = const ReticleState(ReticleStatus.searching);
 
@@ -428,6 +438,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     // finish overlays already matched; no design keeps the default look.
     _selection = finishSelectionFrom(widget.design);
     _resolveProductModel();
+    _loadGuideFlag();
     _checkArCore();
   }
 
@@ -437,6 +448,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     _chipTimer?.cancel();
     _generationTicker?.cancel();
     _scanCoachReadyTimer?.cancel();
+    _guideCloseTimer?.cancel();
     _scanCoachTicker?.cancel();
     _reticleTimer?.cancel();
     _overlayVpTimer?.cancel();
@@ -1349,9 +1361,106 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     );
   }
 
+  Future<void> _loadGuideFlag() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (prefs.getBool(_guideDoneKey) ?? false) return;
+    } catch (_) {
+      return;
+    }
+    if (mounted) _startGuide();
+  }
+
+  void _startGuide() {
+    _guideCloseTimer?.cancel();
+    setState(() {
+      _guideActive = true;
+      _guideStep = ArGuideStep.floor;
+      _guideProgress = 0;
+      _guideTicks = const [];
+    });
+  }
+
+  Future<void> _finishGuide({bool skipped = false}) async {
+    _guideCloseTimer?.cancel();
+    if (skipped) {
+      setState(() => _guideActive = false);
+    } else {
+      HapticFeedback.mediumImpact();
+      setState(() => _guideStep = ArGuideStep.done);
+      _guideCloseTimer = Timer(const Duration(milliseconds: 2200), () {
+        if (mounted) setState(() => _guideActive = false);
+      });
+    }
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_guideDoneKey, true);
+    } catch (_) {}
+  }
+
+  // Floor step uses the floor coach ladder (whatever item is selected);
+  // wall step counts confirmed painted wall width. Ticks mark the centre
+  // of the floor and of every confirmed wall.
+  void _updateGuide() {
+    if (!_guideActive || _guideStep == ArGuideStep.done) return;
+    final floorState = ScanCoach.evaluate(
+      planes: _livePlanes,
+      elapsed: _sessionStartedAt == null
+          ? Duration.zero
+          : DateTime.now().difference(_sessionStartedAt!),
+      trackingIssue: _trackingIssue,
+      floorY: _planeMemory.floorY,
+      floorCoverageM: _planeMemory.floorCoverageExtentM(),
+      cameraY: _lastCameraY,
+      cameraPitchDeg: _lastCameraPitchDeg,
+    );
+    final quads = _overlay.value?.renderQuads ?? const <PlaneQuad>[];
+    final ticks = <Vector3>[];
+    PlaneQuad? bigFloor;
+    var wallWidth = 0.0;
+    for (final q in quads) {
+      if (q.kind == PlaneQuadKind.floor) {
+        if (bigFloor == null ||
+            q.extentX * q.extentZ > bigFloor.extentX * bigFloor.extentZ) {
+          bigFloor = q;
+        }
+      } else if (q.vertical) {
+        wallWidth += q.extentX;
+        ticks.add(Vector3(q.center.x, (q.center.y), q.center.z));
+      }
+    }
+    if (floorState.ready && bigFloor != null) {
+      ticks.add(bigFloor.center.clone());
+    }
+    var step = _guideStep;
+    var progress = _guideProgress;
+    if (step == ArGuideStep.floor) {
+      progress = floorState.progress;
+      if (floorState.ready) {
+        step = ArGuideStep.walls;
+        progress = 0;
+        HapticFeedback.mediumImpact();
+      }
+    } else {
+      progress = (wallWidth / _guideWallWidthM).clamp(0.0, 1.0);
+    }
+    final changed = step != _guideStep ||
+        (progress - _guideProgress).abs() > 0.02 ||
+        ticks.length != _guideTicks.length;
+    _guideStep = step;
+    _guideProgress = progress;
+    _guideTicks = ticks;
+    if (step == ArGuideStep.walls && progress >= 1.0) {
+      _finishGuide();
+      return;
+    }
+    if (changed && mounted) setState(() {});
+  }
+
   void _maybeUpdateScanCoach() {
     final state = _computeScanCoach();
     _lastCoachState = state;
+    _updateGuide();
     final key = '${state.step.index}|${state.ready ? 1 : 0}|'
         '${(state.progress * 20).round()}|${state.tip}';
     if (key == _scanCoachKey) return;
@@ -2684,6 +2793,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                   quads: snap.renderQuads,
                   masks: snap.masks,
                   zoneCache: snap.zoneCache,
+                  ticks: _guideActive ? _guideTicks : const [],
                 ),
               ),
             );
@@ -2778,7 +2888,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           ),
         ),
 
-        if (!_scanCoachVisible)
+        if (!_scanCoachVisible && !_guideActive)
           Positioned(
             top: 0,
             left: 0,
@@ -2801,6 +2911,17 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                         fontSize: 12, color: Colors.white),
                   ),
                 ),
+              ),
+            ),
+          ),
+
+        if (_guideActive && _sessionStartedAt != null && _arError == null)
+          Positioned.fill(
+            child: SafeArea(
+              child: ArFirstRunGuide(
+                step: _guideStep,
+                progress: _guideProgress,
+                onSkip: () => _finishGuide(skipped: true),
               ),
             ),
           ),
@@ -3513,9 +3634,8 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
               if (widget.design != null)
                 item('shape', Icons.crop_free, 'Use room shape',
                     'Send the scanned walls to the room planner'),
-              if (_scanCoachHelpAvailable)
-                item('tips', Icons.help_outline, 'Scanning tips',
-                    'Show the scan guide again'),
+              item('tips', Icons.help_outline, 'Scanning guide',
+                  'Show how to scan the floor and walls again'),
               !_overlayVisible
                   ? item('areas', Icons.layers_outlined, 'Show detected areas',
                       'Green floor and blue walls the camera has found')
@@ -3541,7 +3661,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
       case 'shape':
         _useRoomShape();
       case 'tips':
-        setState(() => _scanCoachDismissed = false);
+        _startGuide();
       case 'areas':
         setState(() => _overlayShown = !_overlayVisible);
       case 'clear':
