@@ -30,6 +30,24 @@ ARPlaneInfo plane({
 
 void main() {
   group('PlaneMemory floor establishment', () {
+    test('ARCore re-fitting the floor up and down does not make it bob', () {
+      // Device recording 2026-11-20: one 7 m² floor plane re-fitted between
+      // -1.01 and -1.09 every second.
+      final m = PlaneMemory();
+      m.ingest([plane(id: 1, type: 1, cy: -1.05, ex: 2.6, ez: 2.6)]);
+      var lo = double.infinity, hi = double.negativeInfinity;
+      for (var i = 0; i < 60; i++) {
+        // Holds each re-fit for ~6 updates (about a second), like ARCore.
+        final high = (i ~/ 6).isEven;
+        m.ingest([
+          plane(id: 1, type: 1, cy: high ? -1.01 : -1.09, ex: 2.6, ez: 2.6)
+        ]);
+        lo = math.min(lo, m.floorY!);
+        hi = math.max(hi, m.floorY!);
+      }
+      expect(hi - lo, lessThan(0.04), reason: 'paint stays put, not swinging 8 cm');
+    });
+
     test('glossy-tile probe noise (8 cm low) never moves an established floor',
         () {
       // Device recording 2026-11-20: ARCore floor -0.98, probe -1.06 for

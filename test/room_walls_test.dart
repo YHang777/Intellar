@@ -94,6 +94,23 @@ void main() {
       expect(after.center.z, closeTo(2.15, 0.02));
     });
 
+    test('a noisy but consistent offset is corrected within a few seconds',
+        () {
+      // Plain-wall fits scatter ±8 cm around the true line (2.15).
+      final rw = RoomWalls();
+      for (var i = 0; i <= 40; i++) {
+        rw.update([wallAt(0, 2, 0)], baseY: 0, now: at(i * 100));
+      }
+      const noise = [0.08, -0.06, 0.03, -0.08, 0.05, 0.0, -0.03, 0.07];
+      for (var i = 0; i <= 30; i++) {
+        rw.update([wallAt(0, 2.15 + noise[i % noise.length], 0)],
+            baseY: 0, now: at(4200 + i * 100));
+      }
+      final after = rw.update(const [], baseY: 0, now: at(7400)).single;
+      expect(after.center.z, closeTo(2.15, 0.04),
+          reason: 'corrected within ~3 s, not ~25 s');
+    });
+
     test('a frozen wall ignores refits that wobble back and forth', () {
       final rw = RoomWalls();
       for (var i = 0; i <= 40; i++) {
@@ -105,6 +122,17 @@ void main() {
       }
       final after = rw.update(const [], baseY: 0, now: at(11000)).single;
       expect(after.center.z, closeTo(2.0, 1e-9));
+    });
+
+    test('a refit 5° off is the same wall, not a duplicate', () {
+      final rw = RoomWalls();
+      List<PlaneQuad> out = const [];
+      for (var i = 0; i <= 12; i++) {
+        out = rw.update(
+            [wallAt(0, 2, i.isEven ? 0 : 5 * math.pi / 180)],
+            baseY: 0, now: at(i * 100));
+      }
+      expect(out, hasLength(1));
     });
 
     test('perpendicular walls stay separate', () {

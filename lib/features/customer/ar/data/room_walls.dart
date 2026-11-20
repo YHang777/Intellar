@@ -14,7 +14,9 @@ import 'plane_overlay_math.dart';
 // fit expired. Expects walls already Manhattan-snapped (see RoomAxis).
 class RoomWalls {
   RoomWalls({
-    this.maxYawDiffRad = 3 * math.pi / 180,
+    // 3° made every slightly-off refit a NEW wall (duplicates 5° apart,
+    // device 2026-11-20) instead of feeding the frozen wall's correction.
+    this.maxYawDiffRad = 8 * math.pi / 180,
     this.maxOffsetM = 0.25,
     this.maxGapM = 0.5,
     this.confirmAfter = const Duration(milliseconds: 1000),
@@ -148,10 +150,9 @@ class _RoomWall {
   // locked a wall 15 cm in front of the real one for the whole session
   // (device recording 2026-11-20). A jittery or one-off refit never builds
   // a 3 s streak, so the wall still hard-sticks against noise.
-  double? _pendOffset;
-  double? _pendYaw;
-  DateTime? _pendSince;
-  static const _correctAfter = Duration(seconds: 3);
+  final List<(DateTime, double, double)> _recent = [];
+  static const _correctWindow = Duration(seconds: 3);
+  static const _correctMinSpan = Duration(milliseconds: 2000);
   static const _correctOffsetM = 0.06;
   static const _correctYawRad = 1.5 * math.pi / 180;
 
@@ -190,35 +191,44 @@ class _RoomWall {
     lastSeen = t;
   }
 
+  // Median of the last 3 s of readings: plain-wall fits scatter ±5-10 cm,
+  // so a 'every reading agrees' streak kept restarting and a 20 cm error
+  // took ~25 s to fix (device recording 2026-11-20). Wobble around the
+  // frozen line keeps the median on it and splits the sides 50/50.
   void _considerCorrection(double oOff, double oYaw, DateTime t) {
-    final off = (oOff - offset).abs() > _correctOffsetM;
-    final turn = (oYaw - yaw).abs() > _correctYawRad;
-    if (!off && !turn) {
-      _pendOffset = null;
-      _pendYaw = null;
-      _pendSince = null;
+    _recent.add((t, oOff, oYaw));
+    _recent.removeWhere((e) => t.difference(e.$1) > _correctWindow);
+    if (_recent.length < 6 ||
+        t.difference(_recent.first.$1) < _correctMinSpan) {
       return;
     }
-    final po = _pendOffset;
-    final py = _pendYaw;
-    if (po == null ||
-        py == null ||
-        (oOff - po).abs() > 0.05 ||
-        (oYaw - py).abs() > _correctYawRad) {
-      _pendOffset = oOff;
-      _pendYaw = oYaw;
-      _pendSince = t;
-      return;
+    double median(List<double> v) {
+      final s = [...v]..sort();
+      final n = s.length;
+      return n.isOdd ? s[n ~/ 2] : (s[n ~/ 2 - 1] + s[n ~/ 2]) / 2;
     }
-    _pendOffset = po + (oOff - po) * 0.3;
-    _pendYaw = py + (oYaw - py) * 0.3;
-    if (t.difference(_pendSince!) >= _correctAfter) {
-      offset = _pendOffset!;
-      yaw = _pendYaw!;
-      _pendOffset = null;
-      _pendYaw = null;
-      _pendSince = null;
+
+    final offs = [for (final e in _recent) e.$2];
+    final yaws = [for (final e in _recent) e.$3];
+    final mOff = median(offs);
+    final mYaw = median(yaws);
+    final dOff = mOff - offset;
+    final dYaw = mYaw - yaw;
+    bool sameSide(List<double> v, double ref, double d) {
+      final agree = v.where((x) => (x - ref) * d > 0).length;
+      return agree >= v.length * 0.75;
     }
+
+    var moved = false;
+    if (dOff.abs() > _correctOffsetM && sameSide(offs, offset, dOff)) {
+      offset = mOff;
+      moved = true;
+    }
+    if (dYaw.abs() > _correctYawRad && sameSide(yaws, yaw, dYaw)) {
+      yaw = mYaw;
+      moved = true;
+    }
+    if (moved) _recent.clear();
   }
 
   void mergeFrom(_RoomWall b) {

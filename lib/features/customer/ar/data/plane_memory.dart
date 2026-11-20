@@ -704,7 +704,11 @@ class PlaneMemory {
     if (target > current && _probeCorrected) return;
     // Correct a wrong (too-high) estimate faster than drift upward: the
     // floor is the LOWEST confirmed surface, so a lower one is a correction.
-    final alpha = target < current ? 0.85 : 0.35;
+    // ARCore re-fits a glossy floor ±5 cm every second; following each one
+    // made the paint and wall bases bob (device recording 2026-11-20).
+    // Small differences average slowly; a real correction still lands fast.
+    final small = (target - current).abs() < 0.06;
+    final alpha = small ? 0.12 : (target < current ? 0.85 : 0.35);
     _floorY = current + (target - current) * alpha;
     _floorYStrictEstablished = fromStrict;
   }
