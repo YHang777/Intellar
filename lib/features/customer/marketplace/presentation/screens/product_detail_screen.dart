@@ -21,6 +21,7 @@ import '../../../../../shared/widgets/app_feedback.dart';
 import '../../../../../shared/widgets/empty_state.dart';
 import '../../../../../shared/widgets/product_card.dart';
 import '../../../../../shared/widgets/product_image.dart';
+import '../../../../../shared/widgets/image_viewer.dart';
 import '../../../../../shared/widgets/quantity_stepper.dart';
 import '../../../../../shared/widgets/rating_stars.dart';
 import '../../../../../shared/widgets/section_header.dart';
@@ -170,6 +171,13 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
     );
   }
 
+  Future<void> _openPhotos(List<String> images, int index) async {
+    final end = await showImageViewer(context,
+        images: images, initialIndex: index);
+    if (!mounted || end == null || end == _page) return;
+    _pageCtrl.jumpToPage(end);
+  }
+
   Widget _buildDetail(Product product, bool isWishlisted) {
     final images = product.resolvedImages;
     final buyable = product.isActive && !product.isOutOfStock;
@@ -197,18 +205,40 @@ class _ProductDetailScreenState extends ConsumerState<ProductDetailScreen> {
                             final tag = index == _page
                                 ? 'product-${product.id}'
                                 : 'product-${product.id}-g$index';
-                            return Hero(
-                              tag: tag,
-                              child: ProductImage(
-                                imageUrl: images[index],
-                                width: double.infinity,
-                                fit: BoxFit.cover,
-                                errorIconSize: 56,
+                            return GestureDetector(
+                              key: Key('product-photo-$index'),
+                              onTap: images.isEmpty
+                                  ? null
+                                  : () => _openPhotos(images, index),
+                              child: Hero(
+                                tag: tag,
+                                child: ProductImage(
+                                  imageUrl: images[index],
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorIconSize: 56,
+                                ),
                               ),
                             );
                           },
                         ),
                       ),
+                      if (images.isNotEmpty)
+                        Positioned(
+                          right: 12,
+                          bottom: 12,
+                          child: IgnorePointer(
+                            child: Container(
+                              padding: const EdgeInsets.all(7),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: 0.45),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.open_in_full_rounded,
+                                  size: 16, color: Colors.white),
+                            ),
+                          ),
+                        ),
                       if (images.length > 1)
                         Positioned(
                           bottom: 14,
