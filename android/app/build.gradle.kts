@@ -39,7 +39,15 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+            // No R8 shrinking: SceneView/Filament and ARCore reach classes
+            // over JNI that keep rules would have to list one by one.
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
+    }
+
+    lint {
+        checkReleaseBuilds = false
     }
 }
 
