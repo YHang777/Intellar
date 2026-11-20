@@ -1261,7 +1261,12 @@ bool _wallGroupsCompatible(List<PlaneQuad> a, List<PlaneQuad> b) {
   }
   final ra = _groupYRange(a);
   final rb = _groupYRange(b);
-  if (ra.$2 < rb.$1 - 0.05 || rb.$2 < ra.$1 - 0.05) return false;
+  // Stacked pieces of one wall (a scanned strip at door height and another
+  // near the floor) used to stay two panels with a gap between them
+  // (device screenshot 2026-11-20). Same footprint + same yaw is one wall;
+  // the gap is just unscanned surface. A cabinet face sits 0.4 m+ in front
+  // and still fails the footprint test below.
+  if (ra.$2 < rb.$1 - 0.8 || rb.$2 < ra.$1 - 0.8) return false;
   for (final qa in a) {
     for (final qb in b) {
       if (_wallFootprintGap(qa, qb) <= 0.18) return true;

@@ -925,6 +925,22 @@ void main() {
       expect(corners.every((c) => c.y >= 0 - 1e-9 && c.y <= 2 + 1e-9), isTrue);
     });
 
+    test('stacked pieces of one wall with a gap merge into one panel', () {
+      // Device screenshot 2026-11-20: a strip at door height and another
+      // near the floor, 0.3 m apart, painted as two panels.
+      final low = wall(x: 0, z: 2, height: 1.0, y: 0.5); // y ∈ [0, 1.0]
+      final high = wall(x: 0.2, z: 2.05, height: 0.8, y: 1.7); // [1.3, 2.1]
+      final out = mergeWallQuads([low, high]);
+      expect(out, hasLength(1));
+      expect(out.single.extentZ, closeTo(2.1, 1e-9));
+    });
+
+    test('a cabinet face 0.5 m in front of a wall stays separate', () {
+      final w = wall(x: 0, z: 2, height: 1.0, y: 1.8);
+      final cabinet = wall(x: 0, z: 1.5, height: 0.8, y: 0.4);
+      expect(mergeWallQuads([w, cabinet]), hasLength(2));
+    });
+
     test('perpendicular walls stay separate', () {
       final a = wall(x: 0, z: 2, yaw: 0);
       final b = wall(x: 2, z: 0, yaw: math.pi / 2);
