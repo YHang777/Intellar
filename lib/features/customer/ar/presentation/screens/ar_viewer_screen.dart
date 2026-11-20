@@ -2800,10 +2800,13 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           },
         ),
 
+        // The first-visit guide owns the centre (its progress ring); the
+        // placement target returns once the guide is done.
         if (_sessionStartedAt != null &&
             _arError == null &&
             !_arUnresponsive &&
-            !_busy)
+            !_busy &&
+            !(_guideActive && _guideStep != ArGuideStep.done))
           Positioned.fill(
             child: IgnorePointer(
               child: Center(
