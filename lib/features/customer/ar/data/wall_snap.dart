@@ -16,13 +16,17 @@ class RoomAxis {
   RoomAxis({
     this.tolRad = 15 * math.pi / 180,
     this.seedMinAreaM2 = 1.5,
-    this.refineSteps = 30,
+    // null = keep refining for the whole session. A fixed budget froze the
+    // axis on the first big wall's early fit; a few degrees off there, and
+    // every later wall was snapped onto that wrong angle for good (device
+    // screenshot 2026-11-20: wall base tilted against the door).
+    this.refineSteps,
     this.refineAlpha = 0.1,
   });
 
   final double tolRad;
   final double seedMinAreaM2;
-  final int refineSteps;
+  final int? refineSteps;
   final double refineAlpha;
 
   double? _axis;
@@ -58,7 +62,8 @@ class RoomAxis {
       _axis = wrapQuarter(best.yaw);
       return;
     }
-    if (_refined >= refineSteps) return;
+    final budget = refineSteps;
+    if (budget != null && _refined >= budget) return;
     var sum = 0.0;
     var weight = 0.0;
     for (final w in walls) {

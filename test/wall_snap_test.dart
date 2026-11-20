@@ -72,6 +72,25 @@ void main() {
     expect(frozen, lessThan(10 * _deg));
   });
 
+  test('a wrong first fit does not stick: the axis follows later walls', () {
+    // Device screenshot 2026-11-20: the first big wall fit came in a few
+    // degrees off; with a frozen axis every later, better fit of that wall
+    // was snapped back onto the wrong angle.
+    final ax = RoomAxis(tolRad: 20 * _deg);
+    // Early sparse-cloud fits of the wall agree on the wrong angle for a
+    // few seconds, then the denser cloud gives the true one.
+    for (var i = 0; i < 40; i++) {
+      ax.observe([_wall(7)]);
+    }
+    for (var i = 0; i < 80; i++) {
+      ax.observe([_wall(0)]);
+    }
+    expect(ax.axis!.abs(), lessThan(0.5 * _deg));
+    final snapped = ax.snap([_wall(0)]).single;
+    expect(snapped.yaw.abs(), lessThan(0.5 * _deg),
+        reason: 'the correct fit is no longer turned onto the old 7° axis');
+  });
+
   test('rotation keeps heights and turns the outline with the yaw', () {
     final w = _wall(0);
     final r = rotateWallYaw(w, 10 * _deg);
