@@ -198,6 +198,8 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
   // included, so it tints placed furniture. It fades once something is
   // placed; the More menu can show it fully again (or hide it).
   bool? _overlayShown;
+
+  bool get _overlayVisible => _overlayShown ?? _placed.isEmpty;
   String? _arError;
   bool _planesFound = false;
   bool _busy = false;
@@ -909,7 +911,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
         return;
       }
       if (_vpPollInFlight) return;
-      if (_overlay.value == null) return;
+      if (_overlay.value == null || !_overlayVisible) return;
       _vpPollInFlight = true;
       try {
         final v = await _session?.getCameraViewProjection();
@@ -2633,26 +2635,22 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                 (snap.quads.isEmpty && snap.synthetic == null)) {
               return const SizedBox.shrink();
             }
-            final opacity = switch (_overlayShown) {
-              true => 1.0,
-              false => 0.0,
-              null => _placed.isEmpty ? 1.0 : 0.25,
-            };
+            // Hidden — not just transparent — once furniture is placed:
+            // a partly transparent layer over the camera view plus the
+            // furniture cut-outs recomputed on every camera move made
+            // placing feel very laggy. The More menu can show it again.
+            if (!_overlayVisible) return const SizedBox.shrink();
             return Positioned.fill(
-              child: AnimatedOpacity(
-                opacity: opacity,
-                duration: const Duration(milliseconds: 300),
-                // Inner listenable: matrix-only updates reproject the same
-                // quads (cheap paint) instead of waiting for the next plane
-                // event's rebuild — that gap was the camera swim.
-                child: ValueListenableBuilder<Matrix4?>(
-                  valueListenable: _overlayVp,
-                  builder: (context, vp, _) => PlaneOverlay(
-                    viewProjection: vp ?? snap.vp,
-                    quads: snap.renderQuads,
-                    masks: snap.masks,
-                    zoneCache: snap.zoneCache,
-                  ),
+              // Inner listenable: matrix-only updates reproject the same
+              // quads (cheap paint) instead of waiting for the next plane
+              // event's rebuild — that gap was the camera swim.
+              child: ValueListenableBuilder<Matrix4?>(
+                valueListenable: _overlayVp,
+                builder: (context, vp, _) => PlaneOverlay(
+                  viewProjection: vp ?? snap.vp,
+                  quads: snap.renderQuads,
+                  masks: snap.masks,
+                  zoneCache: snap.zoneCache,
                 ),
               ),
             );
@@ -3485,7 +3483,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
               if (_scanCoachHelpAvailable)
                 item('tips', Icons.help_outline, 'Scanning tips',
                     'Show the scan guide again'),
-              _overlayShown == false
+              !_overlayVisible
                   ? item('areas', Icons.layers_outlined, 'Show detected areas',
                       'Green floor and blue walls the camera has found')
                   : item('areas', Icons.layers_clear_outlined,
@@ -3512,7 +3510,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
       case 'tips':
         setState(() => _scanCoachDismissed = false);
       case 'areas':
-        setState(() => _overlayShown = _overlayShown == false ? true : false);
+        setState(() => _overlayShown = !_overlayVisible);
       case 'clear':
         await _clearAll();
     }

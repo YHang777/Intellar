@@ -60,6 +60,21 @@ void main() {
     });
   }
 
+  // AR scales a catalogue model so its LONGEST edge equals widthMeters
+  // (a chair's longest edge is its height, not its seat width). The office
+  // chair shipped with its seat width there and showed at half size.
+  for (final c in bundled) {
+    test('${c.name} shows at true size in AR', () {
+      final item = ArFurnitureLibrary.forIconName(c.iconName);
+      final longest =
+          [c.defaultWidth, c.defaultHeight, c.heightCm].reduce(math.max) / 100;
+      expect(item.widthMeters / longest, inInclusiveRange(0.8, 1.25),
+          reason: '${c.name}: AR longest edge ${item.widthMeters} m but the '
+              'catalogue piece is ${longest.toStringAsFixed(2)} m on its '
+              'longest side');
+    });
+  }
+
   test('every catalogue piece has its photo tile', () {
     for (final c in roomCatalog) {
       final img = c.imageAsset;
