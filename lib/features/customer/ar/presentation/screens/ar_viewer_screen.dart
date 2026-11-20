@@ -250,7 +250,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
   // Persistent per-plane state: smoothing + reclassification, and a room
   // floor estimate that survives the floor leaving view and self-corrects
   // when new frames confirm a surface is furniture or a wall.
-  final PlaneMemory _planeMemory = PlaneMemory();
+  PlaneMemory _planeMemory = PlaneMemory();
 
   // Flipped once, ArPlacementPolicy.relaxGatesAfter into the session: the
   // placement / reticle gates drop to their relaxed sizes and the plane
@@ -265,7 +265,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
   ArSessionRecorder? _recorder;
   bool _arCounted = false;
   final RoomAxis _roomAxis = RoomAxis(tolRad: 20 * math.pi / 180);
-  final RoomWalls _roomWalls = RoomWalls();
+  RoomWalls _roomWalls = RoomWalls();
   Offset? _lastTapPx;
   Size? _arViewSize;
   double? _lastCameraPitchDeg;
@@ -703,6 +703,11 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     _session!.onTrackingFailure = (reason) {
       if (!mounted) return;
       if (reason == null || reason == 'NONE') {
+        final lostAt = _trackingIssueAt;
+        if (lostAt != null &&
+            DateTime.now().difference(lostAt) >= const Duration(seconds: 1)) {
+          _forgetSceneAfterTrackingLoss(_trackingIssue);
+        }
         _trackingIssue = null;
         _trackingIssueAt = null;
       } else {
@@ -1218,6 +1223,34 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
       planeExtentX: h.floor.extentX,
       planeExtentZ: h.floor.extentZ,
     );
+  }
+
+  // After ARCore loses tracking (too dark, blank wall, fast turn) and
+  // recovers, its world coordinates can shift — device recording
+  // 2026-11-20: floor 55 cm lower after two INSUFFICIENT_LIGHT pauses.
+  // Every remembered wall, floor height and lock was in the OLD frame, so
+  // ghost walls stayed on screen in the wrong place and refused taps
+  // ("Too close to the wall"). Start detection afresh; placed furniture
+  // is anchored natively and stays.
+  void _forgetSceneAfterTrackingLoss(String? reason) {
+    BootTrace.log('ar-screen: tracking recovered after $reason — '
+        'clearing remembered planes and walls');
+    _planeMemory = PlaneMemory();
+    _roomAxis.reset();
+    _roomWalls = RoomWalls();
+    _cloudMasks = const [];
+    _syntheticWalls = const [];
+    _maskTracks = const [];
+    _wallTracks = const [];
+    _payloadPlaneHold.clear();
+    _overlayPolyEma.clear();
+    _overlayCenterY.clear();
+    _overlayLock.clear();
+    _livePlanes = const [];
+    _livePlanesAt = null;
+    _lastPayloadPlanes = const [];
+    _overlayLastBuildAt = null;
+    _overlay.value = null;
   }
 
   List<PlaneQuad> _snapWalls(List<PlaneQuad> walls) {

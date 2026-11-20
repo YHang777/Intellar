@@ -142,9 +142,12 @@ void main() {
           painted.add(q);
         }
         for (final q in painted.skip(1)) {
+          // The axis keeps refining all session (a frozen first guess
+          // locked walls onto a wrong angle), so walls seen at different
+          // moments are square to within a fraction of a degree.
           expect(RoomAxis.wrapQuarter(q.yaw - painted.first.yaw).abs(),
-              lessThan(1e-6),
-              reason: 'every wall must be exactly square to the others');
+              lessThan(0.5 * math.pi / 180),
+              reason: 'every wall must be square to the others');
         }
       });
     }

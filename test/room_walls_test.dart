@@ -79,6 +79,34 @@ void main() {
       expect(after.center.z, closeTo(before.center.z, 1e-9));
     });
 
+    test('a frozen wall moves once the evidence consistently disagrees',
+        () {
+      // Device recording 2026-11-20: frozen on early sparse fits 15 cm in
+      // front of the real wall; every later fit said 15 cm back.
+      final rw = RoomWalls();
+      for (var i = 0; i <= 40; i++) {
+        rw.update([wallAt(0, 2, 0)], baseY: 0, now: at(i * 100));
+      }
+      for (var i = 0; i <= 35; i++) {
+        rw.update([wallAt(0, 2.15, 0)], baseY: 0, now: at(4200 + i * 100));
+      }
+      final after = rw.update(const [], baseY: 0, now: at(8000)).single;
+      expect(after.center.z, closeTo(2.15, 0.02));
+    });
+
+    test('a frozen wall ignores refits that wobble back and forth', () {
+      final rw = RoomWalls();
+      for (var i = 0; i <= 40; i++) {
+        rw.update([wallAt(0, 2, 0)], baseY: 0, now: at(i * 100));
+      }
+      for (var i = 0; i <= 60; i++) {
+        rw.update([wallAt(0, i.isEven ? 2.12 : 1.88, 0)],
+            baseY: 0, now: at(4200 + i * 100));
+      }
+      final after = rw.update(const [], baseY: 0, now: at(11000)).single;
+      expect(after.center.z, closeTo(2.0, 1e-9));
+    });
+
     test('perpendicular walls stay separate', () {
       final rw = RoomWalls();
       List<PlaneQuad> out = const [];

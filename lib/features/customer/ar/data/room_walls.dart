@@ -143,6 +143,18 @@ class _RoomWall {
   final DateTime firstSeen;
   DateTime lastSeen;
 
+  // Frozen walls still accept a CONSISTENT correction: the first seconds
+  // of a plain wall's depth points are the sparsest, and freezing on them
+  // locked a wall 15 cm in front of the real one for the whole session
+  // (device recording 2026-11-20). A jittery or one-off refit never builds
+  // a 3 s streak, so the wall still hard-sticks against noise.
+  double? _pendOffset;
+  double? _pendYaw;
+  DateTime? _pendSince;
+  static const _correctAfter = Duration(seconds: 3);
+  static const _correctOffsetM = 0.06;
+  static const _correctYawRad = 1.5 * math.pi / 180;
+
   _Obs asObs() => _Obs(yaw, offset, s0, s1, yTop, weight);
 
   double? distanceTo(_Obs o, double maxYaw, double maxGap) {
@@ -163,15 +175,50 @@ class _RoomWall {
     final oOff = flipped ? -o.offset : o.offset;
     final os0 = flipped ? -o.s1 : o.s0;
     final os1 = flipped ? -o.s0 : o.s1;
+    final oYaw = flipped ? (o.yaw > yaw ? o.yaw - math.pi : o.yaw + math.pi) : o.yaw;
     if (!frozen) {
       final w = o.weight / (weight + o.weight);
       offset += (oOff - offset) * w;
+      yaw += (oYaw - yaw) * w;
       weight = math.min(weight + o.weight, 50);
+    } else {
+      _considerCorrection(oOff, oYaw, t);
     }
     s0 = math.min(s0, os0);
     s1 = math.max(s1, os1);
     yTop = math.max(yTop, o.yTop);
     lastSeen = t;
+  }
+
+  void _considerCorrection(double oOff, double oYaw, DateTime t) {
+    final off = (oOff - offset).abs() > _correctOffsetM;
+    final turn = (oYaw - yaw).abs() > _correctYawRad;
+    if (!off && !turn) {
+      _pendOffset = null;
+      _pendYaw = null;
+      _pendSince = null;
+      return;
+    }
+    final po = _pendOffset;
+    final py = _pendYaw;
+    if (po == null ||
+        py == null ||
+        (oOff - po).abs() > 0.05 ||
+        (oYaw - py).abs() > _correctYawRad) {
+      _pendOffset = oOff;
+      _pendYaw = oYaw;
+      _pendSince = t;
+      return;
+    }
+    _pendOffset = po + (oOff - po) * 0.3;
+    _pendYaw = py + (oYaw - py) * 0.3;
+    if (t.difference(_pendSince!) >= _correctAfter) {
+      offset = _pendOffset!;
+      yaw = _pendYaw!;
+      _pendOffset = null;
+      _pendYaw = null;
+      _pendSince = null;
+    }
   }
 
   void mergeFrom(_RoomWall b) {
