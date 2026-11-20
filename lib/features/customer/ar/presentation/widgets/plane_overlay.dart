@@ -33,7 +33,11 @@ class PlaneOverlay extends StatelessWidget {
     this.masks = const [],
     this.zoneCache,
     this.ticks = const [],
+    this.floorCuts = const [],
   });
+
+  // Floor-plane regions behind obstacles — subtracted from the floor only.
+  final List<PlaneQuad> floorCuts;
 
   // World points of areas the first-run guide marks as scanned.
   final List<Vector3> ticks;
@@ -51,7 +55,7 @@ class PlaneOverlay extends StatelessWidget {
     return IgnorePointer(
       child: CustomPaint(
         painter: PlaneOverlayPainter(
-            viewProjection, quads, masks, zoneCache, ticks),
+            viewProjection, quads, masks, zoneCache, ticks, floorCuts),
       ),
     );
   }
@@ -59,7 +63,9 @@ class PlaneOverlay extends StatelessWidget {
 
 class PlaneOverlayPainter extends CustomPainter {
   PlaneOverlayPainter(this.viewProjection, this.quads, this.masks,
-      [this.zoneCache, this.ticks = const []]);
+      [this.zoneCache, this.ticks = const [], this.floorCuts = const []]);
+
+  final List<PlaneQuad> floorCuts;
 
   final List<Vector3> ticks;
 
@@ -80,7 +86,7 @@ class PlaneOverlayPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final slowWatch = Stopwatch()..start();
     final cache = zoneCache;
-    late final OverlayZones zones;
+    late OverlayZones zones;
     if (cache != null &&
         cache.size == size &&
         _sameView(cache.vp, viewProjection)) {
@@ -118,6 +124,25 @@ class PlaneOverlayPainter extends CustomPainter {
         walls: boundZonePolys(walls, size, 10),
         masks: boundZonePolys(holes, size, 12),
       );
+      final floorZone = zones.floor;
+      if (floorZone != null && floorCuts.isNotEmpty) {
+        final cut = Path()..fillType = PathFillType.nonZero;
+        var n = 0;
+        for (final q in floorCuts) {
+          final pts = projectPlaneQuad(
+              viewProjection: viewProjection, quad: q, viewport: size);
+          if (pts == null || pts.length < 3) continue;
+          cut.addPolygon(pts, true);
+          n++;
+        }
+        if (n > 0) {
+          zones = OverlayZones(
+            floor: Path.combine(PathOperation.difference, floorZone,
+                Path.combine(PathOperation.union, cut, Path())),
+            wall: zones.wall,
+          );
+        }
+      }
       if (cache != null) {
         cache
           ..size = size
@@ -250,5 +275,6 @@ class PlaneOverlayPainter extends CustomPainter {
       oldDelegate.viewProjection != viewProjection ||
       oldDelegate.quads != quads ||
       oldDelegate.masks != masks ||
-      oldDelegate.ticks != ticks;
+      oldDelegate.ticks != ticks ||
+      oldDelegate.floorCuts != floorCuts;
 }

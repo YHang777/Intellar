@@ -70,7 +70,11 @@ class _OverlaySnapshot {
     required this.quads,
     required this.masks,
     required this.synthetic,
+    this.floorCuts = const [],
   });
+
+  // Floor-plane regions behind detected obstacles: cut from the floor only.
+  final List<PlaneQuad> floorCuts;
 
   final Matrix4 vp;
   final List<PlaneQuad> quads;
@@ -1089,13 +1093,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     // Cloud obstacle cells bypass zone classification — they are holes.
     masks.addAll(_cloudMasks);
     final freeSpace = _floorFreeSpace();
-    if (freeSpace != null) {
-      for (var i = 0; i < quads.length; i++) {
-        if (quads[i].kind == PlaneQuadKind.floor) {
-          quads[i] = _trimFloorQuad(quads[i], freeSpace);
-        }
-      }
-    }
     // Wall bottoms must reach the floor: a wall quad stopping 10–20 cm
     // short leaves exactly the green base strip at the wall foot, and the
     // floor−wall clip can't cut what the wall doesn't cover. Merging
@@ -1163,14 +1160,26 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           cam == null ? null : Vector3(cam.x, cam.y, cam.z);
       _syntheticAnchorY = cam == null ? null : refY;
     }
-    final rawSynthetic = syntheticFloorQuad(
+    final synthetic = syntheticFloorQuad(
       floorY: refY,
       cameraPos: _syntheticAnchor ?? _lastCameraPos,
       existing: quads,
     );
-    final synthetic = rawSynthetic != null && freeSpace != null
-        ? _trimFloorQuad(rawSynthetic, freeSpace)
-        : rawSynthetic;
+    final cutY = refY ?? minFloorPaintY ?? floorY;
+    final floorCuts = freeSpace == null || cutY == null
+        ? const <PlaneQuad>[]
+        : [
+            for (final ring in freeSpace.cutRegions(cutY))
+              PlaneQuad(
+                center: ring.first,
+                yaw: 0,
+                extentX: 0,
+                extentZ: 0,
+                vertical: false,
+                kind: PlaneQuadKind.floor,
+                polygon: ring,
+              ),
+          ];
     if (synthetic == null) {
       _syntheticAnchor = null;
       _syntheticAnchorY = null;
@@ -1184,6 +1193,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
       quads: quads,
       masks: masks,
       synthetic: synthetic,
+      floorCuts: floorCuts,
     );
     _recorder?.paint(
       quads: quads,
@@ -1302,21 +1312,6 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     if (cam == null || _floorObstacles.isEmpty) return null;
     return FloorFreeSpace.fromObstacles(
         camera: cam, obstacles: [for (final e in _floorObstacles) e.$1]);
-  }
-
-  PlaneQuad _trimFloorQuad(PlaneQuad q, FloorFreeSpace free) {
-    final ring = q.polygon.length >= 3 ? q.polygon : planeQuadCorners(q);
-    final trimmed = free.trim(ring);
-    if (identical(trimmed, ring)) return q;
-    return PlaneQuad(
-      center: q.center,
-      yaw: q.yaw,
-      extentX: q.extentX,
-      extentZ: q.extentZ,
-      vertical: q.vertical,
-      kind: q.kind,
-      polygon: trimmed,
-    );
   }
 
   List<PlaneQuad> _snapWalls(List<PlaneQuad> walls) {
@@ -2847,6 +2842,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
                   quads: snap.renderQuads,
                   masks: snap.masks,
                   zoneCache: snap.zoneCache,
+                  floorCuts: snap.floorCuts,
                   ticks: _guideActive ? _guideTicks : const [],
                 ),
               ),

@@ -3,8 +3,10 @@ import 'dart:math' as math;
 import 'package:vector_math/vector_math_64.dart';
 
 // Depth points between these heights above the floor are walls, doors and
-// furniture — anything the floor cannot continue past.
-const double kObstacleMinAboveFloorM = 0.25;
+// tall furniture. Starting at 0.8 m keeps bags, bottles, sofa seats and the
+// user's own legs from cutting the floor (device 2026-11-20: a 0.25 m band
+// trimmed the floor back to a bag 0.7 m away).
+const double kObstacleMinAboveFloorM = 0.8;
 const double kObstacleMaxAboveFloorM = 1.8;
 
 // Free floor around the camera, per viewing direction, from obstacle
@@ -25,7 +27,7 @@ class FloorFreeSpace {
     required Iterable<Vector3> obstacles,
     double binDeg = 4,
     int minPoints = 3,
-    double minDistM = 0.3,
+    double minDistM = 0.8,
   }) {
     final binRad = binDeg * math.pi / 180;
     final n = (2 * math.pi / binRad).ceil();
@@ -55,6 +57,41 @@ class FloorFreeSpace {
     var a = math.atan2(dz, dx);
     if (a < 0) a += 2 * math.pi;
     return (a / binRad).floor() % n;
+  }
+
+  // Floor-plane regions BEHIND the first obstacle in each direction (from
+  // the obstacle out to [reachM]) — subtracted from the painted floor with
+  // a path boolean. Bending the floor outline instead folded it over itself
+  // when the camera was outside the floor and the fill punched holes.
+  List<List<Vector3>> cutRegions(double floorY, {double reachM = 8}) {
+    final out = <List<Vector3>>[];
+    final n = _bins.length;
+    Vector3 at(double ang, double r) => Vector3(
+        camera.x + math.cos(ang) * r, floorY, camera.z + math.sin(ang) * r);
+    var i = 0;
+    while (i < n) {
+      if (_bins[i] == null) {
+        i++;
+        continue;
+      }
+      final start = i;
+      while (i < n && _bins[i] != null) {
+        i++;
+      }
+      final inner = <Vector3>[];
+      for (var b = start; b < i; b++) {
+        final d = _bins[b]!;
+        inner
+          ..add(at(b * binRad, d))
+          ..add(at((b + 1) * binRad, d));
+      }
+      final outer = [
+        at(i * binRad, reachM),
+        at(start * binRad, reachM),
+      ];
+      out.add([...inner, ...outer]);
+    }
+    return out;
   }
 
   double? limitFor(double dx, double dz) =>
