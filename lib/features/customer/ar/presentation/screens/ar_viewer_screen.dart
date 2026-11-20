@@ -58,6 +58,7 @@ import '../widgets/placement_reticle.dart';
 import '../widgets/plane_overlay.dart';
 import '../widgets/scan_coach_overlay.dart';
 import '../widgets/ar_first_run_guide.dart';
+import '../../data/floor_trim.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // One overlay frame: geometry + the same-frame projection matrix. Kept in
@@ -264,6 +265,10 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
   double? _lastCameraY;
   DateTime? _lastCameraYAt;
   Vector3? _lastCameraPos;
+
+  // Recent depth points standing 0.25-1.8 m above the floor (walls, doors,
+  // furniture): the floor paint stops where they start.
+  final List<(Vector3, DateTime)> _floorObstacles = [];
   ArSessionRecorder? _recorder;
   bool _arCounted = false;
   final RoomAxis _roomAxis = RoomAxis(tolRad: 20 * math.pi / 180);
@@ -804,6 +809,21 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
               _maskTracks =
                   updateMaskTracks(tracks: _maskTracks, curr: rawMasks);
               _cloudMasks = emitMaskTracks(_maskTracks);
+              final now = DateTime.now();
+              _floorObstacles.removeWhere(
+                  (e) => now.difference(e.$2) >
+                      const Duration(seconds: 4));
+              for (var i = 0; i + 2 < pts.length; i += 3) {
+                final y = pts[i + 1] - fy;
+                if (y >= kObstacleMinAboveFloorM &&
+                    y <= kObstacleMaxAboveFloorM) {
+                  _floorObstacles
+                      .add((Vector3(pts[i], pts[i + 1], pts[i + 2]), now));
+                }
+              }
+              if (_floorObstacles.length > 1500) {
+                _floorObstacles.removeRange(0, _floorObstacles.length - 1500);
+              }
               final probe = floorProbeCandidate(points: pts, refY: fy);
               _recorder?.cloud(pts,
                   probe: probe,
@@ -1068,6 +1088,14 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     }
     // Cloud obstacle cells bypass zone classification — they are holes.
     masks.addAll(_cloudMasks);
+    final freeSpace = _floorFreeSpace();
+    if (freeSpace != null) {
+      for (var i = 0; i < quads.length; i++) {
+        if (quads[i].kind == PlaneQuadKind.floor) {
+          quads[i] = _trimFloorQuad(quads[i], freeSpace);
+        }
+      }
+    }
     // Wall bottoms must reach the floor: a wall quad stopping 10–20 cm
     // short leaves exactly the green base strip at the wall foot, and the
     // floor−wall clip can't cut what the wall doesn't cover. Merging
@@ -1135,11 +1163,14 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
           cam == null ? null : Vector3(cam.x, cam.y, cam.z);
       _syntheticAnchorY = cam == null ? null : refY;
     }
-    final synthetic = syntheticFloorQuad(
+    final rawSynthetic = syntheticFloorQuad(
       floorY: refY,
       cameraPos: _syntheticAnchor ?? _lastCameraPos,
       existing: quads,
     );
+    final synthetic = rawSynthetic != null && freeSpace != null
+        ? _trimFloorQuad(rawSynthetic, freeSpace)
+        : rawSynthetic;
     if (synthetic == null) {
       _syntheticAnchor = null;
       _syntheticAnchorY = null;
@@ -1255,6 +1286,7 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     _maskTracks = const [];
     _wallTracks = const [];
     _payloadPlaneHold.clear();
+    _floorObstacles.clear();
     _overlayPolyEma.clear();
     _overlayCenterY.clear();
     _overlayLock.clear();
@@ -1263,6 +1295,28 @@ class _ArViewerScreenState extends State<ArViewerScreen> {
     _lastPayloadPlanes = const [];
     _overlayLastBuildAt = null;
     _overlay.value = null;
+  }
+
+  FloorFreeSpace? _floorFreeSpace() {
+    final cam = _lastCameraPos;
+    if (cam == null || _floorObstacles.isEmpty) return null;
+    return FloorFreeSpace.fromObstacles(
+        camera: cam, obstacles: [for (final e in _floorObstacles) e.$1]);
+  }
+
+  PlaneQuad _trimFloorQuad(PlaneQuad q, FloorFreeSpace free) {
+    final ring = q.polygon.length >= 3 ? q.polygon : planeQuadCorners(q);
+    final trimmed = free.trim(ring);
+    if (identical(trimmed, ring)) return q;
+    return PlaneQuad(
+      center: q.center,
+      yaw: q.yaw,
+      extentX: q.extentX,
+      extentZ: q.extentZ,
+      vertical: q.vertical,
+      kind: q.kind,
+      polygon: trimmed,
+    );
   }
 
   List<PlaneQuad> _snapWalls(List<PlaneQuad> walls) {
